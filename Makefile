@@ -1,6 +1,7 @@
-all: lexer
+all: lexer ast
 
 SRCS := lexer.cpp logging.cpp stringprintf.cpp \
+				ast.cpp utils.cpp \
 
 OBJS := $(subst .cpp,.o,$(SRCS))
 
@@ -13,4 +14,5 @@ CFLAGS := -std=c++11
 lexer: $(OBJS)
 	$(CC) -o $@ $^
 
-
+ast: $(OBJS)
+	$(CC) -o $@ $^

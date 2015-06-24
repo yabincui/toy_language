@@ -1,3 +1,5 @@
+#include "lexer.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -8,51 +10,52 @@
 #include "stringprintf.h"
 
 // Lexer
-enum Token {
-  TOKEN_EOF = -1,
-  TOKEN_DEF = -2,
-  TOKEN_EXTERN = -3,
-  TOKEN_IDENTIFIER = -4,
-  TOKEN_NUMBER = -5,
-};
-
 std::map<int, std::string> TokenNameMap = {
     {TOKEN_EOF, "TOKEN_EOF"},
     {TOKEN_DEF, "TOKEN_DEF"},
     {TOKEN_EXTERN, "TOKEN_EXTERN"},
     {TOKEN_IDENTIFIER, "TOKEN_IDENTIFIER"},
-    {TOKEN_NUMBER, "TOKEN_NUMBER"}
+    {TOKEN_NUMBER, "TOKEN_NUMBER"},
+    {TOKEN_OP, "TOKEN_OP"},
+    {TOKEN_LPAREN, "TOKEN_LPAREN"},
+    {TOKEN_RPAREN, "TOKEN_RPAREN"},
 };
 
-static std::string IdentifierStr;
-static double NumVal;
+
+Token getToken();
+Token getNextToken();
 
 static int getChar() {
   return getchar();
 }
 
-static int gettok() {
+static Token produceToken() {
   static int LastChar = ' ';
 
+  Token TokenVal;
   while (isspace(LastChar)) {
     LastChar = getChar();
   }
   if (isalpha(LastChar)) {
-    IdentifierStr = static_cast<char>(LastChar);
+    std::string s(1, static_cast<char>(LastChar));
     while (true) {
       LastChar = getChar();
       if (!isalnum(LastChar)) {
         break;
       }
-      IdentifierStr.push_back(LastChar);
+      s.push_back(LastChar);
     }
-    if (IdentifierStr == "def") {
-      return TOKEN_DEF;
+    if (s == "def") {
+      TokenVal.Type = TOKEN_DEF;
+      return TokenVal;
     }
-    if (IdentifierStr == "extern") {
-      return TOKEN_EXTERN;
+    if (s == "extern") {
+      TokenVal.Type = TOKEN_EXTERN;
+      return TokenVal;
     }
-    return TOKEN_IDENTIFIER;
+    TokenVal.Type = TOKEN_IDENTIFIER;
+    TokenVal.Identifier = s;
+    return TokenVal;
   }
 
   if (isdigit(LastChar)) {
@@ -64,37 +67,71 @@ static int gettok() {
       }
       s.push_back(LastChar);
     }
-    NumVal = strtod(s.c_str(), nullptr);
-    return TOKEN_NUMBER;
+    TokenVal.Type = TOKEN_NUMBER;
+    TokenVal.Number = strtod(s.c_str(), nullptr);
+    return TokenVal;
   }
 
   if (LastChar == EOF) {
-    return TOKEN_EOF;
+    TokenVal.Type = TOKEN_EOF;
+    return TokenVal;
   }
-  int ThisChar = LastChar;
+
+  if (LastChar == '(') {
+    TokenVal.Type = TOKEN_LPAREN;
+  } else if (LastChar == ')') {
+    TokenVal.Type = TOKEN_RPAREN;
+  } else {
+    TokenVal.Type = TOKEN_OP;
+    TokenVal.Op = LastChar;
+  }
   LastChar = getChar();
-  return ThisChar;
+  return TokenVal;
 }
 
-int main() {
+Token CurToken;
+
+Token currToken() {
+  return CurToken;
+}
+
+Token nextToken() {
+  return CurToken = produceToken();
+}
+
+int lexerMain() {
   while (true) {
-    int Token = gettok();
+    Token TokenVal = produceToken();
     std::string TokenStr;
-    if (Token >= 0) {
-      TokenStr = Token;
-    } else {
-      auto it = TokenNameMap.find(Token);
-      if (it == TokenNameMap.end()) {
-        LOG(ERROR) << "Unknown token id: " << Token;
-        return -1;
-      }
-      TokenStr = it->second;
-      if (Token == TOKEN_IDENTIFIER) {
-        TokenStr += " " + IdentifierStr;
-      } else if (Token == TOKEN_NUMBER) {
-        TokenStr += " " + stringPrintf("%lf", NumVal);
-      }
+    auto it = TokenNameMap.find(TokenVal.Type);
+    if (it == TokenNameMap.end()) {
+      LOG(ERROR) << "Unknown token id: " << TokenVal.Type;
+      return -1;
+    }
+    TokenStr = it->second;
+    if (TokenVal.Type == TOKEN_IDENTIFIER) {
+      TokenStr += " " + TokenVal.Identifier;
+    } else if (TokenVal.Type == TOKEN_NUMBER) {
+      TokenStr += " " + stringPrintf("%lf", TokenVal.Number);
+    } else if (TokenVal.Type == TOKEN_OP) {
+      TokenStr += " " + stringPrintf("%c", TokenVal.Op);
     }
     printf("get token %s\n", TokenStr.c_str());
+    if (TokenVal.Type == TOKEN_EOF) {
+      break;
+    }
   }
+  return 0;
+}
+
+extern int astMain();
+
+int main(int argc, char** argv) {
+  if (strstr(argv[0], "lexer") != nullptr) {
+    return lexerMain();
+  } else if (strstr(argv[0], "ast") != nullptr) {
+    return astMain();
+  }
+  LOG(ERROR) << "I don't know what you want to do!";
+  return -1;
 }
