@@ -22,10 +22,6 @@ std::map<int, std::string> TokenNameMap = {
     {TOKEN_SEMICOLON, "TOKEN_SEMICOLON"},
 };
 
-
-Token getToken();
-Token getNextToken();
-
 static int getChar() {
   return getchar();
 }

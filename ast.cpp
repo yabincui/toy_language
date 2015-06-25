@@ -126,8 +126,34 @@ class BinaryExprAST : public ExprAST {
   ExprAST* Right_;
 };
 
+class PrototypeAST : public ExprAST {
+ public:
+  PrototypeAST(const std::string& Name, const std::vector<std::string>& Args)
+      : Name_(Name), Args_(Args) {
+  }
+
+  void dump(int Indent) override {
+    printIndented(Indent, "PrototypeAST %s (", Name_.c_str());
+    for (auto& Arg : Args_) {
+      printf("%s ", Arg.c_str());
+    }
+    printf(")\n");
+  }
+
+  llvm::Function* codegen() override {
+    return nullptr;
+  }
+
+ private:
+  const std::string Name_;
+  const std::vector<std::string> Args_;
+};
+
 static ExprAST* parseExpression();
 
+// Primary := identifier
+//         := number
+//         := ( expression )
 static ExprAST* parsePrimary() {
   Token Curr = currToken();
   if (Curr.Type == TOKEN_IDENTIFIER) {
@@ -168,6 +194,11 @@ static std::set<char> BinaryOpSet = {
     '+', '-', '*', '/',
 };
 
+// BinaryExpression := Primary
+//                  := BinaryExpression + BinaryExpression
+//                  := BinaryExpression - BinaryExpression
+//                  := BinaryExpression * BinaryExpression
+//                  := BinaryExpression / BinaryExpression
 static ExprAST* parseBinaryExpression(int PrevPrecedence = 0) {
   ExprAST* Result = parsePrimary();
   while (true) {
@@ -191,9 +222,12 @@ static ExprAST* parseBinaryExpression(int PrevPrecedence = 0) {
   return Result;
 }
 
+// Expression := BinaryExpression
 static ExprAST* parseExpression() {
   return parseBinaryExpression();
 }
+
+// FunctionPrototype := identifier ( identifier* )
 
 int astMain() {
   while (1) {
