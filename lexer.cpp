@@ -19,6 +19,7 @@ std::map<int, std::string> TokenNameMap = {
     {TOKEN_OP, "TOKEN_OP"},
     {TOKEN_LPAREN, "TOKEN_LPAREN"},
     {TOKEN_RPAREN, "TOKEN_RPAREN"},
+    {TOKEN_SEMICOLON, "TOKEN_SEMICOLON"},
 };
 
 
@@ -81,6 +82,8 @@ static Token produceToken() {
     TokenVal.Type = TOKEN_LPAREN;
   } else if (LastChar == ')') {
     TokenVal.Type = TOKEN_RPAREN;
+  } else if (LastChar == ';') {
+    TokenVal.Type == TOKEN_SEMICOLON;
   } else {
     TokenVal.Type = TOKEN_OP;
     TokenVal.Op = LastChar;
@@ -125,12 +128,15 @@ int lexerMain() {
 }
 
 extern int astMain();
+extern int codeMain();
 
 int main(int argc, char** argv) {
   if (strstr(argv[0], "lexer") != nullptr) {
     return lexerMain();
   } else if (strstr(argv[0], "ast") != nullptr) {
     return astMain();
+  } else if (strstr(argv[0], "code") != nullptr) {
+    return codeMain();
   }
   LOG(ERROR) << "I don't know what you want to do!";
   return -1;

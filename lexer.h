@@ -12,6 +12,7 @@ enum TokenType {
   TOKEN_OP,
   TOKEN_LPAREN,
   TOKEN_RPAREN,
+  TOKEN_SEMICOLON,
 };
 
 struct Token {

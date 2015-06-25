@@ -5,9 +5,21 @@
 #include <string>
 #include <vector>
 
+#include <llvm/ADT/APFloat.h>
+#include <llvm/IR/Constants.h>
+#include <llvm/IR/IRBuilder.h>
+#include <llvm/IR/LLVMContext.h>
+#include <llvm/IR/Module.h>
+#include <llvm/IR/Value.h>
+
 #include "lexer.h"
 #include "logging.h"
+#include "stringprintf.h"
 #include "utils.h"
+
+static std::unique_ptr<llvm::Module> TheModule;
+static std::unique_ptr<llvm::IRBuilder<>> Builder;
+static std::vector<llvm::Value*> ValueStack;
 
 class ExprAST {
  public:
@@ -15,7 +27,10 @@ class ExprAST {
   }
 
   virtual void dump(int Indent = 0) = 0;
+  virtual llvm::Value* codegen() = 0;
 };
+
+static std::vector<std::unique_ptr<ExprAST>> ExprStorage;
 
 class NumberExprAST : public ExprAST {
  public:
@@ -26,9 +41,18 @@ class NumberExprAST : public ExprAST {
     printIndented(Indent, "NumberExprAST val = %lf\n", Val_);
   }
 
+  llvm::Value* codegen() override {
+    return llvm::ConstantFP::get(llvm::getGlobalContext(), llvm::APFloat(Val_));
+  }
+
  private:
   double Val_;
 };
+
+static std::string getTmpName() {
+  static uint64_t TmpCount = 0;
+  return stringPrintf("tmp.%" PRIu64, ++TmpCount);
+}
 
 class VariableExprAST : public ExprAST {
  public:
@@ -37,6 +61,14 @@ class VariableExprAST : public ExprAST {
 
   void dump(int Indent) override {
     printIndented(Indent, "VariableExprAST name = %s\n", Name_.c_str());
+  }
+
+  llvm::Value* codegen() override {
+    llvm::Type* Type = llvm::Type::getDoubleTy(llvm::getGlobalContext());
+    llvm::Constant* Variable = TheModule->getOrInsertGlobal(Name_, llvm::Type::getDoubleTy(llvm::getGlobalContext()));
+    llvm::LoadInst* LoadInst = Builder->CreateLoad(Variable, getTmpName());
+    ValueStack.push_back(LoadInst);
+    return LoadInst;
   }
 
  private:
@@ -55,13 +87,44 @@ class BinaryExprAST : public ExprAST {
     Right_->dump(Indent + 1);
   }
 
+  llvm::Value* codegen() override {
+    llvm::Value* LeftValue = Left_->codegen();
+    if (LeftValue == nullptr) {
+      return nullptr;
+    }
+    llvm::Value* RightValue = Right_->codegen();
+    if (RightValue == nullptr) {
+      return nullptr;
+    }
+
+    llvm::Value* Result = nullptr;
+
+    switch (Op_) {
+      case '+':
+        Result = Builder->CreateFAdd(LeftValue, RightValue, getTmpName());
+        break;
+      case '-':
+        Result = Builder->CreateFSub(LeftValue, RightValue, getTmpName());
+        break;
+      case '*':
+        Result = Builder->CreateFMul(LeftValue, RightValue, getTmpName());
+        break;
+      case '/':
+        Result = Builder->CreateFDiv(LeftValue, RightValue, getTmpName());
+        break;
+      default:
+        LOG(ERROR) << "Unhandled binary operator " << Op_;
+        return nullptr;
+    }
+    ValueStack.push_back(Result);
+    return Result;
+  }
+
  private:
   char Op_;
   ExprAST* Left_;
   ExprAST* Right_;
 };
-
-static std::vector<std::unique_ptr<ExprAST>> ExprStorage;
 
 static ExprAST* parseExpression();
 
@@ -138,17 +201,10 @@ int astMain() {
     Token CurToken = nextToken();
     switch (CurToken.Type) {
       case TOKEN_EOF: return 0;
-      case TOKEN_OP:
-      {
-        if (CurToken.Op == ';') {
-          break;
-        }
-        ExprAST* Expr = parseExpression();
-        Expr->dump(0);
-        break;
-      }
+      case TOKEN_SEMICOLON: break;
       case TOKEN_IDENTIFIER:  // go through
-      case TOKEN_NUMBER:
+      case TOKEN_NUMBER:      // go through
+      case TOKEN_LPAREN:
       {
         ExprAST* Expr = parseExpression();
         Expr->dump(0);
@@ -159,4 +215,53 @@ int astMain() {
         return -1;
     }
   }
+}
+
+int codeMain() {
+  llvm::LLVMContext& Context = llvm::getGlobalContext();
+  TheModule.reset(new llvm::Module("my module", Context));
+  Builder.reset(new llvm::IRBuilder<>(Context));
+
+  size_t ValueStackPos = 0;
+  while (1) {
+    printf(">");
+    Token CurToken = nextToken();
+    switch (CurToken.Type) {
+      case TOKEN_EOF: break;
+      case TOKEN_SEMICOLON: break;
+      case TOKEN_IDENTIFIER:  // go through
+      case TOKEN_NUMBER:      // go through
+      case TOKEN_LPAREN:
+      {
+        ExprAST* Expr = parseExpression();
+        if (Expr == nullptr) {
+          return -1;
+        }
+        llvm::Value* RetVal = Expr->codegen();
+        if (RetVal == nullptr) {
+          return -1;
+        }
+        while (ValueStackPos < ValueStack.size()) {
+          ValueStack[ValueStackPos]->dump();
+          ++ValueStackPos;
+        }
+      }
+    }
+
+    if (CurToken.Type == TOKEN_EOF) {
+      break;
+    }
+  }
+
+  printf("\n");
+  TheModule->dump();
+  for (auto& Value : ValueStack) {
+    Value->dump();
+  }
+  for (auto it = ValueStack.rbegin(); it != ValueStack.rend(); ++it) {
+    delete *it;
+  }
+  Builder.reset(nullptr);
+  TheModule.reset(nullptr);
+  return 0;
 }
