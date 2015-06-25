@@ -83,7 +83,7 @@ static Token produceToken() {
   } else if (LastChar == ')') {
     TokenVal.Type = TOKEN_RPAREN;
   } else if (LastChar == ';') {
-    TokenVal.Type == TOKEN_SEMICOLON;
+    TokenVal.Type = TOKEN_SEMICOLON;
   } else {
     TokenVal.Type = TOKEN_OP;
     TokenVal.Op = LastChar;

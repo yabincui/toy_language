@@ -245,7 +245,11 @@ int codeMain() {
           ValueStack[ValueStackPos]->dump();
           ++ValueStackPos;
         }
+        break;
       }
+      default:
+    	  LOG(ERROR) << "Unhandled first token " << CurToken.Type;
+    	  return -1;
     }
 
     if (CurToken.Type == TOKEN_EOF) {

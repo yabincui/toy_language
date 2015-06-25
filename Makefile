@@ -1,4 +1,6 @@
-all: lexer ast code
+TARGETS := lexer ast code
+
+all: $(TARGETS)
 
 SRCS := lexer.cpp logging.cpp stringprintf.cpp \
 				ast.cpp utils.cpp \
@@ -6,11 +8,16 @@ SRCS := lexer.cpp logging.cpp stringprintf.cpp \
 OBJS := $(subst .cpp,.o,$(SRCS))
 
 CC := g++
-CFLAGS := -std=c++11
 
-LDFLAGS := -lLLVMCore -lLLVMSupport -lpthread -ltinfo -ldl
+CFLAGS_FOR_MACOS = -D__STDC_CONSTANT_MACROS -D__STDC_LIMIT_MACROS
 
-%.o : %.cpp
+CFLAGS := -std=c++11 $(CFLAGS_FOR_MACOS)
+
+LDFLAGS := -lLLVMCore -lLLVMSupport -lpthread -ldl -lncurses
+
+DEPS := Makefile $(wildcard *.h)
+
+%.o : %.cpp $(DEPS)
 	$(CC) $(CFLAGS) -c -o $@ $<
 	
 lexer: $(OBJS)
@@ -21,3 +28,6 @@ ast: $(OBJS)
 	
 code: $(OBJS)
 	$(CC) -o $@ $^ $(LDFLAGS)
+	
+clean: $(DEPS)
+	rm -rf $(OBJS) $(TARGETS)
