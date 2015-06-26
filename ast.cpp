@@ -37,7 +37,7 @@ class NumberExprAST : public ExprAST {
   NumberExprAST(double Val) : Val_(Val) {
   }
 
-  void dump(int Indent) override {
+  void dump(int Indent = 0) override {
     printIndented(Indent, "NumberExprAST val = %lf\n", Val_);
   }
 
@@ -59,7 +59,7 @@ class VariableExprAST : public ExprAST {
   VariableExprAST(const std::string& Name) : Name_(Name) {
   }
 
-  void dump(int Indent) override {
+  void dump(int Indent = 0) override {
     printIndented(Indent, "VariableExprAST name = %s\n", Name_.c_str());
   }
 
@@ -81,7 +81,7 @@ class BinaryExprAST : public ExprAST {
       : Op_(Op), Left_(Left), Right_(Right) {
   }
 
-  void dump(int Indent) override {
+  void dump(int Indent = 0) override {
     printIndented(Indent, "BinaryExprAST op = %c\n", Op_);
     Left_->dump(Indent + 1);
     Right_->dump(Indent + 1);
@@ -132,16 +132,20 @@ class PrototypeAST : public ExprAST {
       : Name_(Name), Args_(Args) {
   }
 
-  void dump(int Indent) override {
+  void dump(int Indent = 0) override {
     printIndented(Indent, "PrototypeAST %s (", Name_.c_str());
-    for (auto& Arg : Args_) {
-      printf("%s ", Arg.c_str());
+    for (size_t i = 0; i < Args_.size(); ++i) {
+      printf("%s%s", Args_[i].c_str(), (i == Args_.size() - 1) ? ")\n" : ", ");
     }
-    printf(")\n");
   }
 
   llvm::Function* codegen() override {
-    return nullptr;
+    std::vector<llvm::Type*> Doubles(Args_.size(), llvm::Type::getDoubleTy(llvm::getGlobalContext()));
+    llvm::FunctionType* FunctionType = llvm::FunctionType::get(llvm::Type::getDoubleTy(llvm::getGlobalContext()),
+                                                               Doubles, false);
+    llvm::Function* Function = llvm::Function::Create(FunctionType, llvm::GlobalValue::ExternalLinkage,
+                                                      Name_, TheModule.get());
+    return Function;
   }
 
  private:
@@ -179,7 +183,7 @@ static ExprAST* parsePrimary() {
     nextToken();
     return Expr;
   }
-  LOG(ERROR) << "Unexpected token " << Curr.Type;
+  LOG(ERROR) << "Unexpected token " << Curr.toString();
   return nullptr;
 }
 
@@ -227,7 +231,58 @@ static ExprAST* parseExpression() {
   return parseBinaryExpression();
 }
 
-// FunctionPrototype := identifier ( identifier* )
+// FunctionPrototype := identifier ( identifier1,identifier2,... )
+static PrototypeAST* parseFunctionPrototype() {
+  Token Curr = currToken();
+  if (Curr.Type != TOKEN_IDENTIFIER) {
+    LOG(ERROR) << "Unexpected token " << Curr.toString();
+    return nullptr;
+  }
+  std::string Name = Curr.Identifier;
+  Curr = nextToken();
+  if (Curr.Type != TOKEN_LPAREN) {
+    LOG(ERROR) << "Unexpected token " << Curr.toString();
+    return nullptr;
+  }
+  std::vector<std::string> Args;
+  while (true) {
+    Curr = nextToken();
+    if (Curr.Type == TOKEN_IDENTIFIER) {
+      Args.push_back(Curr.Identifier);
+    } else {
+      LOG(ERROR) << "Unexpected token " << Curr.toString();
+      return nullptr;
+    }
+    Curr = nextToken();
+    if (Curr.Type == TOKEN_COMMA) {
+      continue;
+    } else if (Curr.Type == TOKEN_RPAREN) {
+      nextToken();
+      break;
+    }
+    LOG(ERROR) << "Unexpected token " << Curr.toString();
+    return nullptr;
+  }
+  PrototypeAST* Prototype = new PrototypeAST(Name, Args);
+  return Prototype;
+}
+
+// Extern := 'extern' FunctionPrototype ';'
+static PrototypeAST* parseExtern() {
+  Token Curr = currToken();
+  if (Curr.Type != TOKEN_EXTERN) {
+    LOG(ERROR) << "Unexpected token " << Curr.toString();
+    return nullptr;
+  }
+  nextToken();
+  PrototypeAST* Prototype = parseFunctionPrototype();
+  Curr = currToken();
+  if (Curr.Type != TOKEN_SEMICOLON) {
+    LOG(ERROR) << "Unexpected token " << Curr.toString();
+    return nullptr;
+  }
+  return Prototype;
+}
 
 int astMain() {
   while (1) {
@@ -242,6 +297,15 @@ int astMain() {
       {
         ExprAST* Expr = parseExpression();
         Expr->dump(0);
+        break;
+      }
+      case TOKEN_EXTERN:
+      {
+        PrototypeAST* Prototype = parseExtern();
+        if (Prototype == nullptr) {
+          return -1;
+        }
+        Prototype->dump();
         break;
       }
       default:
@@ -279,6 +343,19 @@ int codeMain() {
           ValueStack[ValueStackPos]->dump();
           ++ValueStackPos;
         }
+        break;
+      }
+      case TOKEN_EXTERN:
+      {
+        PrototypeAST* Prototype = parseExtern();
+        if (Prototype == nullptr) {
+          return -1;
+        }
+        llvm::Function* Function = Prototype->codegen();
+        if (Function == nullptr) {
+          return -1;
+        }
+        Function->dump();
         break;
       }
       default:

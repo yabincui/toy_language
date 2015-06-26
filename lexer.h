@@ -13,6 +13,7 @@ enum TokenType {
   TOKEN_LPAREN,
   TOKEN_RPAREN,
   TOKEN_SEMICOLON,
+  TOKEN_COMMA,
 };
 
 struct Token {
@@ -20,6 +21,8 @@ struct Token {
   std::string Identifier;
   double Number;
   char Op;
+
+  std::string toString() const;
 };
 
 Token currToken();

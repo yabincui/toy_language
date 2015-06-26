@@ -20,7 +20,25 @@ std::map<int, std::string> TokenNameMap = {
     {TOKEN_LPAREN, "TOKEN_LPAREN"},
     {TOKEN_RPAREN, "TOKEN_RPAREN"},
     {TOKEN_SEMICOLON, "TOKEN_SEMICOLON"},
+    {TOKEN_COMMA, "TOKEN_COMMA"},
 };
+
+std::string Token::toString() const {
+  auto it = TokenNameMap.find(Type);
+  if (it == TokenNameMap.end()) {
+    return stringPrintf("Token (Unknown Type %d)", Type);
+  }
+  std::string s = stringPrintf("Token (%s", it->second.c_str());
+  if (Type == TOKEN_IDENTIFIER) {
+    s += ", " + Identifier;
+  } else if (Type == TOKEN_NUMBER) {
+    s += ", " + stringPrintf("%lf", Number);
+  } else if (Type == TOKEN_OP) {
+    s += ", " + stringPrintf("%c", Op);
+  }
+  s += ")";
+  return s;
+}
 
 static int getChar() {
   return getchar();
@@ -80,6 +98,8 @@ static Token produceToken() {
     TokenVal.Type = TOKEN_RPAREN;
   } else if (LastChar == ';') {
     TokenVal.Type = TOKEN_SEMICOLON;
+  } else if (LastChar == ',') {
+    TokenVal.Type = TOKEN_COMMA;
   } else {
     TokenVal.Type = TOKEN_OP;
     TokenVal.Op = LastChar;
@@ -95,27 +115,15 @@ Token currToken() {
 }
 
 Token nextToken() {
-  return CurToken = produceToken();
+  CurToken = produceToken();
+  LOG(DEBUG) << "produceToken " << CurToken.toString();
+  return CurToken;
 }
 
 int lexerMain() {
   while (true) {
     Token TokenVal = produceToken();
-    std::string TokenStr;
-    auto it = TokenNameMap.find(TokenVal.Type);
-    if (it == TokenNameMap.end()) {
-      LOG(ERROR) << "Unknown token id: " << TokenVal.Type;
-      return -1;
-    }
-    TokenStr = it->second;
-    if (TokenVal.Type == TOKEN_IDENTIFIER) {
-      TokenStr += " " + TokenVal.Identifier;
-    } else if (TokenVal.Type == TOKEN_NUMBER) {
-      TokenStr += " " + stringPrintf("%lf", TokenVal.Number);
-    } else if (TokenVal.Type == TOKEN_OP) {
-      TokenStr += " " + stringPrintf("%c", TokenVal.Op);
-    }
-    printf("get token %s\n", TokenStr.c_str());
+    printf("get token %s\n", TokenVal.toString().c_str());
     if (TokenVal.Type == TOKEN_EOF) {
       break;
     }
