@@ -18,8 +18,8 @@
 #include "utils.h"
 
 static std::unique_ptr<llvm::Module> TheModule;
+static llvm::Function* CurrFunction;
 static std::unique_ptr<llvm::IRBuilder<>> Builder;
-static std::vector<llvm::Value*> ValueStack;
 
 class ExprAST {
  public:
@@ -65,9 +65,13 @@ class VariableExprAST : public ExprAST {
 
   llvm::Value* codegen() override {
     llvm::Type* Type = llvm::Type::getDoubleTy(llvm::getGlobalContext());
-    llvm::Constant* Variable = TheModule->getOrInsertGlobal(Name_, llvm::Type::getDoubleTy(llvm::getGlobalContext()));
+    if (CurrFunction == nullptr) {
+      llvm::Constant* Variable = TheModule->getOrInsertGlobal(Name_, llvm::Type::getDoubleTy(llvm::getGlobalContext()));
+    } else {
+      llvm::ValueSymbolTable SymbolTable = CurrFunction->getValueSymbolTable();
+      llvm::Value Value = SymbolTable.lookup(Name_);
+    }
     llvm::LoadInst* LoadInst = Builder->CreateLoad(Variable, getTmpName());
-    ValueStack.push_back(LoadInst);
     return LoadInst;
   }
 
@@ -116,7 +120,6 @@ class BinaryExprAST : public ExprAST {
         LOG(ERROR) << "Unhandled binary operator " << Op_;
         return nullptr;
     }
-    ValueStack.push_back(Result);
     return Result;
   }
 
@@ -145,12 +148,67 @@ class PrototypeAST : public ExprAST {
                                                                Doubles, false);
     llvm::Function* Function = llvm::Function::Create(FunctionType, llvm::GlobalValue::ExternalLinkage,
                                                       Name_, TheModule.get());
+    auto ArgIt = Function->arg_begin();
+    for (size_t i = 0; i < Function->arg_size(); ++i, ++ArgIt) {
+      ArgIt->setName(Args_[i]);
+    }
     return Function;
   }
 
  private:
   const std::string Name_;
   const std::vector<std::string> Args_;
+};
+
+class CurrFunctionGuard {
+ public:
+  CurrFunctionGuard(llvm::Function* Function) {
+    SavedFunction_ = CurrFunction;
+    CurrFunction = Function;
+  }
+
+  ~CurrFunctionGuard() {
+    CurrFunction = SavedFunction_;
+  }
+
+ private:
+  llvm::Function* SavedFunction_;
+};
+
+class FunctionAST : public ExprAST {
+ public:
+  FunctionAST(PrototypeAST* Prototype, ExprAST* Body)
+      : Prototype_(Prototype), Body_(Body) {
+  }
+
+  void dump(int Indent = 0) {
+    printIndented(Indent, "FunctionAST\n");
+    Prototype_->dump(Indent + 1);
+    Body_->dump(Indent + 1);
+  }
+
+  llvm::Function* codegen() override {
+    llvm::Function* Function = Prototype_->codegen();
+    if (Function == nullptr) {
+      return nullptr;
+    }
+    CurrFunctionGuard Guard(Function);
+    std::string BodyLabel = stringPrintf("%s.entry", Function->getName().data());
+    llvm::BasicBlock* BasicBlock = llvm::BasicBlock::Create(llvm::getGlobalContext(),
+                                                            BodyLabel, Function);
+    llvm::IRBuilder<>::InsertPointGuard InsertPointGuard(*Builder);
+    Builder->SetInsertPoint(BasicBlock);
+    llvm::Value* RetVal = Body_->codegen();
+    if (RetVal == nullptr) {
+      return nullptr;
+    }
+    Builder->CreateRet(RetVal);
+    return Function;
+  }
+
+ private:
+  PrototypeAST* Prototype_;
+  ExprAST* Body_;
 };
 
 static ExprAST* parseExpression();
@@ -284,6 +342,23 @@ static PrototypeAST* parseExtern() {
   return Prototype;
 }
 
+// Function := 'def' FunctionPrototype Expression ';'
+static FunctionAST* parseFunction() {
+  Token Curr = currToken();
+  if (Curr.Type != TOKEN_DEF) {
+    LOG(ERROR) <<"Unexpected token " << Curr.toString();
+    return nullptr;
+  }
+  nextToken();
+  PrototypeAST* Prototype = parseFunctionPrototype();
+  ExprAST* Body = parseExpression();
+  if (Body == nullptr) {
+    return nullptr;
+  }
+  FunctionAST* Function = new FunctionAST(Prototype, Body);
+  return Function;
+}
+
 int astMain() {
   while (1) {
     printf(">");
@@ -308,6 +383,15 @@ int astMain() {
         Prototype->dump();
         break;
       }
+      case TOKEN_DEF:
+      {
+        FunctionAST* Function = parseFunction();
+        if (Function == nullptr) {
+          return -1;
+        }
+        Function->dump();
+        break;
+      }
       default:
         LOG(ERROR) << "Unhandled first token " << CurToken.Type;
         return -1;
@@ -318,9 +402,10 @@ int astMain() {
 int codeMain() {
   llvm::LLVMContext& Context = llvm::getGlobalContext();
   TheModule.reset(new llvm::Module("my module", Context));
-  Builder.reset(new llvm::IRBuilder<>(Context));
+  llvm::BasicBlock* GlobalBlock = llvm::BasicBlock::Create(Context, "globalBlock");
+  Builder.reset(new llvm::IRBuilder<>(GlobalBlock));
 
-  size_t ValueStackPos = 0;
+  size_t GlobalInstPos = 0;
   while (1) {
     printf(">");
     Token CurToken = nextToken();
@@ -339,10 +424,14 @@ int codeMain() {
         if (RetVal == nullptr) {
           return -1;
         }
-        while (ValueStackPos < ValueStack.size()) {
-          ValueStack[ValueStackPos]->dump();
-          ++ValueStackPos;
+        auto InstIt = GlobalBlock->begin();
+        for (size_t i = 0; i < GlobalInstPos; ++i) {
+          ++InstIt;
         }
+        for (; InstIt != GlobalBlock->end(); ++InstIt) {
+          InstIt->dump();
+        }
+        GlobalInstPos = GlobalBlock->size();
         break;
       }
       case TOKEN_EXTERN:
@@ -351,11 +440,24 @@ int codeMain() {
         if (Prototype == nullptr) {
           return -1;
         }
-        llvm::Function* Function = Prototype->codegen();
+        llvm::Function* FunctionCode = Prototype->codegen();
+        if (FunctionCode == nullptr) {
+          return -1;
+        }
+        FunctionCode->dump();
+        break;
+      }
+      case TOKEN_DEF:
+      {
+        FunctionAST* Function = parseFunction();
         if (Function == nullptr) {
           return -1;
         }
-        Function->dump();
+        llvm::Function* FunctionCode = Function->codegen();
+        if (FunctionCode == nullptr) {
+          return -1;
+        }
+        FunctionCode->dump();
         break;
       }
       default:
@@ -370,12 +472,10 @@ int codeMain() {
 
   printf("\n");
   TheModule->dump();
-  for (auto& Value : ValueStack) {
-    Value->dump();
+  for (auto InstIt = GlobalBlock->begin(); InstIt != GlobalBlock->end(); ++InstIt) {
+    InstIt->dump();
   }
-  for (auto it = ValueStack.rbegin(); it != ValueStack.rend(); ++it) {
-    delete *it;
-  }
+  delete GlobalBlock;
   Builder.reset(nullptr);
   TheModule.reset(nullptr);
   return 0;
