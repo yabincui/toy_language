@@ -65,12 +65,7 @@ class VariableExprAST : public ExprAST {
 
   llvm::Value* codegen() override {
     llvm::Type* Type = llvm::Type::getDoubleTy(llvm::getGlobalContext());
-    if (CurrFunction == nullptr) {
-      llvm::Constant* Variable = TheModule->getOrInsertGlobal(Name_, llvm::Type::getDoubleTy(llvm::getGlobalContext()));
-    } else {
-      llvm::ValueSymbolTable SymbolTable = CurrFunction->getValueSymbolTable();
-      llvm::Value Value = SymbolTable.lookup(Name_);
-    }
+    llvm::Constant* Variable = TheModule->getOrInsertGlobal(Name_, llvm::Type::getDoubleTy(llvm::getGlobalContext()));
     llvm::LoadInst* LoadInst = Builder->CreateLoad(Variable, getTmpName());
     return LoadInst;
   }
