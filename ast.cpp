@@ -217,18 +217,84 @@ class FunctionAST : public ExprAST {
   ExprAST* Body_;
 };
 
+class CallExprAST : public ExprAST {
+ public:
+  CallExprAST(const std::string Callee, const std::vector<ExprAST*>& Args)
+      : Callee_(Callee), Args_(Args) {
+  }
+
+  void dump(int Indent = 0) override {
+    printIndented(Indent, "CallExprAST Callee = %s\n", Callee_.c_str());
+    for (size_t i = 0; i < Args_.size(); ++i) {
+      printIndented(Indent + 1, "Arg #%zu:\n", i);
+      Args_[i]->dump(Indent + 2);
+    }
+  }
+
+  llvm::Value* codegen() override {
+    llvm::Function* Function = TheModule->getFunction(Callee_);
+    if (Function == nullptr) {
+      LOG(ERROR) << "Unknown function: " << Callee_;
+      return nullptr;
+    }
+    if (Function->arg_size() != Args_.size()) {
+      LOG(ERROR) << "Function " << Callee_ << " needs " << Function->arg_size() <<
+          " arguments, but given " << Args_.size() << " arguments";
+      return nullptr;
+    }
+    std::vector<llvm::Value*> Values;
+    for (auto& Arg : Args_) {
+      llvm::Value* Value = Arg->codegen();
+      Values.push_back(Value);
+    }
+    return Builder->CreateCall(Function, Values);
+  }
+
+ private:
+  std::string Callee_;
+  std::vector<ExprAST*> Args_;
+};
+
 static ExprAST* parseExpression();
 
 // Primary := identifier
 //         := number
 //         := ( expression )
+//         := identifier (expr,...)
 static ExprAST* parsePrimary() {
   Token Curr = currToken();
   if (Curr.Type == TOKEN_IDENTIFIER) {
-    ExprAST* Expr = new VariableExprAST(Curr.Identifier);
-    ExprStorage.push_back(std::unique_ptr<ExprAST>(Expr));
-    nextToken();
-    return Expr;
+    Token Next = nextToken();
+    if (Next.Type != TOKEN_LPAREN) {
+      ExprAST* Expr = new VariableExprAST(Curr.Identifier);
+      ExprStorage.push_back(std::unique_ptr<ExprAST>(Expr));
+      return Expr;
+    } else {
+      std::string Callee = Curr.Identifier;
+      Curr = nextToken();
+      std::vector<ExprAST*> Args;
+      if (Curr.Type != TOKEN_RPAREN) {
+        while (true) {
+          ExprAST* Arg = parseExpression();
+          if (Arg == nullptr) {
+            return nullptr;
+          }
+          Args.push_back(Arg);
+          Curr = currToken();
+          if (Curr.Type == TOKEN_COMMA) {
+            nextToken();
+          } else if (Curr.Type == TOKEN_RPAREN) {
+            break;
+          } else {
+            LOG(ERROR) << "Unexpected token " << Curr.toString();
+            return nullptr;
+          }
+        }
+      }
+      CallExprAST* CallExpr = new CallExprAST(Callee, Args);
+      nextToken();
+      return CallExpr;
+    }
   }
   if (Curr.Type == TOKEN_NUMBER) {
     ExprAST* Expr = new NumberExprAST(Curr.Number);
