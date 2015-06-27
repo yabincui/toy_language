@@ -1,0 +1,9 @@
+3 + 4 * 2;
+a + b * c;
+
+extern extern_a(extern_b, extern_c);
+
+def def_a(def_b, def_c)
+  def_b + 2 * def_c - 6;
+  
+def_a(2, 4);

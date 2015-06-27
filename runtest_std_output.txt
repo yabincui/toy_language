@@ -1,0 +1,69 @@
+get token Token (TOKEN_NUMBER, 3.000000)
+get token Token (TOKEN_OP, +)
+get token Token (TOKEN_NUMBER, 4.000000)
+get token Token (TOKEN_OP, *)
+get token Token (TOKEN_NUMBER, 2.000000)
+get token Token (TOKEN_SEMICOLON)
+get token Token (TOKEN_IDENTIFIER, a)
+get token Token (TOKEN_OP, +)
+get token Token (TOKEN_IDENTIFIER, b)
+get token Token (TOKEN_OP, *)
+get token Token (TOKEN_IDENTIFIER, c)
+get token Token (TOKEN_SEMICOLON)
+get token Token (TOKEN_EXTERN)
+get token Token (TOKEN_IDENTIFIER, extern_a)
+get token Token (TOKEN_LPAREN)
+get token Token (TOKEN_IDENTIFIER, extern_b)
+get token Token (TOKEN_COMMA)
+get token Token (TOKEN_IDENTIFIER, extern_c)
+get token Token (TOKEN_RPAREN)
+get token Token (TOKEN_SEMICOLON)
+get token Token (TOKEN_DEF)
+get token Token (TOKEN_IDENTIFIER, def_a)
+get token Token (TOKEN_LPAREN)
+get token Token (TOKEN_IDENTIFIER, def_b)
+get token Token (TOKEN_COMMA)
+get token Token (TOKEN_IDENTIFIER, def_c)
+get token Token (TOKEN_RPAREN)
+get token Token (TOKEN_IDENTIFIER, def_b)
+get token Token (TOKEN_OP, +)
+get token Token (TOKEN_NUMBER, 2.000000)
+get token Token (TOKEN_OP, *)
+get token Token (TOKEN_IDENTIFIER, def_c)
+get token Token (TOKEN_OP, -)
+get token Token (TOKEN_NUMBER, 6.000000)
+get token Token (TOKEN_SEMICOLON)
+get token Token (TOKEN_IDENTIFIER, def_a)
+get token Token (TOKEN_LPAREN)
+get token Token (TOKEN_NUMBER, 2.000000)
+get token Token (TOKEN_COMMA)
+get token Token (TOKEN_NUMBER, 4.000000)
+get token Token (TOKEN_RPAREN)
+get token Token (TOKEN_SEMICOLON)
+get token Token (TOKEN_EOF)
+>BinaryExprAST op = +
+  NumberExprAST val = 3.000000
+  BinaryExprAST op = *
+    NumberExprAST val = 4.000000
+    NumberExprAST val = 2.000000
+>BinaryExprAST op = +
+  VariableExprAST name = a
+  BinaryExprAST op = *
+    VariableExprAST name = b
+    VariableExprAST name = c
+>PrototypeAST extern_a (extern_b, extern_c)
+>FunctionAST
+  PrototypeAST def_a (def_b, def_c)
+  BinaryExprAST op = -
+    BinaryExprAST op = +
+      VariableExprAST name = def_b
+      BinaryExprAST op = *
+        NumberExprAST val = 2.000000
+        VariableExprAST name = def_c
+    NumberExprAST val = 6.000000
+>CallExprAST Callee = def_a
+  Arg #0:
+    NumberExprAST val = 2.000000
+  Arg #1:
+    NumberExprAST val = 4.000000
+>>>>>>>

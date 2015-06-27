@@ -51,14 +51,15 @@ static Token produceToken() {
   while (isspace(LastChar)) {
     LastChar = getChar();
   }
-  if (isalpha(LastChar)) {
+  if (isalpha(LastChar) || LastChar == '_') {
     std::string s(1, static_cast<char>(LastChar));
     while (true) {
       LastChar = getChar();
-      if (!isalnum(LastChar)) {
+      if (isalnum(LastChar) || LastChar == '_') {
+        s.push_back(LastChar);
+      } else {
         break;
       }
-      s.push_back(LastChar);
     }
     if (s == "def") {
       TokenVal.Type = TOKEN_DEF;
