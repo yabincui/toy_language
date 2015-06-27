@@ -11,6 +11,7 @@
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/Module.h>
 #include <llvm/IR/Value.h>
+#include <llvm/IR/ValueSymbolTable.h>
 
 #include "lexer.h"
 #include "logging.h"
@@ -65,7 +66,15 @@ class VariableExprAST : public ExprAST {
 
   llvm::Value* codegen() override {
     llvm::Type* Type = llvm::Type::getDoubleTy(llvm::getGlobalContext());
-    llvm::Constant* Variable = TheModule->getOrInsertGlobal(Name_, llvm::Type::getDoubleTy(llvm::getGlobalContext()));
+    llvm::Value* Variable = nullptr;
+    if (CurrFunction != nullptr) {
+      llvm::ValueSymbolTable& SymbolTable = CurrFunction->getValueSymbolTable();
+      Variable = SymbolTable.lookup(Name_);
+      if (Variable != nullptr) {
+        return Variable;
+      }
+    }
+    Variable = TheModule->getOrInsertGlobal(Name_, llvm::Type::getDoubleTy(llvm::getGlobalContext()));
     llvm::LoadInst* LoadInst = Builder->CreateLoad(Variable, getTmpName());
     return LoadInst;
   }
@@ -188,6 +197,7 @@ class FunctionAST : public ExprAST {
       return nullptr;
     }
     CurrFunctionGuard Guard(Function);
+    LOG(DEBUG) << "Function::codegen()" << CurrFunction;
     std::string BodyLabel = stringPrintf("%s.entry", Function->getName().data());
     llvm::BasicBlock* BasicBlock = llvm::BasicBlock::Create(llvm::getGlobalContext(),
                                                             BodyLabel, Function);
@@ -198,6 +208,7 @@ class FunctionAST : public ExprAST {
       return nullptr;
     }
     Builder->CreateRet(RetVal);
+    LOG(DEBUG) << "Function::codegen() end";
     return Function;
   }
 
