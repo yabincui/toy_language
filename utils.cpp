@@ -1,12 +1,11 @@
 #include "utils.h"
 
 #include <stdarg.h>
-#include <stdio.h>
 
-void printIndented(size_t indent, const char* fmt, ...) {
+void fprintIndented(FILE* fp, size_t indent, const char* fmt, ...) {
   va_list ap;
   va_start(ap, fmt);
-  printf("%*s", static_cast<int>(indent * 2), "");
-  vprintf(fmt, ap);
+  fprintf(fp, "%*s", static_cast<int>(indent * 2), "");
+  vfprintf(fp, fmt, ap);
   va_end(ap);
 }

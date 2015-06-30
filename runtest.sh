@@ -4,9 +4,7 @@ set -e
 set -x
 
 rm runtest_output.txt
-cat runtest_input.txt | ./lexer >>runtest_output.txt
-cat runtest_input.txt | ./ast >>runtest_output.txt
-cat runtest_input.txt | ./code >>runtest_output.txt
+./toy --dump token,ast,code -i runtest_input.txt >>runtest_output.txt 2>&1
 
 diff runtest_output.txt runtest_std_output.txt
 if [[ $? -eq 0 ]]; then

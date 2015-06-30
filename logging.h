@@ -1,5 +1,5 @@
-#ifndef LOGGING_H
-#define LOGGING_H
+#ifndef TOY_LOGGING_H_
+#define TOY_LOGGING_H_
 
 #include <ostream>
 #include <sstream>
@@ -8,10 +8,20 @@
 enum LogSeverity {
   DEBUG,
   ERROR,
+  FATAL,
 };
 
 #define LOG(Severity) \
   LogMessage(__FILE__, __LINE__, Severity).stream()
+
+#define CHECK(Expr) \
+  if (!(Expr)) \
+    LOG(FATAL) << "Check failed: " #Expr << " "
+
+#define CHECK_EQ(Expected, Actual) \
+  if ((Expected) != (Actual)) \
+    LOG(FATAL) << "Check failed: " #Expected << " == " << #Actual \
+               << " (" #Expected "=" << (Expected) <<  ", " #Actual "=" << (Actual) << ") "
 
 class LogMessage {
  public:
@@ -35,4 +45,4 @@ class LogMessage {
   LogMessage& operator=(const LogMessage&) = delete;
 };
 
-#endif  // LOGGING_H
+#endif  // TOY_LOGGING_H_

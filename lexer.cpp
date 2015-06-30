@@ -7,7 +7,8 @@
 #include <string>
 
 #include "logging.h"
-#include "stringprintf.h"
+#include "option.h"
+#include "string.h"
 
 // Lexer
 std::map<int, std::string> TokenNameMap = {
@@ -41,7 +42,7 @@ std::string Token::toString() const {
 }
 
 static int getChar() {
-  return getchar();
+  return fgetc(GlobalOption.InputFp);
 }
 
 static Token produceToken() {
@@ -109,40 +110,16 @@ static Token produceToken() {
   return TokenVal;
 }
 
-Token CurToken;
+static Token CurToken;
 
-Token currToken() {
+const Token& currToken() {
   return CurToken;
 }
 
-Token nextToken() {
+const Token& nextToken() {
   CurToken = produceToken();
-  LOG(DEBUG) << "produceToken " << CurToken.toString();
+  if (GlobalOption.DumpToken) {
+    fprintf(stderr, "<Token> %s\n", CurToken.toString().c_str());
+  }
   return CurToken;
-}
-
-int lexerMain() {
-  while (true) {
-    Token TokenVal = produceToken();
-    printf("get token %s\n", TokenVal.toString().c_str());
-    if (TokenVal.Type == TOKEN_EOF) {
-      break;
-    }
-  }
-  return 0;
-}
-
-extern int astMain();
-extern int codeMain();
-
-int main(int argc, char** argv) {
-  if (strstr(argv[0], "lexer") != nullptr) {
-    return lexerMain();
-  } else if (strstr(argv[0], "ast") != nullptr) {
-    return astMain();
-  } else if (strstr(argv[0], "code") != nullptr) {
-    return codeMain();
-  }
-  LOG(ERROR) << "I don't know what you want to do!";
-  return -1;
 }

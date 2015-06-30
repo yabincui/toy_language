@@ -1,9 +1,15 @@
-TARGETS := lexer ast code
+TARGETS := toy
 
 all: $(TARGETS)
 
-SRCS := lexer.cpp logging.cpp stringprintf.cpp \
-				ast.cpp utils.cpp \
+SRCS := \
+  ast.cpp \
+  code.cpp \
+  lexer.cpp \
+  logging.cpp \
+  main.cpp \
+  string.cpp \
+  utils.cpp \
 
 OBJS := $(subst .cpp,.o,$(SRCS))
 
@@ -20,13 +26,7 @@ DEPS := Makefile $(wildcard *.h)
 %.o : %.cpp $(DEPS)
 	$(CC) $(CFLAGS) -c -o $@ $<
 	
-lexer: $(OBJS)
-	$(CC) -o $@ $^ $(LDFLAGS)
-
-ast: $(OBJS)
-	$(CC) -o $@ $^ $(LDFLAGS)
-	
-code: $(OBJS)
+$(TARGETS): $(OBJS)
 	$(CC) -o $@ $^ $(LDFLAGS)
 	
 clean: $(DEPS)

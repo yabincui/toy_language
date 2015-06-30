@@ -1,259 +1,51 @@
-// Abstract Syntax Tree.
-#include <map>
+#include "ast.h"
+
+#include <stdio.h>
 #include <memory>
 #include <set>
-#include <string>
 #include <vector>
-
-#include <llvm/ADT/APFloat.h>
-#include <llvm/IR/Constants.h>
-#include <llvm/IR/IRBuilder.h>
-#include <llvm/IR/LLVMContext.h>
-#include <llvm/IR/Module.h>
-#include <llvm/IR/Value.h>
-#include <llvm/IR/ValueSymbolTable.h>
 
 #include "lexer.h"
 #include "logging.h"
-#include "stringprintf.h"
+#include "option.h"
 #include "utils.h"
 
-static std::unique_ptr<llvm::Module> TheModule;
-static llvm::Function* CurrFunction;
-static std::unique_ptr<llvm::IRBuilder<>> Builder;
+std::vector<std::unique_ptr<ExprAST>> ExprStorage;
 
-class ExprAST {
- public:
-  virtual ~ExprAST() {
-  }
-
-  virtual void dump(int Indent = 0) = 0;
-  virtual llvm::Value* codegen() = 0;
-};
-
-static std::vector<std::unique_ptr<ExprAST>> ExprStorage;
-
-class NumberExprAST : public ExprAST {
- public:
-  NumberExprAST(double Val) : Val_(Val) {
-  }
-
-  void dump(int Indent = 0) override {
-    printIndented(Indent, "NumberExprAST val = %lf\n", Val_);
-  }
-
-  llvm::Value* codegen() override {
-    return llvm::ConstantFP::get(llvm::getGlobalContext(), llvm::APFloat(Val_));
-  }
-
- private:
-  double Val_;
-};
-
-static std::string getTmpName() {
-  static uint64_t TmpCount = 0;
-  return stringPrintf("tmp.%" PRIu64, ++TmpCount);
+void NumberExprAST::dump(int Indent) const {
+  fprintIndented(stderr, Indent, "NumberExprAST val = %lf\n", Val_);
 }
 
-class VariableExprAST : public ExprAST {
- public:
-  VariableExprAST(const std::string& Name) : Name_(Name) {
+void VariableExprAST::dump(int Indent) const {
+  fprintIndented(stderr, Indent, "VariableExprAST name = %s\n", Name_.c_str());
+}
+
+void BinaryExprAST::dump(int Indent) const {
+  fprintIndented(stderr, Indent, "BinaryExprAST op = %c\n", Op_);
+  Left_->dump(Indent + 1);
+  Right_->dump(Indent + 1);
+}
+
+void PrototypeAST::dump(int Indent) const {
+  fprintIndented(stderr, Indent, "PrototypeAST %s (", Name_.c_str());
+  for (size_t i = 0; i < Args_.size(); ++i) {
+    fprintf(stderr, "%s%s", Args_[i].c_str(), (i == Args_.size() - 1) ? ")\n" : ", ");
   }
+}
 
-  void dump(int Indent = 0) override {
-    printIndented(Indent, "VariableExprAST name = %s\n", Name_.c_str());
+void FunctionAST::dump(int Indent) const {
+  fprintIndented(stderr, Indent, "FunctionAST\n");
+  Prototype_->dump(Indent + 1);
+  Body_->dump(Indent + 1);
+}
+
+void CallExprAST::dump(int Indent) const {
+  fprintIndented(stderr, Indent, "CallExprAST Callee = %s\n", Callee_.c_str());
+  for (size_t i = 0; i < Args_.size(); ++i) {
+    fprintIndented(stderr, Indent + 1, "Arg #%zu:\n", i);
+    Args_[i]->dump(Indent + 2);
   }
-
-  llvm::Value* codegen() override {
-    llvm::Type* Type = llvm::Type::getDoubleTy(llvm::getGlobalContext());
-    llvm::Value* Variable = nullptr;
-    if (CurrFunction != nullptr) {
-      llvm::ValueSymbolTable& SymbolTable = CurrFunction->getValueSymbolTable();
-      Variable = SymbolTable.lookup(Name_);
-      if (Variable != nullptr) {
-        return Variable;
-      }
-    }
-    Variable = TheModule->getOrInsertGlobal(Name_, llvm::Type::getDoubleTy(llvm::getGlobalContext()));
-    llvm::LoadInst* LoadInst = Builder->CreateLoad(Variable, getTmpName());
-    return LoadInst;
-  }
-
- private:
-  const std::string Name_;
-};
-
-class BinaryExprAST : public ExprAST {
- public:
-  BinaryExprAST(char Op, ExprAST* Left, ExprAST* Right)
-      : Op_(Op), Left_(Left), Right_(Right) {
-  }
-
-  void dump(int Indent = 0) override {
-    printIndented(Indent, "BinaryExprAST op = %c\n", Op_);
-    Left_->dump(Indent + 1);
-    Right_->dump(Indent + 1);
-  }
-
-  llvm::Value* codegen() override {
-    llvm::Value* LeftValue = Left_->codegen();
-    if (LeftValue == nullptr) {
-      return nullptr;
-    }
-    llvm::Value* RightValue = Right_->codegen();
-    if (RightValue == nullptr) {
-      return nullptr;
-    }
-
-    llvm::Value* Result = nullptr;
-
-    switch (Op_) {
-      case '+':
-        Result = Builder->CreateFAdd(LeftValue, RightValue, getTmpName());
-        break;
-      case '-':
-        Result = Builder->CreateFSub(LeftValue, RightValue, getTmpName());
-        break;
-      case '*':
-        Result = Builder->CreateFMul(LeftValue, RightValue, getTmpName());
-        break;
-      case '/':
-        Result = Builder->CreateFDiv(LeftValue, RightValue, getTmpName());
-        break;
-      default:
-        LOG(ERROR) << "Unhandled binary operator " << Op_;
-        return nullptr;
-    }
-    return Result;
-  }
-
- private:
-  char Op_;
-  ExprAST* Left_;
-  ExprAST* Right_;
-};
-
-class PrototypeAST : public ExprAST {
- public:
-  PrototypeAST(const std::string& Name, const std::vector<std::string>& Args)
-      : Name_(Name), Args_(Args) {
-  }
-
-  void dump(int Indent = 0) override {
-    printIndented(Indent, "PrototypeAST %s (", Name_.c_str());
-    for (size_t i = 0; i < Args_.size(); ++i) {
-      printf("%s%s", Args_[i].c_str(), (i == Args_.size() - 1) ? ")\n" : ", ");
-    }
-  }
-
-  llvm::Function* codegen() override {
-    std::vector<llvm::Type*> Doubles(Args_.size(), llvm::Type::getDoubleTy(llvm::getGlobalContext()));
-    llvm::FunctionType* FunctionType = llvm::FunctionType::get(llvm::Type::getDoubleTy(llvm::getGlobalContext()),
-                                                               Doubles, false);
-    llvm::Function* Function = llvm::Function::Create(FunctionType, llvm::GlobalValue::ExternalLinkage,
-                                                      Name_, TheModule.get());
-    auto ArgIt = Function->arg_begin();
-    for (size_t i = 0; i < Function->arg_size(); ++i, ++ArgIt) {
-      ArgIt->setName(Args_[i]);
-    }
-    return Function;
-  }
-
- private:
-  const std::string Name_;
-  const std::vector<std::string> Args_;
-};
-
-class CurrFunctionGuard {
- public:
-  CurrFunctionGuard(llvm::Function* Function) {
-    SavedFunction_ = CurrFunction;
-    CurrFunction = Function;
-  }
-
-  ~CurrFunctionGuard() {
-    CurrFunction = SavedFunction_;
-  }
-
- private:
-  llvm::Function* SavedFunction_;
-};
-
-class FunctionAST : public ExprAST {
- public:
-  FunctionAST(PrototypeAST* Prototype, ExprAST* Body)
-      : Prototype_(Prototype), Body_(Body) {
-  }
-
-  void dump(int Indent = 0) {
-    printIndented(Indent, "FunctionAST\n");
-    Prototype_->dump(Indent + 1);
-    Body_->dump(Indent + 1);
-  }
-
-  llvm::Function* codegen() override {
-    llvm::Function* Function = Prototype_->codegen();
-    if (Function == nullptr) {
-      return nullptr;
-    }
-    CurrFunctionGuard Guard(Function);
-    LOG(DEBUG) << "Function::codegen()" << CurrFunction;
-    std::string BodyLabel = stringPrintf("%s.entry", Function->getName().data());
-    llvm::BasicBlock* BasicBlock = llvm::BasicBlock::Create(llvm::getGlobalContext(),
-                                                            BodyLabel, Function);
-    llvm::IRBuilder<>::InsertPointGuard InsertPointGuard(*Builder);
-    Builder->SetInsertPoint(BasicBlock);
-    llvm::Value* RetVal = Body_->codegen();
-    if (RetVal == nullptr) {
-      return nullptr;
-    }
-    Builder->CreateRet(RetVal);
-    LOG(DEBUG) << "Function::codegen() end";
-    return Function;
-  }
-
- private:
-  PrototypeAST* Prototype_;
-  ExprAST* Body_;
-};
-
-class CallExprAST : public ExprAST {
- public:
-  CallExprAST(const std::string Callee, const std::vector<ExprAST*>& Args)
-      : Callee_(Callee), Args_(Args) {
-  }
-
-  void dump(int Indent = 0) override {
-    printIndented(Indent, "CallExprAST Callee = %s\n", Callee_.c_str());
-    for (size_t i = 0; i < Args_.size(); ++i) {
-      printIndented(Indent + 1, "Arg #%zu:\n", i);
-      Args_[i]->dump(Indent + 2);
-    }
-  }
-
-  llvm::Value* codegen() override {
-    llvm::Function* Function = TheModule->getFunction(Callee_);
-    if (Function == nullptr) {
-      LOG(ERROR) << "Unknown function: " << Callee_;
-      return nullptr;
-    }
-    if (Function->arg_size() != Args_.size()) {
-      LOG(ERROR) << "Function " << Callee_ << " needs " << Function->arg_size() <<
-          " arguments, but given " << Args_.size() << " arguments";
-      return nullptr;
-    }
-    std::vector<llvm::Value*> Values;
-    for (auto& Arg : Args_) {
-      llvm::Value* Value = Arg->codegen();
-      Values.push_back(Value);
-    }
-    return Builder->CreateCall(Function, Values);
-  }
-
- private:
-  std::string Callee_;
-  std::vector<ExprAST*> Args_;
-};
+}
 
 static ExprAST* parseExpression();
 
@@ -276,9 +68,7 @@ static ExprAST* parsePrimary() {
       if (Curr.Type != TOKEN_RPAREN) {
         while (true) {
           ExprAST* Arg = parseExpression();
-          if (Arg == nullptr) {
-            return nullptr;
-          }
+          CHECK(Arg != nullptr);
           Args.push_back(Arg);
           Curr = currToken();
           if (Curr.Type == TOKEN_COMMA) {
@@ -286,12 +76,12 @@ static ExprAST* parsePrimary() {
           } else if (Curr.Type == TOKEN_RPAREN) {
             break;
           } else {
-            LOG(ERROR) << "Unexpected token " << Curr.toString();
-            return nullptr;
+            LOG(FATAL) << "Unexpected token " << Curr.toString();
           }
         }
       }
       CallExprAST* CallExpr = new CallExprAST(Callee, Args);
+      ExprStorage.push_back(std::unique_ptr<ExprAST>(CallExpr));
       nextToken();
       return CallExpr;
     }
@@ -306,14 +96,11 @@ static ExprAST* parsePrimary() {
     nextToken();
     ExprAST* Expr = parseExpression();
     Curr = currToken();
-    if (Curr.Type != TOKEN_RPAREN) {
-      LOG(ERROR) << "Missing )";
-      return nullptr;
-    }
+    CHECK_EQ(TOKEN_RPAREN, Curr.Type);
     nextToken();
     return Expr;
   }
-  LOG(ERROR) << "Unexpected token " << Curr.toString();
+  LOG(FATAL) << "Unexpected token " << Curr.toString();
   return nullptr;
 }
 
@@ -346,9 +133,7 @@ static ExprAST* parseBinaryExpression(int PrevPrecedence = 0) {
     }
     nextToken();
     ExprAST* Right = parseBinaryExpression(Precedence);
-    if (Right == nullptr) {
-      return nullptr;
-    }
+    CHECK(Right != nullptr);
     ExprAST* Expr = new BinaryExprAST(Curr.Op, Result, Right);
     ExprStorage.push_back(std::unique_ptr<ExprAST>(Expr));
     Result = Expr;
@@ -364,191 +149,107 @@ static ExprAST* parseExpression() {
 // FunctionPrototype := identifier ( identifier1,identifier2,... )
 static PrototypeAST* parseFunctionPrototype() {
   Token Curr = currToken();
-  if (Curr.Type != TOKEN_IDENTIFIER) {
-    LOG(ERROR) << "Unexpected token " << Curr.toString();
-    return nullptr;
-  }
+  CHECK_EQ(TOKEN_IDENTIFIER, Curr.Type);
   std::string Name = Curr.Identifier;
   Curr = nextToken();
-  if (Curr.Type != TOKEN_LPAREN) {
-    LOG(ERROR) << "Unexpected token " << Curr.toString();
-    return nullptr;
-  }
+  CHECK_EQ(TOKEN_LPAREN, Curr.Type);
   std::vector<std::string> Args;
-  while (true) {
-    Curr = nextToken();
-    if (Curr.Type == TOKEN_IDENTIFIER) {
+  Curr = nextToken();
+  if (Curr.Type != TOKEN_RPAREN) {
+    while (true) {
+      CHECK_EQ(TOKEN_IDENTIFIER, Curr.Type);
       Args.push_back(Curr.Identifier);
-    } else {
-      LOG(ERROR) << "Unexpected token " << Curr.toString();
-      return nullptr;
+      Curr = nextToken();
+      if (Curr.Type == TOKEN_COMMA) {
+        Curr = nextToken();
+      } else if (Curr.Type == TOKEN_RPAREN) {
+        break;
+      } else {
+        LOG(FATAL) << "Unexpected token " << Curr.toString();
+      }
     }
-    Curr = nextToken();
-    if (Curr.Type == TOKEN_COMMA) {
-      continue;
-    } else if (Curr.Type == TOKEN_RPAREN) {
-      nextToken();
-      break;
-    }
-    LOG(ERROR) << "Unexpected token " << Curr.toString();
-    return nullptr;
   }
+  nextToken();
   PrototypeAST* Prototype = new PrototypeAST(Name, Args);
+  ExprStorage.push_back(std::unique_ptr<ExprAST>(Prototype));
   return Prototype;
 }
 
-// Extern := 'extern' FunctionPrototype ';'
+// Extern := extern FunctionPrototype ;
 static PrototypeAST* parseExtern() {
   Token Curr = currToken();
-  if (Curr.Type != TOKEN_EXTERN) {
-    LOG(ERROR) << "Unexpected token " << Curr.toString();
-    return nullptr;
-  }
+  CHECK_EQ(TOKEN_EXTERN, Curr.Type);
   nextToken();
   PrototypeAST* Prototype = parseFunctionPrototype();
   Curr = currToken();
-  if (Curr.Type != TOKEN_SEMICOLON) {
-    LOG(ERROR) << "Unexpected token " << Curr.toString();
-    return nullptr;
-  }
+  CHECK_EQ(TOKEN_SEMICOLON, Curr.Type);
+  nextToken();
   return Prototype;
 }
 
-// Function := 'def' FunctionPrototype Expression ';'
+// Function := def FunctionPrototype Expression ;
 static FunctionAST* parseFunction() {
-  Token Curr = currToken();
-  if (Curr.Type != TOKEN_DEF) {
-    LOG(ERROR) <<"Unexpected token " << Curr.toString();
-    return nullptr;
-  }
+  CHECK_EQ(TOKEN_DEF, currToken().Type);
   nextToken();
   PrototypeAST* Prototype = parseFunctionPrototype();
   ExprAST* Body = parseExpression();
-  if (Body == nullptr) {
-    return nullptr;
-  }
+  CHECK(Body != nullptr);
   FunctionAST* Function = new FunctionAST(Prototype, Body);
+  ExprStorage.push_back(std::unique_ptr<ExprAST>(Function));
   return Function;
 }
 
-int astMain() {
+std::vector<ExprAST*> parseMain() {
+  std::vector<ExprAST*> Exprs;
+  nextToken();
   while (1) {
-    printf(">");
-    Token CurToken = nextToken();
-    switch (CurToken.Type) {
-      case TOKEN_EOF: return 0;
-      case TOKEN_SEMICOLON: break;
-      case TOKEN_IDENTIFIER:  // go through
-      case TOKEN_NUMBER:      // go through
-      case TOKEN_LPAREN:
-      {
-        ExprAST* Expr = parseExpression();
-        Expr->dump(0);
-        break;
-      }
-      case TOKEN_EXTERN:
-      {
-        PrototypeAST* Prototype = parseExtern();
-        if (Prototype == nullptr) {
-          return -1;
-        }
-        Prototype->dump();
-        break;
-      }
-      case TOKEN_DEF:
-      {
-        FunctionAST* Function = parseFunction();
-        if (Function == nullptr) {
-          return -1;
-        }
-        Function->dump();
-        break;
-      }
-      default:
-        LOG(ERROR) << "Unhandled first token " << CurToken.Type;
-        return -1;
+    if (GlobalOption.Interactive) {
+      printf(">");
     }
-  }
-}
-
-int codeMain() {
-  llvm::LLVMContext& Context = llvm::getGlobalContext();
-  TheModule.reset(new llvm::Module("my module", Context));
-  llvm::BasicBlock* GlobalBlock = llvm::BasicBlock::Create(Context, "globalBlock");
-  Builder.reset(new llvm::IRBuilder<>(GlobalBlock));
-
-  size_t GlobalInstPos = 0;
-  while (1) {
-    printf(">");
-    Token CurToken = nextToken();
-    switch (CurToken.Type) {
+    Token Curr = currToken();
+    switch (Curr.Type) {
       case TOKEN_EOF: break;
-      case TOKEN_SEMICOLON: break;
+      case TOKEN_SEMICOLON:
+        nextToken();
+        break;
       case TOKEN_IDENTIFIER:  // go through
-      case TOKEN_NUMBER:      // go through
+      case TOKEN_NUMBER:  // go through
       case TOKEN_LPAREN:
       {
         ExprAST* Expr = parseExpression();
-        if (Expr == nullptr) {
-          return -1;
+        CHECK(Expr != nullptr);
+        if (GlobalOption.DumpAST) {
+          Expr->dump(0);
         }
-        llvm::Value* RetVal = Expr->codegen();
-        if (RetVal == nullptr) {
-          return -1;
-        }
-        auto InstIt = GlobalBlock->begin();
-        for (size_t i = 0; i < GlobalInstPos; ++i) {
-          ++InstIt;
-        }
-        for (; InstIt != GlobalBlock->end(); ++InstIt) {
-          InstIt->dump();
-        }
-        GlobalInstPos = GlobalBlock->size();
+        Exprs.push_back(Expr);
         break;
       }
       case TOKEN_EXTERN:
       {
         PrototypeAST* Prototype = parseExtern();
-        if (Prototype == nullptr) {
-          return -1;
+        CHECK(Prototype != nullptr);
+        if (GlobalOption.DumpAST) {
+          Prototype->dump(0);
         }
-        llvm::Function* FunctionCode = Prototype->codegen();
-        if (FunctionCode == nullptr) {
-          return -1;
-        }
-        FunctionCode->dump();
+        Exprs.push_back(Prototype);
         break;
       }
       case TOKEN_DEF:
       {
         FunctionAST* Function = parseFunction();
-        if (Function == nullptr) {
-          return -1;
+        CHECK(Function != nullptr);
+        if (GlobalOption.DumpAST) {
+          Function->dump(0);
         }
-        llvm::Function* FunctionCode = Function->codegen();
-        if (FunctionCode == nullptr) {
-          return -1;
-        }
-        FunctionCode->dump();
+        Exprs.push_back(Function);
         break;
       }
       default:
-    	  LOG(ERROR) << "Unhandled first token " << CurToken.Type;
-    	  return -1;
+        LOG(FATAL) << "Unexpected token " << Curr.toString();
     }
-
-    if (CurToken.Type == TOKEN_EOF) {
+    if (Curr.Type == TOKEN_EOF) {
       break;
     }
   }
-
-  printf("\n");
-  TheModule->dump();
-  for (auto InstIt = GlobalBlock->begin(); InstIt != GlobalBlock->end(); ++InstIt) {
-    InstIt->dump();
-  }
-  delete GlobalBlock;
-  Builder.reset(nullptr);
-  TheModule.reset(nullptr);
-  return 0;
+  return Exprs;
 }

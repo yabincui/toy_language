@@ -1,19 +1,19 @@
-#ifndef LEXER_H
-#define LEXER_H
+#ifndef TOY_LEXER_H_
+#define TOY_LEXER_H_
 
 #include <string>
 
 enum TokenType {
-  TOKEN_EOF,
-  TOKEN_DEF,
-  TOKEN_EXTERN,
-  TOKEN_IDENTIFIER,
-  TOKEN_NUMBER,
-  TOKEN_OP,
-  TOKEN_LPAREN,
-  TOKEN_RPAREN,
-  TOKEN_SEMICOLON,
-  TOKEN_COMMA,
+  TOKEN_EOF,    // 0
+  TOKEN_DEF,    // 1
+  TOKEN_EXTERN,     // 2
+  TOKEN_IDENTIFIER, // 3
+  TOKEN_NUMBER,     // 4
+  TOKEN_OP,     // 5
+  TOKEN_LPAREN, // 6
+  TOKEN_RPAREN, // 7
+  TOKEN_SEMICOLON,    // 8
+  TOKEN_COMMA,    // 9
 };
 
 struct Token {
@@ -25,7 +25,7 @@ struct Token {
   std::string toString() const;
 };
 
-Token currToken();
-Token nextToken();
+const Token& currToken();
+const Token& nextToken();
 
-#endif  // LEXER_H
+#endif  // LEXER_H_

@@ -1,8 +1,9 @@
-#ifndef UTILS_H
-#define UTILS_H
+#ifndef TOY_UTILS_H_
+#define TOY_UTILS_H_
 
+#include <stdio.h>
 #include <sys/types.h>
 
-void printIndented(size_t indent, const char* fmt, ...);
+void fprintIndented(FILE* fp, size_t indent, const char* fmt, ...);
 
-#endif  // UTILS_H
+#endif  // TOY_UTILS_H_
