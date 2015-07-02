@@ -8,6 +8,7 @@ SRCS := \
   lexer.cpp \
   logging.cpp \
   main.cpp \
+  optimization.cpp \
   string.cpp \
   utils.cpp \
 
@@ -19,7 +20,11 @@ CFLAGS_FOR_MACOS = -D__STDC_CONSTANT_MACROS -D__STDC_LIMIT_MACROS
 
 CFLAGS := -std=c++11 $(CFLAGS_FOR_MACOS)
 
-LDFLAGS := -lLLVMCore -lLLVMSupport -lpthread -ldl -lncurses
+LLVM_LIBS := $(shell llvm-config --libs)
+
+LLVM_LDFLAGS := `llvm-config --ldflags --libs --system-libs`
+
+LDFLAGS := $(LLVM_LDFLAGS) -lpthread -ldl -lncurses
 
 DEPS := Makefile $(wildcard *.h)
 

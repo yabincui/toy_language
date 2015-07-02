@@ -11,6 +11,7 @@
 
 #include "ast.h"
 #include "logging.h"
+#include "optimization.h"
 #include "option.h"
 #include "string.h"
 
@@ -132,6 +133,9 @@ void codeMain(const std::vector<ExprAST*>& Exprs) {
   for (auto& Expr : Exprs) {
     Expr->codegen();
   }
+
+  optMain(TheModule.get());
+
   if (GlobalOption.DumpCode) {
     TheModule->dump();
     for (auto InstIt = GlobalBlock->begin(); InstIt != GlobalBlock->end(); ++InstIt) {

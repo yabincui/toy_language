@@ -49,8 +49,16 @@ static Token produceToken() {
   static int LastChar = ' ';
 
   Token TokenVal;
+
+Repeat:
   while (isspace(LastChar)) {
     LastChar = getChar();
+  }
+  if (LastChar == '#') {
+    while (LastChar != '\n' && LastChar != EOF) {
+      LastChar = getChar();
+    }
+    goto Repeat;
   }
   if (isalpha(LastChar) || LastChar == '_') {
     std::string s(1, static_cast<char>(LastChar));
@@ -119,7 +127,7 @@ const Token& currToken() {
 const Token& nextToken() {
   CurToken = produceToken();
   if (GlobalOption.DumpToken) {
-    fprintf(stderr, "<Token> %s\n", CurToken.toString().c_str());
+    fprintf(stderr, "%s\n", CurToken.toString().c_str());
   }
   return CurToken;
 }

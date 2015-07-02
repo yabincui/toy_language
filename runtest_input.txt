@@ -7,3 +7,7 @@ def def_a(def_b, def_c)
   def_b + 2 * def_c - 6;
   
 def_a(2, 4);
+
+# comment
+# common subexpression elimission
+def cse_test(x) (3+x) * (x+3);

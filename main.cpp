@@ -16,7 +16,7 @@ static void usage(const std::string& ExecName) {
   printf("                  none:   Don't dump any thing.\n");
   printf("-h/--help       Print this help information.\n");
   printf("-i <file>       Read input from specified file instead of standard input.\n");
-  printf("--log <log_level>  Set log level, can be debug/error/fatal, default is debug.\n");
+  printf("--log <log_level>  Set log level, can be debug/info/error/fatal, default is debug.\n");
   printf("Default Option: --dump code\n");
 }
 
@@ -27,7 +27,7 @@ Option GlobalOption = {
     false,      // DumpToken
     false,      // DumpAST
     true,       // DumpCode
-    DEBUG,      // LogLevel
+    INFO,      // LogLevel
 };
 
 bool nextArgumentOrError(const std::vector<std::string>& Args, size_t& i) {

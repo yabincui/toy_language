@@ -7,6 +7,7 @@
 
 enum LogSeverity {
   DEBUG,
+  INFO,
   ERROR,
   FATAL,
 };
