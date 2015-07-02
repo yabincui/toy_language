@@ -5,7 +5,9 @@
 
 const char* LogSeverityName[] = {
     "DEBUG",
+    "INFO",
     "ERROR",
+    "FATAL",
 };
 
 LogMessage::~LogMessage() {

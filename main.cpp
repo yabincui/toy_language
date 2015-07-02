@@ -2,6 +2,7 @@
 
 #include "ast.h"
 #include "code.h"
+#include "execution.h"
 #include "logging.h"
 #include "string.h"
 
@@ -117,7 +118,7 @@ int main(int argc, char** argv) {
   }
 
   std::vector<ExprAST*> Exprs = parseMain();
-  codeMain(Exprs);
-
+  std::unique_ptr<llvm::Module> Module = codeMain(Exprs);
+  executionMain(Module.release());
   return 0;
 }

@@ -1,82 +1,111 @@
-<DEBUG>main.cpp(88): 
-GlobalOption: InputFile = runtest_input.txt
-              InputFp = 0x7fff7aabd2a0
-              Interactive = 0
-              DumpToken = 1
-              DumpAST = 1
-              DumpCode = 1
-
-<Token> Token (TOKEN_NUMBER, 3.000000)
-<Token> Token (TOKEN_OP, +)
-<Token> Token (TOKEN_NUMBER, 4.000000)
-<Token> Token (TOKEN_OP, *)
-<Token> Token (TOKEN_NUMBER, 2.000000)
-<Token> Token (TOKEN_SEMICOLON)
+Token (TOKEN_NUMBER, 3.000000)
+Token (TOKEN_OP, +)
+Token (TOKEN_NUMBER, 4.000000)
+Token (TOKEN_OP, *)
+Token (TOKEN_NUMBER, 2.000000)
+Token (TOKEN_SEMICOLON)
 BinaryExprAST op = +
   NumberExprAST val = 3.000000
   BinaryExprAST op = *
     NumberExprAST val = 4.000000
     NumberExprAST val = 2.000000
-<Token> Token (TOKEN_IDENTIFIER, a)
-<Token> Token (TOKEN_OP, +)
-<Token> Token (TOKEN_IDENTIFIER, b)
-<Token> Token (TOKEN_OP, *)
-<Token> Token (TOKEN_IDENTIFIER, c)
-<Token> Token (TOKEN_SEMICOLON)
+Token (TOKEN_IDENTIFIER, a)
+Token (TOKEN_OP, +)
+Token (TOKEN_IDENTIFIER, b)
+Token (TOKEN_OP, *)
+Token (TOKEN_IDENTIFIER, c)
+Token (TOKEN_SEMICOLON)
 BinaryExprAST op = +
   VariableExprAST name = a
   BinaryExprAST op = *
     VariableExprAST name = b
     VariableExprAST name = c
-<Token> Token (TOKEN_EXTERN)
-<Token> Token (TOKEN_IDENTIFIER, extern_a)
-<Token> Token (TOKEN_LPAREN)
-<Token> Token (TOKEN_IDENTIFIER, extern_b)
-<Token> Token (TOKEN_COMMA)
-<Token> Token (TOKEN_IDENTIFIER, extern_c)
-<Token> Token (TOKEN_RPAREN)
-<Token> Token (TOKEN_SEMICOLON)
-<Token> Token (TOKEN_DEF)
-PrototypeAST extern_a (<Token> Token (TOKEN_IDENTIFIER, def_a)
-<Token> Token (TOKEN_LPAREN)
-<Token> Token (TOKEN_IDENTIFIER, def_b)
-<Token> Token (TOKEN_COMMA)
-<Token> Token (TOKEN_IDENTIFIER, def_c)
-<Token> Token (TOKEN_RPAREN)
-<Token> Token (TOKEN_IDENTIFIER, def_b)
-<Token> Token (TOKEN_OP, +)
-<Token> Token (TOKEN_NUMBER, 2.000000)
-<Token> Token (TOKEN_OP, *)
-<Token> Token (TOKEN_IDENTIFIER, def_c)
-<Token> Token (TOKEN_OP, -)
-<Token> Token (TOKEN_NUMBER, 6.000000)
-<Token> Token (TOKEN_SEMICOLON)
+Token (TOKEN_EXTERN)
+Token (TOKEN_IDENTIFIER, extern_a)
+Token (TOKEN_LPAREN)
+Token (TOKEN_IDENTIFIER, extern_b)
+Token (TOKEN_COMMA)
+Token (TOKEN_IDENTIFIER, extern_c)
+Token (TOKEN_RPAREN)
+Token (TOKEN_SEMICOLON)
+Token (TOKEN_DEF)
+PrototypeAST extern_a (extern_b, extern_c)
+Token (TOKEN_IDENTIFIER, def_a)
+Token (TOKEN_LPAREN)
+Token (TOKEN_IDENTIFIER, def_b)
+Token (TOKEN_COMMA)
+Token (TOKEN_IDENTIFIER, def_c)
+Token (TOKEN_RPAREN)
+Token (TOKEN_IDENTIFIER, def_b)
+Token (TOKEN_OP, +)
+Token (TOKEN_NUMBER, 2.000000)
+Token (TOKEN_OP, *)
+Token (TOKEN_IDENTIFIER, def_c)
+Token (TOKEN_OP, -)
+Token (TOKEN_NUMBER, 6.000000)
+Token (TOKEN_SEMICOLON)
 FunctionAST
-  PrototypeAST def_a (  BinaryExprAST op = -
+  PrototypeAST def_a (def_b, def_c)
+  BinaryExprAST op = -
     BinaryExprAST op = +
       VariableExprAST name = def_b
       BinaryExprAST op = *
         NumberExprAST val = 2.000000
         VariableExprAST name = def_c
     NumberExprAST val = 6.000000
-<Token> Token (TOKEN_IDENTIFIER, def_a)
-<Token> Token (TOKEN_LPAREN)
-<Token> Token (TOKEN_NUMBER, 2.000000)
-<Token> Token (TOKEN_COMMA)
-<Token> Token (TOKEN_NUMBER, 4.000000)
-<Token> Token (TOKEN_RPAREN)
-<Token> Token (TOKEN_SEMICOLON)
+Token (TOKEN_IDENTIFIER, def_a)
+Token (TOKEN_LPAREN)
+Token (TOKEN_NUMBER, 2.000000)
+Token (TOKEN_COMMA)
+Token (TOKEN_NUMBER, 4.000000)
+Token (TOKEN_RPAREN)
+Token (TOKEN_SEMICOLON)
 CallExprAST Callee = def_a
   Arg #0:
     NumberExprAST val = 2.000000
   Arg #1:
     NumberExprAST val = 4.000000
-<Token> Token (TOKEN_EOF)
+Token (TOKEN_DEF)
+Token (TOKEN_IDENTIFIER, cse_test)
+Token (TOKEN_LPAREN)
+Token (TOKEN_IDENTIFIER, x)
+Token (TOKEN_RPAREN)
+Token (TOKEN_LPAREN)
+Token (TOKEN_NUMBER, 3.000000)
+Token (TOKEN_OP, +)
+Token (TOKEN_IDENTIFIER, x)
+Token (TOKEN_RPAREN)
+Token (TOKEN_OP, *)
+Token (TOKEN_LPAREN)
+Token (TOKEN_IDENTIFIER, x)
+Token (TOKEN_OP, +)
+Token (TOKEN_NUMBER, 3.000000)
+Token (TOKEN_RPAREN)
+Token (TOKEN_SEMICOLON)
+FunctionAST
+  PrototypeAST cse_test (x)
+  BinaryExprAST op = *
+    BinaryExprAST op = +
+      NumberExprAST val = 3.000000
+      VariableExprAST name = x
+    BinaryExprAST op = +
+      VariableExprAST name = x
+      NumberExprAST val = 3.000000
+Token (TOKEN_EOF)
 ; ModuleID = 'my module'
 
 @a = external global double
 @b = external global double
 @c = external global double
+
+define double @__toy_main() {
+  %tmp.3 = load double, double* @a
+  %tmp.4 = load double, double* @b
+  %tmp.5 = load double, double* @c
+  %tmp.6 = fmul double %tmp.4, %tmp.5
+  %tmp.7 = fadd double %tmp.3, %tmp.6
+  %1 = call double @def_a(double 2.000000e+00, double 4.000000e+00)
+}
 
 declare double @extern_a(double, double)
 
@@ -87,11 +116,10 @@ def_a.entry:
   %tmp.10 = fsub double %tmp.9, 6.000000e+00
   ret double %tmp.10
 }
-  %tmp.3 = load double, double* @a
-  %tmp.4 = load double, double* @b
-  %tmp.5 = load double, double* @c
-  %tmp.6 = fmul double %tmp.4, %tmp.5
-  %tmp.7 = fadd double %tmp.3, %tmp.6
-  <badref> = call double @def_a(double 2.000000e+00, double 4.000000e+00)
-extern_b, extern_c)
-def_b, def_c)
+
+define double @cse_test(double %x) {
+cse_test.entry:
+  %tmp.11 = fadd double 3.000000e+00, %x
+  %tmp.13 = fmul double %tmp.11, %tmp.11
+  ret double %tmp.13
+}

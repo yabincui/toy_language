@@ -22,7 +22,7 @@ enum LogSeverity {
 #define CHECK_EQ(Expected, Actual) \
   if ((Expected) != (Actual)) \
     LOG(FATAL) << "Check failed: " #Expected << " == " << #Actual \
-               << " (" #Expected "=" << (Expected) <<  ", " #Actual "=" << (Actual) << ") "
+               << " (" #Expected "=" << (Expected) <<  ", " #Actual "=" << (Actual) << "): "
 
 class LogMessage {
  public:

@@ -5,6 +5,7 @@ all: $(TARGETS)
 SRCS := \
   ast.cpp \
   code.cpp \
+  execution.cpp \
   lexer.cpp \
   logging.cpp \
   main.cpp \
@@ -14,11 +15,11 @@ SRCS := \
 
 OBJS := $(subst .cpp,.o,$(SRCS))
 
-CC := g++
+CC := clang++
 
-CFLAGS_FOR_MACOS = -D__STDC_CONSTANT_MACROS -D__STDC_LIMIT_MACROS
+LLVM_CXX_FLAGS := $(shell llvm-config --cxxflags)
 
-CFLAGS := -std=c++11 $(CFLAGS_FOR_MACOS)
+CXXFLAGS := -std=c++11 $(CFLAGS_FOR_MACOS) $(CXX_INCLUDE_FLAGS) $(LLVM_CXX_FLAGS)
 
 LLVM_LIBS := $(shell llvm-config --libs)
 
@@ -29,7 +30,7 @@ LDFLAGS := $(LLVM_LDFLAGS) -lpthread -ldl -lncurses
 DEPS := Makefile $(wildcard *.h)
 
 %.o : %.cpp $(DEPS)
-	$(CC) $(CFLAGS) -c -o $@ $<
+	$(CC) $(CXXFLAGS) -c -o $@ $<
 	
 $(TARGETS): $(OBJS)
 	$(CC) -o $@ $^ $(LDFLAGS)
