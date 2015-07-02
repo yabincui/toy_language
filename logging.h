@@ -12,17 +12,16 @@ enum LogSeverity {
   FATAL,
 };
 
-#define LOG(Severity) \
-  LogMessage(__FILE__, __LINE__, Severity).stream()
+#define LOG(Severity) LogMessage(__FILE__, __LINE__, Severity).stream()
 
 #define CHECK(Expr) \
-  if (!(Expr)) \
-    LOG(FATAL) << "Check failed: " #Expr << " "
+  if (!(Expr)) LOG(FATAL) << "Check failed: " #Expr << " "
 
-#define CHECK_EQ(Expected, Actual) \
-  if ((Expected) != (Actual)) \
-    LOG(FATAL) << "Check failed: " #Expected << " == " << #Actual \
-               << " (" #Expected "=" << (Expected) <<  ", " #Actual "=" << (Actual) << "): "
+#define CHECK_EQ(Expected, Actual)                                   \
+  if ((Expected) != (Actual))                                        \
+  LOG(FATAL) << "Check failed: " #Expected << " == " << #Actual      \
+             << " (" #Expected "=" << (Expected) << ", " #Actual "=" \
+             << (Actual) << "): "
 
 class LogMessage {
  public:

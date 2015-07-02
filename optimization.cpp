@@ -19,7 +19,8 @@ struct HelloPass : public llvm::FunctionPass {
 };
 
 char HelloPass::ID = 0;
-static llvm::RegisterPass<HelloPass> HelloPassRegister("helloPass", "Hello World Pass");
+static llvm::RegisterPass<HelloPass> HelloPassRegister("helloPass", "Hello World
+Pass");
 */
 
 void optMain(llvm::Module* Module) {
@@ -27,7 +28,8 @@ void optMain(llvm::Module* Module) {
   FPM.add(llvm::createGVNPass(false));
   FPM.doInitialization();
 
-  for (auto FunctionIt = Module->begin(); FunctionIt != Module->end(); ++FunctionIt) {
+  for (auto FunctionIt = Module->begin(); FunctionIt != Module->end();
+       ++FunctionIt) {
     llvm::Function& Function = *FunctionIt;
     FPM.run(Function);
   }

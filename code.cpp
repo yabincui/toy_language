@@ -40,10 +40,10 @@ llvm::Value* VariableExprAST::codegen() {
   }
   llvm::GlobalVariable* Variable = CurrModule->getGlobalVariable(Name_);
   if (Variable == nullptr) {
-    Variable = new llvm::GlobalVariable(*CurrModule, llvm::Type::getDoubleTy(*Context),
-                                        false, llvm::GlobalVariable::InternalLinkage,
-                                        llvm::ConstantFP::get(*Context, llvm::APFloat(0.0)),
-                                        Name_);
+    Variable = new llvm::GlobalVariable(
+        *CurrModule, llvm::Type::getDoubleTy(*Context), false,
+        llvm::GlobalVariable::InternalLinkage,
+        llvm::ConstantFP::get(*Context, llvm::APFloat(0.0)), Name_);
   }
   llvm::LoadInst* LoadInst = CurrBuilder->CreateLoad(Variable, getTmpName());
   return LoadInst;
@@ -55,7 +55,7 @@ llvm::Value* BinaryExprAST::codegen() {
   llvm::Value* RightValue = Right_->codegen();
   CHECK(RightValue != nullptr);
   llvm::Value* Result = nullptr;
-  switch(Op_) {
+  switch (Op_) {
     case '+':
       Result = CurrBuilder->CreateFAdd(LeftValue, RightValue, getTmpName());
       break;
@@ -75,11 +75,12 @@ llvm::Value* BinaryExprAST::codegen() {
 }
 
 llvm::Function* PrototypeAST::codegen() {
-  std::vector<llvm::Type*> Doubles(Args_.size(), llvm::Type::getDoubleTy(*Context));
-  llvm::FunctionType* FunctionType = llvm::FunctionType::get(llvm::Type::getDoubleTy(*Context),
-                                                             Doubles, false);
-  llvm::Function* Function = llvm::Function::Create(FunctionType, llvm::GlobalValue::ExternalLinkage,
-                                                    Name_, CurrModule);
+  std::vector<llvm::Type*> Doubles(Args_.size(),
+                                   llvm::Type::getDoubleTy(*Context));
+  llvm::FunctionType* FunctionType = llvm::FunctionType::get(
+      llvm::Type::getDoubleTy(*Context), Doubles, false);
+  llvm::Function* Function = llvm::Function::Create(
+      FunctionType, llvm::GlobalValue::ExternalLinkage, Name_, CurrModule);
   auto ArgIt = Function->arg_begin();
   for (size_t i = 0; i < Function->arg_size(); ++i, ++ArgIt) {
     ArgIt->setName(Args_[i]);
@@ -107,7 +108,8 @@ llvm::Function* FunctionAST::codegen() {
   CHECK(Function != nullptr);
   CurrFunctionGuard Guard(Function);
   std::string BodyLabel = stringPrintf("%s.entry", Function->getName().data());
-  llvm::BasicBlock* BasicBlock = llvm::BasicBlock::Create(*Context, BodyLabel, Function);
+  llvm::BasicBlock* BasicBlock =
+      llvm::BasicBlock::Create(*Context, BodyLabel, Function);
   llvm::IRBuilder<>::InsertPointGuard InsertPointGuard(*CurrBuilder);
   CurrBuilder->SetInsertPoint(BasicBlock);
   llvm::Value* RetVal = Body_->codegen();
@@ -130,13 +132,15 @@ llvm::Value* CallExprAST::codegen() {
 
 std::unique_ptr<llvm::Module> codeMain(const std::vector<ExprAST*>& Exprs) {
   Context = &llvm::getGlobalContext();
-  std::unique_ptr<llvm::Module> TheModule(new llvm::Module("my module", *Context));
+  std::unique_ptr<llvm::Module> TheModule(
+      new llvm::Module("my module", *Context));
   llvm::FunctionType* GlobalFunctionType = llvm::FunctionType::get(
       llvm::Type::getDoubleTy(*Context), std::vector<llvm::Type*>(), false);
   GlobalFunction = llvm::Function::Create(GlobalFunctionType,
-                                                          llvm::GlobalValue::ExternalLinkage,
-                                                          ToyMainFunctionName, TheModule.get());
-  llvm::BasicBlock* GlobalBlock = llvm::BasicBlock::Create(*Context, "", GlobalFunction);
+                                          llvm::GlobalValue::ExternalLinkage,
+                                          ToyMainFunctionName, TheModule.get());
+  llvm::BasicBlock* GlobalBlock =
+      llvm::BasicBlock::Create(*Context, "", GlobalFunction);
   std::unique_ptr<llvm::IRBuilder<>> TheBuilder(new llvm::IRBuilder<>(*Context));
   CurrModule = TheModule.get();
   CurrBuilder = TheBuilder.get();

@@ -16,8 +16,12 @@ static void usage(const std::string& ExecName) {
   printf("                  code:   Dump generated IR code.\n");
   printf("                  none:   Don't dump any thing.\n");
   printf("-h/--help       Print this help information.\n");
-  printf("-i <file>       Read input from specified file instead of standard input.\n");
-  printf("--log <log_level>  Set log level, can be debug/info/error/fatal, default is debug.\n");
+  printf(
+      "-i <file>       Read input from specified file instead of standard "
+      "input.\n");
+  printf(
+      "--log <log_level>  Set log level, can be debug/info/error/fatal, "
+      "default is debug.\n");
   printf("Default Option: --dump code\n");
 }
 
@@ -28,7 +32,7 @@ Option GlobalOption = {
     false,      // DumpToken
     false,      // DumpAST
     true,       // DumpCode
-    INFO,      // LogLevel
+    INFO,       // LogLevel
 };
 
 bool nextArgumentOrError(const std::vector<std::string>& Args, size_t& i) {
@@ -105,7 +109,8 @@ static bool parseOptions(int argc, char** argv) {
   LOG(DEBUG) << "\n"
              << "GlobalOption: InputFile = " << GlobalOption.InputFile << "\n"
              << "              InputFp = " << GlobalOption.InputFp << "\n"
-             << "              Interactive = " << GlobalOption.Interactive << "\n"
+             << "              Interactive = " << GlobalOption.Interactive
+             << "\n"
              << "              DumpToken = " << GlobalOption.DumpToken << "\n"
              << "              DumpAST = " << GlobalOption.DumpAST << "\n"
              << "              DumpCode = " << GlobalOption.DumpCode << "\n";

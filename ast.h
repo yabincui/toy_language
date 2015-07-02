@@ -46,7 +46,8 @@ class NumberExprAST : public ExprAST {
 
 class VariableExprAST : public ExprAST {
  public:
-  VariableExprAST(const std::string& Name) : ExprAST(VARIABLE_EXPR_AST), Name_(Name) {
+  VariableExprAST(const std::string& Name)
+      : ExprAST(VARIABLE_EXPR_AST), Name_(Name) {
   }
 
   void dump(int Indent = 0) const override;

@@ -4,16 +4,16 @@
 #include <string>
 
 enum TokenType {
-  TOKEN_EOF,    // 0
-  TOKEN_DEF,    // 1
-  TOKEN_EXTERN,     // 2
-  TOKEN_IDENTIFIER, // 3
-  TOKEN_NUMBER,     // 4
-  TOKEN_OP,     // 5
-  TOKEN_LPAREN, // 6
-  TOKEN_RPAREN, // 7
-  TOKEN_SEMICOLON,    // 8
-  TOKEN_COMMA,    // 9
+  TOKEN_EOF,         // 0
+  TOKEN_DEF,         // 1
+  TOKEN_EXTERN,      // 2
+  TOKEN_IDENTIFIER,  // 3
+  TOKEN_NUMBER,      // 4
+  TOKEN_OP,          // 5
+  TOKEN_LPAREN,      // 6
+  TOKEN_RPAREN,      // 7
+  TOKEN_SEMICOLON,   // 8
+  TOKEN_COMMA,       // 9
 };
 
 struct Token {

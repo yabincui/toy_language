@@ -29,7 +29,8 @@ void BinaryExprAST::dump(int Indent) const {
 void PrototypeAST::dump(int Indent) const {
   fprintIndented(stderr, Indent, "PrototypeAST %s (", Name_.c_str());
   for (size_t i = 0; i < Args_.size(); ++i) {
-    fprintf(stderr, "%s%s", Args_[i].c_str(), (i == Args_.size() - 1) ? ")\n" : ", ");
+    fprintf(stderr, "%s%s", Args_[i].c_str(),
+            (i == Args_.size() - 1) ? ")\n" : ", ");
   }
 }
 
@@ -105,10 +106,7 @@ static ExprAST* parsePrimary() {
 }
 
 static std::map<char, int> OpPrecedenceMap = {
-    {'+', 10},
-    {'-', 10},
-    {'*', 20},
-    {'/', 20},
+    {'+', 10}, {'-', 10}, {'*', 20}, {'/', 20},
 };
 
 static std::set<char> BinaryOpSet = {
@@ -124,7 +122,8 @@ static ExprAST* parseBinaryExpression(int PrevPrecedence = 0) {
   ExprAST* Result = parsePrimary();
   while (true) {
     Token Curr = currToken();
-    if (Curr.Type != TOKEN_OP || BinaryOpSet.find(Curr.Op) == BinaryOpSet.end()) {
+    if (Curr.Type != TOKEN_OP ||
+        BinaryOpSet.find(Curr.Op) == BinaryOpSet.end()) {
       break;
     }
     int Precedence = OpPrecedenceMap.find(Curr.Op)->second;
@@ -208,14 +207,14 @@ std::vector<ExprAST*> parseMain() {
     }
     Token Curr = currToken();
     switch (Curr.Type) {
-      case TOKEN_EOF: break;
+      case TOKEN_EOF:
+        break;
       case TOKEN_SEMICOLON:
         nextToken();
         break;
       case TOKEN_IDENTIFIER:  // go through
-      case TOKEN_NUMBER:  // go through
-      case TOKEN_LPAREN:
-      {
+      case TOKEN_NUMBER:      // go through
+      case TOKEN_LPAREN: {
         ExprAST* Expr = parseExpression();
         CHECK(Expr != nullptr);
         if (GlobalOption.DumpAST) {
@@ -224,8 +223,7 @@ std::vector<ExprAST*> parseMain() {
         Exprs.push_back(Expr);
         break;
       }
-      case TOKEN_EXTERN:
-      {
+      case TOKEN_EXTERN: {
         PrototypeAST* Prototype = parseExtern();
         CHECK(Prototype != nullptr);
         if (GlobalOption.DumpAST) {
@@ -234,8 +232,7 @@ std::vector<ExprAST*> parseMain() {
         Exprs.push_back(Prototype);
         break;
       }
-      case TOKEN_DEF:
-      {
+      case TOKEN_DEF: {
         FunctionAST* Function = parseFunction();
         CHECK(Function != nullptr);
         if (GlobalOption.DumpAST) {
