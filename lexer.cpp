@@ -10,6 +10,11 @@
 #include "option.h"
 #include "string.h"
 
+static size_t CurrLine = 1;
+size_t ExprsInCurrLine = 0;  // Used to decide whether to show prompt.
+
+static Token CurToken(TOKEN_EOF, "", 0.0, '\0');
+
 // Lexer
 std::map<int, std::string> TokenNameMap = {
     {TOKEN_EOF, "TOKEN_EOF"},
@@ -23,6 +28,27 @@ std::map<int, std::string> TokenNameMap = {
     {TOKEN_SEMICOLON, "TOKEN_SEMICOLON"},
     {TOKEN_COMMA, "TOKEN_COMMA"},
 };
+
+Token::Token(TokenType Type, const std::string& Identifier, double Number,
+             char Op)
+    : Type(Type), Identifier(Identifier), Number(Number), Op(Op), Line(CurrLine) {
+}
+
+Token Token::createNumberToken(double Number) {
+  return Token(TOKEN_NUMBER, "", Number, '\0');
+}
+
+Token Token::createIdentifierToken(const std::string& Identifier) {
+  return Token(TOKEN_IDENTIFIER, Identifier, 0.0, '\0');
+}
+
+Token Token::createOpToken(char Op) {
+  return Token(TOKEN_OP, "", 0.0, Op);
+}
+
+Token Token::createToken(TokenType Type) {
+  return Token(Type, "", 0.0, '\0');
+}
 
 std::string Token::toString() const {
   auto it = TokenNameMap.find(Type);
@@ -48,11 +74,16 @@ static int getChar() {
 static Token produceToken() {
   static int LastChar = ' ';
 
-  Token TokenVal;
-
 Repeat:
   while (isspace(LastChar)) {
     LastChar = getChar();
+    if (LastChar == '\n') {
+      CurrLine++;
+      if (GlobalOption.Interactive && ExprsInCurrLine > 0) {
+        ExprsInCurrLine = 0;
+        printPrompt();
+      }
+    }
   }
   if (LastChar == '#') {
     while (LastChar != '\n' && LastChar != EOF) {
@@ -71,16 +102,12 @@ Repeat:
       }
     }
     if (s == "def") {
-      TokenVal.Type = TOKEN_DEF;
-      return TokenVal;
+      return Token::createToken(TOKEN_DEF);
     }
     if (s == "extern") {
-      TokenVal.Type = TOKEN_EXTERN;
-      return TokenVal;
+      return Token::createToken(TOKEN_EXTERN);
     }
-    TokenVal.Type = TOKEN_IDENTIFIER;
-    TokenVal.Identifier = s;
-    return TokenVal;
+    return Token::createIdentifierToken(s);
   }
 
   if (isdigit(LastChar)) {
@@ -92,33 +119,28 @@ Repeat:
       }
       s.push_back(LastChar);
     }
-    TokenVal.Type = TOKEN_NUMBER;
-    TokenVal.Number = strtod(s.c_str(), nullptr);
-    return TokenVal;
+    return Token::createNumberToken(strtod(s.c_str(), nullptr));
   }
 
   if (LastChar == EOF) {
-    TokenVal.Type = TOKEN_EOF;
-    return TokenVal;
+    return Token::createToken(TOKEN_EOF);
   }
 
-  if (LastChar == '(') {
-    TokenVal.Type = TOKEN_LPAREN;
-  } else if (LastChar == ')') {
-    TokenVal.Type = TOKEN_RPAREN;
-  } else if (LastChar == ';') {
-    TokenVal.Type = TOKEN_SEMICOLON;
-  } else if (LastChar == ',') {
-    TokenVal.Type = TOKEN_COMMA;
+  char ThisChar = LastChar;
+  LastChar = ' ';
+
+  if (ThisChar == '(') {
+    return Token::createToken(TOKEN_LPAREN);
+  } else if (ThisChar == ')') {
+    return Token::createToken(TOKEN_RPAREN);
+  } else if (ThisChar == ';') {
+    return Token::createToken(TOKEN_SEMICOLON);
+  } else if (ThisChar == ',') {
+    return Token::createToken(TOKEN_COMMA);
   } else {
-    TokenVal.Type = TOKEN_OP;
-    TokenVal.Op = LastChar;
+    return Token::createOpToken(ThisChar);
   }
-  LastChar = getChar();
-  return TokenVal;
 }
-
-static Token CurToken;
 
 const Token& currToken() {
   return CurToken;

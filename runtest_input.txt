@@ -11,3 +11,6 @@ def_a(2, 4);
 # comment
 # common subexpression elimission
 def cse_test(x) (3+x) * (x+3);
+
+def ta(b,c) b*c;
+ta(3,4);

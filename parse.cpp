@@ -1,4 +1,4 @@
-#include "ast.h"
+#include "parse.h"
 
 #include <stdio.h>
 #include <memory>
@@ -182,7 +182,6 @@ static PrototypeAST* parseExtern() {
   PrototypeAST* Prototype = parseFunctionPrototype();
   Curr = currToken();
   CHECK_EQ(TOKEN_SEMICOLON, Curr.Type);
-  nextToken();
   return Prototype;
 }
 
@@ -198,55 +197,60 @@ static FunctionAST* parseFunction() {
   return Function;
 }
 
+void prepareParsePipeline() {
+}
+
+ExprAST* parsePipeline() {
+  Token Curr = nextToken();
+  switch (Curr.Type) {
+    case TOKEN_EOF:
+      break;
+    case TOKEN_SEMICOLON:
+      break;
+    case TOKEN_IDENTIFIER:
+    case TOKEN_NUMBER:
+    case TOKEN_LPAREN: {
+      ExprAST* Expr = parseExpression();
+      CHECK(Expr != nullptr);
+      if (GlobalOption.DumpAST) {
+        Expr->dump(0);
+      }
+      return Expr;
+    }
+    case TOKEN_EXTERN: {
+      PrototypeAST* Prototype = parseExtern();
+      CHECK(Prototype != nullptr);
+      if (GlobalOption.DumpAST) {
+        Prototype->dump(0);
+      }
+      return Prototype;
+    }
+    case TOKEN_DEF: {
+      FunctionAST* Function = parseFunction();
+      CHECK(Function != nullptr);
+      if (GlobalOption.DumpAST) {
+        Function->dump(0);
+      }
+      return Function;
+    }
+    default:
+      LOG(FATAL) << "Unexpected token " << Curr.toString();
+  }
+  return nullptr;
+}
+
+void finishParsePipeline() {
+}
+
 std::vector<ExprAST*> parseMain() {
   std::vector<ExprAST*> Exprs;
-  nextToken();
-  while (1) {
-    if (GlobalOption.Interactive) {
-      printf(">");
-    }
-    Token Curr = currToken();
-    switch (Curr.Type) {
-      case TOKEN_EOF:
-        break;
-      case TOKEN_SEMICOLON:
-        nextToken();
-        break;
-      case TOKEN_IDENTIFIER:  // go through
-      case TOKEN_NUMBER:      // go through
-      case TOKEN_LPAREN: {
-        ExprAST* Expr = parseExpression();
-        CHECK(Expr != nullptr);
-        if (GlobalOption.DumpAST) {
-          Expr->dump(0);
-        }
-        Exprs.push_back(Expr);
-        break;
-      }
-      case TOKEN_EXTERN: {
-        PrototypeAST* Prototype = parseExtern();
-        CHECK(Prototype != nullptr);
-        if (GlobalOption.DumpAST) {
-          Prototype->dump(0);
-        }
-        Exprs.push_back(Prototype);
-        break;
-      }
-      case TOKEN_DEF: {
-        FunctionAST* Function = parseFunction();
-        CHECK(Function != nullptr);
-        if (GlobalOption.DumpAST) {
-          Function->dump(0);
-        }
-        Exprs.push_back(Function);
-        break;
-      }
-      default:
-        LOG(FATAL) << "Unexpected token " << Curr.toString();
-    }
-    if (Curr.Type == TOKEN_EOF) {
+  prepareParsePipeline();
+  while (true) {
+    ExprAST* Expr = parsePipeline();
+    if (Expr == nullptr) {
       break;
     }
+    Exprs.push_back(Expr);
   }
   return Exprs;
 }

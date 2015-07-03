@@ -21,11 +21,22 @@ struct Token {
   std::string Identifier;
   double Number;
   char Op;
+  size_t Line;
+
+  Token(TokenType Type, const std::string& Identifier, double Number, char Op);
+
+  static Token createNumberToken(double Number);
+  static Token createIdentifierToken(const std::string& Identifier);
+  static Token createOpToken(char Op);
+  static Token createToken(TokenType Type);
 
   std::string toString() const;
 };
 
 const Token& currToken();
 const Token& nextToken();
+
+extern size_t ExprsInCurrLine;
+void printPrompt();
 
 #endif  // LEXER_H_

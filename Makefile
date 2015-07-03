@@ -3,7 +3,7 @@ TARGETS := toy
 all: $(TARGETS)
 
 SRCS := \
-  ast.cpp \
+  parse.cpp \
   code.cpp \
   execution.cpp \
   lexer.cpp \

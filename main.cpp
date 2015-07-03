@@ -1,9 +1,10 @@
 #include "option.h"
 
-#include "ast.h"
 #include "code.h"
 #include "execution.h"
+#include "lexer.h"
 #include "logging.h"
+#include "parse.h"
 #include "string.h"
 
 static void usage(const std::string& ExecName) {
@@ -117,13 +118,53 @@ static bool parseOptions(int argc, char** argv) {
   return true;
 }
 
+void printPrompt() {
+  printf(">");
+  fflush(stdout);
+}
+
+static void interactiveMain() {
+  prepareParsePipeline();
+  std::unique_ptr<llvm::Module> Module = prepareCodePipeline();
+  prepareExecutionPipeline(Module.release());
+
+  printPrompt();
+  while (true) {
+    ExprAST* Expr = parsePipeline();
+    if (Expr != nullptr) {
+      llvm::Function* Function = codePipeline(Expr);
+      if (Function != nullptr) {
+        executionPipeline(Function);
+      }
+    }
+
+    Token Curr = currToken();
+    if (Curr.Type == TOKEN_EOF) {
+      break;
+    }
+    ExprsInCurrLine++;
+  }
+
+  finishExecutionPipeline();
+  finishCodePipeline();
+  finishParsePipeline();
+}
+
+static void nonInteractiveMain() {
+  std::vector<ExprAST*> Exprs = parseMain();
+  std::unique_ptr<llvm::Module> Module = codeMain(Exprs);
+  executionMain(Module.release());
+}
+
 int main(int argc, char** argv) {
   if (!parseOptions(argc, argv)) {
     return -1;
   }
 
-  std::vector<ExprAST*> Exprs = parseMain();
-  std::unique_ptr<llvm::Module> Module = codeMain(Exprs);
-  executionMain(Module.release());
+  if (GlobalOption.Interactive) {
+    interactiveMain();
+  } else {
+    nonInteractiveMain();
+  }
   return 0;
 }

@@ -9,17 +9,17 @@
 #include <llvm/IR/Value.h>
 #include <llvm/IR/ValueSymbolTable.h>
 
-#include "ast.h"
 #include "logging.h"
 #include "optimization.h"
 #include "option.h"
+#include "parse.h"
 #include "string.h"
 
 static llvm::LLVMContext* Context;
 static llvm::Module* CurrModule;
 static llvm::Function* GlobalFunction;
 static llvm::Function* CurrFunction;
-static llvm::IRBuilder<>* CurrBuilder;
+static std::unique_ptr<llvm::IRBuilder<>> CurrBuilder;
 
 llvm::Value* NumberExprAST::codegen() {
   return llvm::ConstantFP::get(*Context, llvm::APFloat(Val_));
@@ -28,6 +28,11 @@ llvm::Value* NumberExprAST::codegen() {
 static std::string getTmpName() {
   static uint64_t TmpCount = 0;
   return stringPrintf("tmp.%" PRIu64, ++TmpCount);
+}
+
+static std::string getTmpFunctionName() {
+  static uint64_t TmpCount = 0;
+  return stringPrintf("tmpfunction.%" PRIu64, ++TmpCount);
 }
 
 llvm::Value* VariableExprAST::codegen() {
@@ -130,22 +135,56 @@ llvm::Value* CallExprAST::codegen() {
   return CurrBuilder->CreateCall(Function, Values, getTmpName());
 }
 
-std::unique_ptr<llvm::Module> codeMain(const std::vector<ExprAST*>& Exprs) {
+static llvm::Function* createTmpFunction(const std::string& FunctionName) {
+  llvm::FunctionType* FunctionType = llvm::FunctionType::get(
+      llvm::Type::getDoubleTy(*Context), std::vector<llvm::Type*>(), false);
+  llvm::Function* Function =
+      llvm::Function::Create(FunctionType, llvm::GlobalValue::InternalLinkage,
+                             FunctionName, CurrModule);
+  llvm::BasicBlock::Create(*Context, "", Function);
+  return Function;
+}
+
+std::unique_ptr<llvm::Module> prepareCodePipeline() {
   Context = &llvm::getGlobalContext();
   std::unique_ptr<llvm::Module> TheModule(
       new llvm::Module("my module", *Context));
-  llvm::FunctionType* GlobalFunctionType = llvm::FunctionType::get(
-      llvm::Type::getDoubleTy(*Context), std::vector<llvm::Type*>(), false);
-  GlobalFunction = llvm::Function::Create(GlobalFunctionType,
-                                          llvm::GlobalValue::ExternalLinkage,
-                                          ToyMainFunctionName, TheModule.get());
-  llvm::BasicBlock* GlobalBlock =
-      llvm::BasicBlock::Create(*Context, "", GlobalFunction);
-  std::unique_ptr<llvm::IRBuilder<>> TheBuilder(new llvm::IRBuilder<>(*Context));
   CurrModule = TheModule.get();
-  CurrBuilder = TheBuilder.get();
+  CurrBuilder.reset(new llvm::IRBuilder<>(*Context));
+  return TheModule;
+}
+
+llvm::Function* codePipeline(ExprAST* Expr) {
+  switch (Expr->type()) {
+    case NUMBER_EXPR_AST:
+    case VARIABLE_EXPR_AST:
+    case BINARY_EXPR_AST:
+    case CALL_EXPR_AST: {
+      // Create a temporary function for execution.
+      llvm::Function* TmpFunction = createTmpFunction(getTmpFunctionName());
+      llvm::IRBuilder<>::InsertPointGuard InsertPointGuard(*CurrBuilder);
+      CurrBuilder->SetInsertPoint(&TmpFunction->back());
+      CurrFunctionGuard FunctionGuard(TmpFunction);
+      llvm::Value* RetVal = Expr->codegen();
+      CurrBuilder->CreateRet(RetVal);
+      return TmpFunction;
+    }
+    default:
+      Expr->codegen();
+      return nullptr;
+  }
+}
+
+void finishCodePipeline() {
+  CurrBuilder.reset(nullptr);
+}
+
+std::unique_ptr<llvm::Module> codeMain(const std::vector<ExprAST*>& Exprs) {
+  std::unique_ptr<llvm::Module> TheModule = prepareCodePipeline();
+  GlobalFunction = createTmpFunction(ToyMainFunctionName);
+  llvm::IRBuilder<>::InsertPointGuard InsertPointGuard(*CurrBuilder);
+  CurrBuilder->SetInsertPoint(&GlobalFunction->back());
   CurrFunction = GlobalFunction;
-  CurrBuilder->SetInsertPoint(GlobalBlock);
 
   llvm::Value* RetVal = llvm::ConstantFP::get(*Context, llvm::APFloat(0.0));
   for (auto& Expr : Exprs) {
@@ -169,5 +208,6 @@ std::unique_ptr<llvm::Module> codeMain(const std::vector<ExprAST*>& Exprs) {
   if (GlobalOption.DumpCode) {
     TheModule->dump();
   }
+  finishCodePipeline();
   return TheModule;
 }

@@ -114,6 +114,12 @@ class CallExprAST : public ExprAST {
   const std::vector<ExprAST*> Args_;
 };
 
+// Used in interactive mode.
+void prepareParsePipeline();
+ExprAST* parsePipeline();
+void finishParsePipeline();
+
+// Used in non-interactive mode.
 std::vector<ExprAST*> parseMain();
 
 #endif  // TOY_AST_H_

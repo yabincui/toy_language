@@ -28,8 +28,8 @@ Token (TOKEN_COMMA)
 Token (TOKEN_IDENTIFIER, extern_c)
 Token (TOKEN_RPAREN)
 Token (TOKEN_SEMICOLON)
-Token (TOKEN_DEF)
 PrototypeAST extern_a (extern_b, extern_c)
+Token (TOKEN_DEF)
 Token (TOKEN_IDENTIFIER, def_a)
 Token (TOKEN_LPAREN)
 Token (TOKEN_IDENTIFIER, def_b)
@@ -91,20 +91,50 @@ FunctionAST
     BinaryExprAST op = +
       VariableExprAST name = x
       NumberExprAST val = 3.000000
+Token (TOKEN_DEF)
+Token (TOKEN_IDENTIFIER, ta)
+Token (TOKEN_LPAREN)
+Token (TOKEN_IDENTIFIER, b)
+Token (TOKEN_COMMA)
+Token (TOKEN_IDENTIFIER, c)
+Token (TOKEN_RPAREN)
+Token (TOKEN_IDENTIFIER, b)
+Token (TOKEN_OP, *)
+Token (TOKEN_IDENTIFIER, c)
+Token (TOKEN_SEMICOLON)
+FunctionAST
+  PrototypeAST ta (b, c)
+  BinaryExprAST op = *
+    VariableExprAST name = b
+    VariableExprAST name = c
+Token (TOKEN_IDENTIFIER, ta)
+Token (TOKEN_LPAREN)
+Token (TOKEN_NUMBER, 3.000000)
+Token (TOKEN_COMMA)
+Token (TOKEN_NUMBER, 4.000000)
+Token (TOKEN_RPAREN)
+Token (TOKEN_SEMICOLON)
+CallExprAST Callee = ta
+  Arg #0:
+    NumberExprAST val = 3.000000
+  Arg #1:
+    NumberExprAST val = 4.000000
 Token (TOKEN_EOF)
 ; ModuleID = 'my module'
 
-@a = external global double
-@b = external global double
-@c = external global double
+@a = internal global double 0.000000e+00
+@b = internal global double 0.000000e+00
+@c = internal global double 0.000000e+00
 
-define double @__toy_main() {
+define internal double @__toy_main() {
   %tmp.3 = load double, double* @a
   %tmp.4 = load double, double* @b
   %tmp.5 = load double, double* @c
   %tmp.6 = fmul double %tmp.4, %tmp.5
   %tmp.7 = fadd double %tmp.3, %tmp.6
-  %1 = call double @def_a(double 2.000000e+00, double 4.000000e+00)
+  %tmp.11 = call double @def_a(double 2.000000e+00, double 4.000000e+00)
+  %tmp.16 = call double @ta(double 3.000000e+00, double 4.000000e+00)
+  ret double %tmp.16
 }
 
 declare double @extern_a(double, double)
@@ -119,7 +149,14 @@ def_a.entry:
 
 define double @cse_test(double %x) {
 cse_test.entry:
-  %tmp.11 = fadd double 3.000000e+00, %x
-  %tmp.13 = fmul double %tmp.11, %tmp.11
-  ret double %tmp.13
+  %tmp.12 = fadd double 3.000000e+00, %x
+  %tmp.14 = fmul double %tmp.12, %tmp.12
+  ret double %tmp.14
 }
+
+define double @ta(double %b, double %c) {
+ta.entry:
+  %tmp.15 = fmul double %b, %c
+  ret double %tmp.15
+}
+12.000000
