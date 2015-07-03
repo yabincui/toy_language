@@ -10,6 +10,8 @@
 #include "option.h"
 #include "utils.h"
 
+#define nextToken() LOG(DEBUG) << "nextToken() " << getNextToken().toString();
+
 std::vector<std::unique_ptr<ExprAST>> ExprStorage;
 
 void NumberExprAST::dump(int Indent) const {
@@ -48,6 +50,18 @@ void CallExprAST::dump(int Indent) const {
   }
 }
 
+void IfExprAST::dump(int Indent) const {
+  fprintIndented(stderr, Indent, "IfExprAST\n");
+  fprintIndented(stderr, Indent + 1, "CondExpr\n");
+  CondExpr_->dump(Indent + 2);
+  fprintIndented(stderr, Indent + 1, "ThenExpr\n");
+  ThenExpr_->dump(Indent + 2);
+  if (ElseExpr_ != nullptr) {
+    fprintIndented(stderr, Indent + 1, "ElseExpr\n");
+    ElseExpr_->dump(Indent + 2);
+  }
+}
+
 static ExprAST* parseExpression();
 
 // Primary := identifier
@@ -57,14 +71,15 @@ static ExprAST* parseExpression();
 static ExprAST* parsePrimary() {
   Token Curr = currToken();
   if (Curr.Type == TOKEN_IDENTIFIER) {
-    Token Next = nextToken();
-    if (Next.Type != TOKEN_LPAREN) {
+    nextToken();
+    if (currToken().Type != TOKEN_LPAREN) {
       ExprAST* Expr = new VariableExprAST(Curr.Identifier);
       ExprStorage.push_back(std::unique_ptr<ExprAST>(Expr));
       return Expr;
     } else {
       std::string Callee = Curr.Identifier;
-      Curr = nextToken();
+      nextToken();
+      Curr = currToken();
       std::vector<ExprAST*> Args;
       if (Curr.Type != TOKEN_RPAREN) {
         while (true) {
@@ -145,22 +160,72 @@ static ExprAST* parseExpression() {
   return parseBinaryExpression();
 }
 
+// Statement := Expression ;
+//           := if ( Expression ) Statement
+//           := if ( Expression ) Statement else Statement
+static ExprAST* parseStatement() {
+  Token Curr = currToken();
+  switch (Curr.Type) {
+    case TOKEN_IDENTIFIER:
+    case TOKEN_NUMBER:
+    case TOKEN_LPAREN: {
+      ExprAST* Expr = parseExpression();
+      Curr = currToken();
+      CHECK_EQ(TOKEN_SEMICOLON, Curr.Type);
+      return Expr;
+    }
+    case TOKEN_IF: {
+      nextToken();
+      Curr = currToken();
+      CHECK_EQ(TOKEN_LPAREN, Curr.Type);
+      nextToken();
+      ExprAST* CondExpr = parseExpression();
+      CHECK(CondExpr != nullptr);
+      Curr = currToken();
+      CHECK_EQ(TOKEN_RPAREN, Curr.Type);
+      nextToken();
+      ExprAST* ThenExpr = parseStatement();
+      CHECK(ThenExpr != nullptr);
+      nextToken();
+      Curr = currToken();
+      ExprAST* ElseExpr = nullptr;
+      if (Curr.Type == TOKEN_ELSE) {
+        nextToken();
+        ElseExpr = parseStatement();
+        CHECK(ElseExpr != nullptr);
+      } else {
+        unreadToken();
+      }
+      IfExprAST* IfExpr = new IfExprAST(CondExpr, ThenExpr, ElseExpr);
+      ExprStorage.push_back(std::unique_ptr<ExprAST>(IfExpr));
+      return IfExpr;
+    }
+    default:
+      LOG(FATAL) << "Unexpected token " << Curr.toString();
+  }
+  return nullptr;
+}
+
 // FunctionPrototype := identifier ( identifier1,identifier2,... )
 static PrototypeAST* parseFunctionPrototype() {
   Token Curr = currToken();
   CHECK_EQ(TOKEN_IDENTIFIER, Curr.Type);
   std::string Name = Curr.Identifier;
-  Curr = nextToken();
+  nextToken();
+  Curr = currToken();
   CHECK_EQ(TOKEN_LPAREN, Curr.Type);
   std::vector<std::string> Args;
-  Curr = nextToken();
+  nextToken();
+  Curr = currToken();
   if (Curr.Type != TOKEN_RPAREN) {
     while (true) {
       CHECK_EQ(TOKEN_IDENTIFIER, Curr.Type);
       Args.push_back(Curr.Identifier);
-      Curr = nextToken();
+      nextToken();
+      Curr = currToken();
       if (Curr.Type == TOKEN_COMMA) {
-        Curr = nextToken();
+        nextToken();
+        Curr = currToken();
       } else if (Curr.Type == TOKEN_RPAREN) {
         break;
       } else {
@@ -185,12 +250,12 @@ static PrototypeAST* parseExtern() {
   return Prototype;
 }
 
-// Function := def FunctionPrototype Expression ;
+// Function := def FunctionPrototype Statement
 static FunctionAST* parseFunction() {
   CHECK_EQ(TOKEN_DEF, currToken().Type);
   nextToken();
   PrototypeAST* Prototype = parseFunctionPrototype();
-  ExprAST* Body = parseExpression();
+  ExprAST* Body = parseStatement();
   CHECK(Body != nullptr);
   FunctionAST* Function = new FunctionAST(Prototype, Body);
   ExprStorage.push_back(std::unique_ptr<ExprAST>(Function));
@@ -201,7 +266,8 @@ void prepareParsePipeline() {
 }
 
 ExprAST* parsePipeline() {
-  Token Curr = nextToken();
+  nextToken();
+  Token Curr = currToken();
   switch (Curr.Type) {
     case TOKEN_EOF:
       break;
@@ -209,8 +275,9 @@ ExprAST* parsePipeline() {
       break;
     case TOKEN_IDENTIFIER:
     case TOKEN_NUMBER:
-    case TOKEN_LPAREN: {
-      ExprAST* Expr = parseExpression();
+    case TOKEN_LPAREN:
+    case TOKEN_IF: {
+      ExprAST* Expr = parseStatement();
       CHECK(Expr != nullptr);
       if (GlobalOption.DumpAST) {
         Expr->dump(0);

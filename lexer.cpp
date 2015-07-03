@@ -13,10 +13,9 @@
 static size_t CurrLine = 1;
 size_t ExprsInCurrLine = 0;  // Used to decide whether to show prompt.
 
-static Token CurToken(TOKEN_EOF, "", 0.0, '\0');
-
 // Lexer
 std::map<int, std::string> TokenNameMap = {
+    {TOKEN_INVALID, "TOKEN_INVALID"},
     {TOKEN_EOF, "TOKEN_EOF"},
     {TOKEN_DEF, "TOKEN_DEF"},
     {TOKEN_EXTERN, "TOKEN_EXTERN"},
@@ -27,6 +26,9 @@ std::map<int, std::string> TokenNameMap = {
     {TOKEN_RPAREN, "TOKEN_RPAREN"},
     {TOKEN_SEMICOLON, "TOKEN_SEMICOLON"},
     {TOKEN_COMMA, "TOKEN_COMMA"},
+    {TOKEN_IF, "TOKEN_IF"},
+    {TOKEN_ELIF, "TOKEN_ELIF"},
+    {TOKEN_ELSE, "TOKEN_ELSE"},
 };
 
 Token::Token(TokenType Type, const std::string& Identifier, double Number,
@@ -107,6 +109,15 @@ Repeat:
     if (s == "extern") {
       return Token::createToken(TOKEN_EXTERN);
     }
+    if (s == "if") {
+      return Token::createToken(TOKEN_IF);
+    }
+    if (s == "elif") {
+      return Token::createToken(TOKEN_ELIF);
+    }
+    if (s == "else") {
+      return Token::createToken(TOKEN_ELSE);
+    }
     return Token::createIdentifierToken(s);
   }
 
@@ -142,14 +153,33 @@ Repeat:
   }
 }
 
+static Token CurToken(TOKEN_INVALID, "", 0.0, '\0');
+static Token BufferedToken(TOKEN_INVALID, "", 0.0, '\0');
+
 const Token& currToken() {
+  CHECK_NE(TOKEN_INVALID, CurToken.Type);
   return CurToken;
 }
 
-const Token& nextToken() {
-  CurToken = produceToken();
+const Token& getNextToken() {
+  if (BufferedToken.Type != TOKEN_INVALID) {
+    CurToken = BufferedToken;
+    BufferedToken = Token::createToken(TOKEN_INVALID);
+  } else {
+    CurToken = produceToken();
+  }
   if (GlobalOption.DumpToken) {
     fprintf(stderr, "%s\n", CurToken.toString().c_str());
   }
   return CurToken;
+}
+
+void unreadToken() {
+  CHECK_NE(TOKEN_INVALID, CurToken.Type);
+  CHECK_EQ(TOKEN_INVALID, BufferedToken.Type);
+  BufferedToken = CurToken;
+  CurToken = Token::createToken(TOKEN_INVALID);
+  if (GlobalOption.DumpToken) {
+    fprintf(stderr, "unread %s\n", BufferedToken.toString().c_str());
+  }
 }

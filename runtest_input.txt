@@ -14,3 +14,5 @@ def cse_test(x) (3+x) * (x+3);
 
 def ta(b,c) b*c;
 ta(3,4);
+
+if (a) 3; else 4;

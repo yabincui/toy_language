@@ -3,6 +3,9 @@
 #include <llvm/ADT/APFloat.h>
 #include <llvm/IR/BasicBlock.h>
 #include <llvm/IR/Constants.h>
+#include <llvm/IR/InstrTypes.h>
+#include <llvm/IR/Instruction.h>
+#include <llvm/IR/Instructions.h>
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/Module.h>
@@ -135,6 +138,41 @@ llvm::Value* CallExprAST::codegen() {
   return CurrBuilder->CreateCall(Function, Values, getTmpName());
 }
 
+llvm::Value* IfExprAST::codegen() {
+  llvm::Value* CondValue = CondExpr_->codegen();
+  CHECK(CondValue != nullptr);
+  CondValue = CurrBuilder->CreateFCmpONE(
+      CondValue, llvm::ConstantFP::get(*Context, llvm::APFloat(0.0)));
+  CondValue = llvm::ConstantFP::get(*Context, llvm::APFloat(0.0));
+  llvm::BasicBlock* ThenBlock =
+      llvm::BasicBlock::Create(*Context, "then", CurrFunction);
+  llvm::BasicBlock* ElseBlock =
+      llvm::BasicBlock::Create(*Context, "else", CurrFunction);
+  llvm::BasicBlock* MergeBlock =
+      llvm::BasicBlock::Create(*Context, "endif", CurrFunction);
+  CurrBuilder->CreateCondBr(CondValue, ThenBlock, ElseBlock);
+  // Emit then block.
+  CurrBuilder->SetInsertPoint(ThenBlock);
+  llvm::Value* ThenValue = ThenExpr_->codegen();
+  CHECK(ThenValue != nullptr);
+  CurrBuilder->CreateBr(MergeBlock);
+  ThenBlock = CurrBuilder->GetInsertBlock();
+  // Emit else block.
+  CurrBuilder->SetInsertPoint(ElseBlock);
+  llvm::Value* ElseValue = llvm::ConstantFP::get(*Context, llvm::APFloat(0.0));
+  if (ElseExpr_ != nullptr) {
+    ElseValue = ElseExpr_->codegen();
+  }
+  CurrBuilder->CreateBr(MergeBlock);
+  ElseBlock = CurrBuilder->GetInsertBlock();
+  CurrBuilder->SetInsertPoint(MergeBlock);
+  llvm::PHINode* PHINode =
+      CurrBuilder->CreatePHI(llvm::Type::getDoubleTy(*Context), 2, "iftmp");
+  PHINode->addIncoming(ThenValue, ThenBlock);
+  PHINode->addIncoming(ElseValue, ElseBlock);
+  return PHINode;
+}
+
 static llvm::Function* createTmpFunction(const std::string& FunctionName) {
   llvm::FunctionType* FunctionType = llvm::FunctionType::get(
       llvm::Type::getDoubleTy(*Context), std::vector<llvm::Type*>(), false);
@@ -159,7 +197,8 @@ llvm::Function* codePipeline(ExprAST* Expr) {
     case NUMBER_EXPR_AST:
     case VARIABLE_EXPR_AST:
     case BINARY_EXPR_AST:
-    case CALL_EXPR_AST: {
+    case CALL_EXPR_AST:
+    case IF_EXPR_AST: {
       // Create a temporary function for execution.
       llvm::Function* TmpFunction = createTmpFunction(getTmpFunctionName());
       llvm::IRBuilder<>::InsertPointGuard InsertPointGuard(*CurrBuilder);
@@ -194,6 +233,7 @@ std::unique_ptr<llvm::Module> codeMain(const std::vector<ExprAST*>& Exprs) {
       case VARIABLE_EXPR_AST:
       case BINARY_EXPR_AST:
       case CALL_EXPR_AST:
+      case IF_EXPR_AST:
         RetVal = Value;
         break;
       default:

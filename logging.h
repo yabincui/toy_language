@@ -23,6 +23,12 @@ enum LogSeverity {
              << " (" #Expected "=" << (Expected) << ", " #Actual "=" \
              << (Actual) << "): "
 
+#define CHECK_NE(Value1, Value2)                                             \
+  if ((Value1) == (Value2))                                                  \
+  LOG(FATAL) << "Check failed: " #Value1 << " != " << #Value2                \
+             << " (" #Value1 "=" << (Value1) << ", " #Value2 "=" << (Value2) \
+             << "): "
+
 class LogMessage {
  public:
   LogMessage(const char* File, unsigned int Line, LogSeverity Severity)

@@ -4,16 +4,20 @@
 #include <string>
 
 enum TokenType {
-  TOKEN_EOF,         // 0
-  TOKEN_DEF,         // 1
-  TOKEN_EXTERN,      // 2
-  TOKEN_IDENTIFIER,  // 3
-  TOKEN_NUMBER,      // 4
-  TOKEN_OP,          // 5
-  TOKEN_LPAREN,      // 6
-  TOKEN_RPAREN,      // 7
-  TOKEN_SEMICOLON,   // 8
-  TOKEN_COMMA,       // 9
+  TOKEN_INVALID,
+  TOKEN_EOF,
+  TOKEN_DEF,
+  TOKEN_EXTERN,
+  TOKEN_IDENTIFIER,
+  TOKEN_NUMBER,
+  TOKEN_OP,
+  TOKEN_LPAREN,
+  TOKEN_RPAREN,
+  TOKEN_SEMICOLON,
+  TOKEN_COMMA,
+  TOKEN_IF,
+  TOKEN_ELIF,
+  TOKEN_ELSE,
 };
 
 struct Token {
@@ -34,7 +38,8 @@ struct Token {
 };
 
 const Token& currToken();
-const Token& nextToken();
+const Token& getNextToken();
+void unreadToken();
 
 extern size_t ExprsInCurrLine;
 void printPrompt();

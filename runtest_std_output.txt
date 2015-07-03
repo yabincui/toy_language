@@ -119,12 +119,29 @@ CallExprAST Callee = ta
     NumberExprAST val = 3.000000
   Arg #1:
     NumberExprAST val = 4.000000
+Token (TOKEN_IF)
+Token (TOKEN_LPAREN)
+Token (TOKEN_IDENTIFIER, a)
+Token (TOKEN_RPAREN)
+Token (TOKEN_NUMBER, 3.000000)
+Token (TOKEN_SEMICOLON)
+Token (TOKEN_ELSE)
+Token (TOKEN_NUMBER, 4.000000)
+Token (TOKEN_SEMICOLON)
+IfExprAST
+  CondExpr
+    VariableExprAST name = a
+  ThenExpr
+    NumberExprAST val = 3.000000
+  ElseExpr
+    NumberExprAST val = 4.000000
 Token (TOKEN_EOF)
 ; ModuleID = 'my module'
 
 @a = internal global double 0.000000e+00
 @b = internal global double 0.000000e+00
 @c = internal global double 0.000000e+00
+@a.1 = internal global double 0.000000e+00
 
 define internal double @__toy_main() {
   %tmp.3 = load double, double* @a
@@ -134,7 +151,19 @@ define internal double @__toy_main() {
   %tmp.7 = fadd double %tmp.3, %tmp.6
   %tmp.11 = call double @def_a(double 2.000000e+00, double 4.000000e+00)
   %tmp.16 = call double @ta(double 3.000000e+00, double 4.000000e+00)
-  ret double %tmp.16
+  %tmp.17 = load double, double* @a.1
+  %1 = fcmp one double %tmp.17, 0.000000e+00
+  br double 0.000000e+00, label %then, label %else
+
+then:                                             ; preds = %0
+  br label %endif
+
+else:                                             ; preds = %0
+  br label %endif
+
+endif:                                            ; preds = %else, %then
+  %iftmp = phi double [ 3.000000e+00, %then ], [ 4.000000e+00, %else ]
+  ret double %iftmp
 }
 
 declare double @extern_a(double, double)
@@ -159,4 +188,147 @@ ta.entry:
   %tmp.15 = fmul double %b, %c
   ret double %tmp.15
 }
+4.000000
+>Token (TOKEN_NUMBER, 3.000000)
+Token (TOKEN_OP, +)
+Token (TOKEN_NUMBER, 4.000000)
+Token (TOKEN_OP, *)
+Token (TOKEN_NUMBER, 2.000000)
+Token (TOKEN_SEMICOLON)
+BinaryExprAST op = +
+  NumberExprAST val = 3.000000
+  BinaryExprAST op = *
+    NumberExprAST val = 4.000000
+    NumberExprAST val = 2.000000
+11.000000
+>Token (TOKEN_IDENTIFIER, a)
+Token (TOKEN_OP, +)
+Token (TOKEN_IDENTIFIER, b)
+Token (TOKEN_OP, *)
+Token (TOKEN_IDENTIFIER, c)
+Token (TOKEN_SEMICOLON)
+BinaryExprAST op = +
+  VariableExprAST name = a
+  BinaryExprAST op = *
+    VariableExprAST name = b
+    VariableExprAST name = c
+0.000000
+>Token (TOKEN_EXTERN)
+Token (TOKEN_IDENTIFIER, extern_a)
+Token (TOKEN_LPAREN)
+Token (TOKEN_IDENTIFIER, extern_b)
+Token (TOKEN_COMMA)
+Token (TOKEN_IDENTIFIER, extern_c)
+Token (TOKEN_RPAREN)
+Token (TOKEN_SEMICOLON)
+PrototypeAST extern_a (extern_b, extern_c)
+>Token (TOKEN_DEF)
+Token (TOKEN_IDENTIFIER, def_a)
+Token (TOKEN_LPAREN)
+Token (TOKEN_IDENTIFIER, def_b)
+Token (TOKEN_COMMA)
+Token (TOKEN_IDENTIFIER, def_c)
+Token (TOKEN_RPAREN)
+Token (TOKEN_IDENTIFIER, def_b)
+Token (TOKEN_OP, +)
+Token (TOKEN_NUMBER, 2.000000)
+Token (TOKEN_OP, *)
+Token (TOKEN_IDENTIFIER, def_c)
+Token (TOKEN_OP, -)
+Token (TOKEN_NUMBER, 6.000000)
+Token (TOKEN_SEMICOLON)
+FunctionAST
+  PrototypeAST def_a (def_b, def_c)
+  BinaryExprAST op = -
+    BinaryExprAST op = +
+      VariableExprAST name = def_b
+      BinaryExprAST op = *
+        NumberExprAST val = 2.000000
+        VariableExprAST name = def_c
+    NumberExprAST val = 6.000000
+>Token (TOKEN_IDENTIFIER, def_a)
+Token (TOKEN_LPAREN)
+Token (TOKEN_NUMBER, 2.000000)
+Token (TOKEN_COMMA)
+Token (TOKEN_NUMBER, 4.000000)
+Token (TOKEN_RPAREN)
+Token (TOKEN_SEMICOLON)
+CallExprAST Callee = def_a
+  Arg #0:
+    NumberExprAST val = 2.000000
+  Arg #1:
+    NumberExprAST val = 4.000000
+4.000000
+>Token (TOKEN_DEF)
+Token (TOKEN_IDENTIFIER, cse_test)
+Token (TOKEN_LPAREN)
+Token (TOKEN_IDENTIFIER, x)
+Token (TOKEN_RPAREN)
+Token (TOKEN_LPAREN)
+Token (TOKEN_NUMBER, 3.000000)
+Token (TOKEN_OP, +)
+Token (TOKEN_IDENTIFIER, x)
+Token (TOKEN_RPAREN)
+Token (TOKEN_OP, *)
+Token (TOKEN_LPAREN)
+Token (TOKEN_IDENTIFIER, x)
+Token (TOKEN_OP, +)
+Token (TOKEN_NUMBER, 3.000000)
+Token (TOKEN_RPAREN)
+Token (TOKEN_SEMICOLON)
+FunctionAST
+  PrototypeAST cse_test (x)
+  BinaryExprAST op = *
+    BinaryExprAST op = +
+      NumberExprAST val = 3.000000
+      VariableExprAST name = x
+    BinaryExprAST op = +
+      VariableExprAST name = x
+      NumberExprAST val = 3.000000
+>Token (TOKEN_DEF)
+Token (TOKEN_IDENTIFIER, ta)
+Token (TOKEN_LPAREN)
+Token (TOKEN_IDENTIFIER, b)
+Token (TOKEN_COMMA)
+Token (TOKEN_IDENTIFIER, c)
+Token (TOKEN_RPAREN)
+Token (TOKEN_IDENTIFIER, b)
+Token (TOKEN_OP, *)
+Token (TOKEN_IDENTIFIER, c)
+Token (TOKEN_SEMICOLON)
+FunctionAST
+  PrototypeAST ta (b, c)
+  BinaryExprAST op = *
+    VariableExprAST name = b
+    VariableExprAST name = c
+>Token (TOKEN_IDENTIFIER, ta)
+Token (TOKEN_LPAREN)
+Token (TOKEN_NUMBER, 3.000000)
+Token (TOKEN_COMMA)
+Token (TOKEN_NUMBER, 4.000000)
+Token (TOKEN_RPAREN)
+Token (TOKEN_SEMICOLON)
+CallExprAST Callee = ta
+  Arg #0:
+    NumberExprAST val = 3.000000
+  Arg #1:
+    NumberExprAST val = 4.000000
 12.000000
+>Token (TOKEN_IF)
+Token (TOKEN_LPAREN)
+Token (TOKEN_IDENTIFIER, a)
+Token (TOKEN_RPAREN)
+Token (TOKEN_NUMBER, 3.000000)
+Token (TOKEN_SEMICOLON)
+Token (TOKEN_ELSE)
+Token (TOKEN_NUMBER, 4.000000)
+Token (TOKEN_SEMICOLON)
+IfExprAST
+  CondExpr
+    VariableExprAST name = a
+  ThenExpr
+    NumberExprAST val = 3.000000
+  ElseExpr
+    NumberExprAST val = 4.000000
+Token (TOKEN_EOF)
+4.000000

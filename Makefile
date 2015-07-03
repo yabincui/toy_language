@@ -19,13 +19,11 @@ CC := clang++
 
 LLVM_CXX_FLAGS := $(shell llvm-config --cxxflags)
 
-CXXFLAGS := -std=c++11 $(CFLAGS_FOR_MACOS) $(CXX_INCLUDE_FLAGS) $(LLVM_CXX_FLAGS)
+CXXFLAGS := -std=c++11 $(LLVM_CXX_FLAGS) -fno-rtti
 
-LLVM_LIBS := $(shell llvm-config --libs)
+LLVM_LDFLAGS := $(shell llvm-config --ldflags --libs --system-libs)
 
-LLVM_LDFLAGS := `llvm-config --ldflags --libs --system-libs`
-
-LDFLAGS := $(LLVM_LDFLAGS) -lpthread -ldl -lncurses
+LDFLAGS := $(LLVM_LDFLAGS)
 
 DEPS := Makefile $(wildcard *.h)
 

@@ -11,6 +11,7 @@ enum ASTType {
   PROTOTYPE_AST,
   FUNCTION_AST,
   CALL_EXPR_AST,
+  IF_EXPR_AST,
 };
 
 class ExprAST {
@@ -112,6 +113,24 @@ class CallExprAST : public ExprAST {
  private:
   const std::string Callee_;
   const std::vector<ExprAST*> Args_;
+};
+
+class IfExprAST : public ExprAST {
+ public:
+  IfExprAST(ExprAST* CondExpr, ExprAST* ThenExpr, ExprAST* ElseExpr)
+      : ExprAST(IF_EXPR_AST),
+        CondExpr_(CondExpr),
+        ThenExpr_(ThenExpr),
+        ElseExpr_(ElseExpr) {
+  }
+
+  void dump(int Indent = 0) const override;
+  llvm::Value* codegen() override;
+
+ private:
+  ExprAST* CondExpr_;
+  ExprAST* ThenExpr_;
+  ExprAST* ElseExpr_;
 };
 
 // Used in interactive mode.
