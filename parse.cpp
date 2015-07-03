@@ -51,11 +51,16 @@ void CallExprAST::dump(int Indent) const {
 }
 
 void IfExprAST::dump(int Indent) const {
-  fprintIndented(stderr, Indent, "IfExprAST\n");
-  fprintIndented(stderr, Indent + 1, "CondExpr\n");
-  CondExpr_->dump(Indent + 2);
-  fprintIndented(stderr, Indent + 1, "ThenExpr\n");
-  ThenExpr_->dump(Indent + 2);
+  fprintIndented(stderr, Indent,
+                 "IfExprAST: have %zu CondThenExprs, have %d ElseExpr\n",
+                 CondThenExprs_.size(), (ElseExpr_ == nullptr ? 0 : 1));
+  for (size_t i = 0; i < CondThenExprs_.size(); ++i) {
+    fprintIndented(stderr, Indent + 1, "CondExpr #%zu\n", i + 1);
+    CondThenExprs_[i].first->dump(Indent + 2);
+    fprintIndented(stderr, Indent + 1, "ThenExpr #%zu\n", i + 1);
+    CondThenExprs_[i].second->dump(Indent + 2);
+  }
+
   if (ElseExpr_ != nullptr) {
     fprintIndented(stderr, Indent + 1, "ElseExpr\n");
     ElseExpr_->dump(Indent + 2);
@@ -63,7 +68,8 @@ void IfExprAST::dump(int Indent) const {
 }
 
 void BlockExprAST::dump(int Indent) const {
-  fprintIndented(stderr, Indent, "BlockExprAST: have %zu exprs\n", Exprs_.size());
+  fprintIndented(stderr, Indent, "BlockExprAST: have %zu exprs\n",
+                 Exprs_.size());
   for (auto& Expr : Exprs_) {
     Expr->dump(Indent + 1);
   }
@@ -170,6 +176,9 @@ static ExprAST* parseExpression() {
 // Statement := Expression ;
 //           := if ( Expression ) Statement
 //           := if ( Expression ) Statement else Statement
+//           := if ( Expression ) Statement elif ( Expression ) Statement ...
+//           := if ( Expression ) Statement elif ( Expression ) Statement ...
+//           else Statement
 //           := { }
 //           := { Statement... }
 static ExprAST* parseStatement() {
@@ -184,6 +193,7 @@ static ExprAST* parseStatement() {
       return Expr;
     }
     case TOKEN_IF: {
+      std::vector<std::pair<ExprAST*, ExprAST*>> CondThenExprs;
       nextToken();
       Curr = currToken();
       CHECK_EQ(TOKEN_LPAREN, Curr.Type);
@@ -195,8 +205,26 @@ static ExprAST* parseStatement() {
       nextToken();
       ExprAST* ThenExpr = parseStatement();
       CHECK(ThenExpr != nullptr);
-      nextToken();
-      Curr = currToken();
+      CondThenExprs.push_back(std::make_pair(CondExpr, ThenExpr));
+      while (true) {
+        nextToken();
+        Curr = currToken();
+        if (Curr.Type != TOKEN_ELIF) {
+          break;
+        }
+        nextToken();
+        Curr = currToken();
+        CHECK_EQ(TOKEN_LPAREN, Curr.Type);
+        nextToken();
+        ExprAST* CondExpr = parseExpression();
+        CHECK(CondExpr != nullptr);
+        Curr = currToken();
+        CHECK_EQ(TOKEN_RPAREN, Curr.Type);
+        nextToken();
+        ExprAST* ThenExpr = parseStatement();
+        CHECK(ThenExpr != nullptr);
+        CondThenExprs.push_back(std::make_pair(CondExpr, ThenExpr));
+      }
       ExprAST* ElseExpr = nullptr;
       if (Curr.Type == TOKEN_ELSE) {
         nextToken();
@@ -205,7 +233,7 @@ static ExprAST* parseStatement() {
       } else {
         unreadToken();
       }
-      IfExprAST* IfExpr = new IfExprAST(CondExpr, ThenExpr, ElseExpr);
+      IfExprAST* IfExpr = new IfExprAST(CondThenExprs, ElseExpr);
       ExprStorage.push_back(std::unique_ptr<ExprAST>(IfExpr));
       return IfExpr;
     }

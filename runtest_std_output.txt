@@ -128,10 +128,10 @@ Token (TOKEN_SEMICOLON)
 Token (TOKEN_ELSE)
 Token (TOKEN_NUMBER, 4.000000)
 Token (TOKEN_SEMICOLON)
-IfExprAST
-  CondExpr
+IfExprAST: have 1 CondThenExprs, have 1 ElseExpr
+  CondExpr #1
     VariableExprAST name = a
-  ThenExpr
+  ThenExpr #1
     NumberExprAST val = 3.000000
   ElseExpr
     NumberExprAST val = 4.000000
@@ -169,10 +169,10 @@ Token (TOKEN_OP, -)
 Token (TOKEN_NUMBER, 5.000000)
 Token (TOKEN_SEMICOLON)
 Token (TOKEN_RBRACE)
-IfExprAST
-  CondExpr
+IfExprAST: have 1 CondThenExprs, have 1 ElseExpr
+  CondExpr #1
     VariableExprAST name = a
-  ThenExpr
+  ThenExpr #1
     BlockExprAST: have 1 exprs
       BinaryExprAST op = +
         NumberExprAST val = 3.000000
@@ -182,6 +182,113 @@ IfExprAST
       BinaryExprAST op = -
         NumberExprAST val = 7.000000
         NumberExprAST val = 5.000000
+Token (TOKEN_IF)
+Token (TOKEN_LPAREN)
+Token (TOKEN_NUMBER, 1.000000)
+Token (TOKEN_RPAREN)
+Token (TOKEN_LBRACE)
+Token (TOKEN_NUMBER, 4.000000)
+Token (TOKEN_OP, +)
+Token (TOKEN_NUMBER, 1.000000)
+Token (TOKEN_SEMICOLON)
+Token (TOKEN_RBRACE)
+Token (TOKEN_ELSE)
+Token (TOKEN_LBRACE)
+Token (TOKEN_NUMBER, 7.000000)
+Token (TOKEN_OP, +)
+Token (TOKEN_NUMBER, 4.000000)
+Token (TOKEN_SEMICOLON)
+Token (TOKEN_RBRACE)
+IfExprAST: have 1 CondThenExprs, have 1 ElseExpr
+  CondExpr #1
+    NumberExprAST val = 1.000000
+  ThenExpr #1
+    BlockExprAST: have 1 exprs
+      BinaryExprAST op = +
+        NumberExprAST val = 4.000000
+        NumberExprAST val = 1.000000
+  ElseExpr
+    BlockExprAST: have 1 exprs
+      BinaryExprAST op = +
+        NumberExprAST val = 7.000000
+        NumberExprAST val = 4.000000
+Token (TOKEN_IF)
+Token (TOKEN_LPAREN)
+Token (TOKEN_NUMBER, 0.000000)
+Token (TOKEN_RPAREN)
+Token (TOKEN_LBRACE)
+Token (TOKEN_NUMBER, 0.000000)
+Token (TOKEN_SEMICOLON)
+Token (TOKEN_RBRACE)
+Token (TOKEN_ELIF)
+Token (TOKEN_LPAREN)
+Token (TOKEN_NUMBER, 1.000000)
+Token (TOKEN_RPAREN)
+Token (TOKEN_LBRACE)
+Token (TOKEN_NUMBER, 1.000000)
+Token (TOKEN_SEMICOLON)
+Token (TOKEN_RBRACE)
+Token (TOKEN_IF)
+unread Token (TOKEN_IF)
+IfExprAST: have 2 CondThenExprs, have 0 ElseExpr
+  CondExpr #1
+    NumberExprAST val = 0.000000
+  ThenExpr #1
+    BlockExprAST: have 1 exprs
+      NumberExprAST val = 0.000000
+  CondExpr #2
+    NumberExprAST val = 1.000000
+  ThenExpr #2
+    BlockExprAST: have 1 exprs
+      NumberExprAST val = 1.000000
+Token (TOKEN_IF)
+Token (TOKEN_LPAREN)
+Token (TOKEN_NUMBER, 0.000000)
+Token (TOKEN_RPAREN)
+Token (TOKEN_LBRACE)
+Token (TOKEN_NUMBER, 0.000000)
+Token (TOKEN_SEMICOLON)
+Token (TOKEN_RBRACE)
+Token (TOKEN_ELIF)
+Token (TOKEN_LPAREN)
+Token (TOKEN_NUMBER, 1.000000)
+Token (TOKEN_RPAREN)
+Token (TOKEN_LBRACE)
+Token (TOKEN_NUMBER, 1.000000)
+Token (TOKEN_SEMICOLON)
+Token (TOKEN_RBRACE)
+Token (TOKEN_ELIF)
+Token (TOKEN_LPAREN)
+Token (TOKEN_NUMBER, 2.000000)
+Token (TOKEN_RPAREN)
+Token (TOKEN_LBRACE)
+Token (TOKEN_NUMBER, 2.000000)
+Token (TOKEN_SEMICOLON)
+Token (TOKEN_RBRACE)
+Token (TOKEN_ELSE)
+Token (TOKEN_LBRACE)
+Token (TOKEN_NUMBER, 3.000000)
+Token (TOKEN_SEMICOLON)
+Token (TOKEN_RBRACE)
+IfExprAST: have 3 CondThenExprs, have 1 ElseExpr
+  CondExpr #1
+    NumberExprAST val = 0.000000
+  ThenExpr #1
+    BlockExprAST: have 1 exprs
+      NumberExprAST val = 0.000000
+  CondExpr #2
+    NumberExprAST val = 1.000000
+  ThenExpr #2
+    BlockExprAST: have 1 exprs
+      NumberExprAST val = 1.000000
+  CondExpr #3
+    NumberExprAST val = 2.000000
+  ThenExpr #3
+    BlockExprAST: have 1 exprs
+      NumberExprAST val = 2.000000
+  ElseExpr
+    BlockExprAST: have 1 exprs
+      NumberExprAST val = 3.000000
 Token (TOKEN_EOF)
 ; ModuleID = 'my module'
 
@@ -202,31 +309,79 @@ define internal double @__toy_main() {
   %tmp.16 = call double @ta(double 3.000000e+00, double 4.000000e+00)
   %tmp.17 = load double, double* @a.1
   %1 = fcmp one double %tmp.17, 0.000000e+00
-  br double 0.000000e+00, label %then, label %else
+  br i1 %1, label %then0, label %else
 
-then:                                             ; preds = %0
+then0:                                            ; preds = %0
   br label %endif
 
 else:                                             ; preds = %0
   br label %endif
 
-endif:                                            ; preds = %else, %then
-  %iftmp = phi double [ 3.000000e+00, %then ], [ 4.000000e+00, %else ]
+endif:                                            ; preds = %else, %then0
+  %iftmp = phi double [ 3.000000e+00, %then0 ], [ 4.000000e+00, %else ]
   %tmp.19 = load double, double* @a.2
   %tmp.20 = fsub double %tmp.19, 6.000000e+00
   %tmp.21 = load double, double* @a.3
   %2 = fcmp one double %tmp.21, 0.000000e+00
-  br double 0.000000e+00, label %then1, label %else2
+  br i1 %2, label %then01, label %else2
 
-then1:                                            ; preds = %endif
+then01:                                           ; preds = %endif
   br label %endif3
 
 else2:                                            ; preds = %endif
   br label %endif3
 
-endif3:                                           ; preds = %else2, %then1
-  %iftmp4 = phi double [ 5.000000e+00, %then1 ], [ 2.000000e+00, %else2 ]
-  ret double %iftmp4
+endif3:                                           ; preds = %else2, %then01
+  %iftmp4 = phi double [ 5.000000e+00, %then01 ], [ 2.000000e+00, %else2 ]
+  br i1 true, label %then05, label %else6
+
+then05:                                           ; preds = %endif3
+  br label %endif7
+
+else6:                                            ; preds = %endif3
+  br label %endif7
+
+endif7:                                           ; preds = %else6, %then05
+  %iftmp8 = phi double [ 5.000000e+00, %then05 ], [ 1.100000e+01, %else6 ]
+  br i1 false, label %then09, label %cond1
+
+then09:                                           ; preds = %endif7
+  br label %endif11
+
+cond1:                                            ; preds = %endif7
+  br i1 true, label %then1, label %else10
+
+then1:                                            ; preds = %cond1
+  br label %endif11
+
+else10:                                           ; preds = %cond1
+  br label %endif11
+
+endif11:                                          ; preds = %else10, %then1, %then09
+  %iftmp12 = phi double [ 0.000000e+00, %then09 ], [ 1.000000e+00, %then1 ], [ 0.000000e+00, %else10 ]
+  br i1 false, label %then013, label %cond114
+
+then013:                                          ; preds = %endif11
+  br label %endif17
+
+cond114:                                          ; preds = %endif11
+  br i1 true, label %then115, label %cond2
+
+then115:                                          ; preds = %cond114
+  br label %endif17
+
+cond2:                                            ; preds = %cond114
+  br i1 true, label %then2, label %else16
+
+then2:                                            ; preds = %cond2
+  br label %endif17
+
+else16:                                           ; preds = %cond2
+  br label %endif17
+
+endif17:                                          ; preds = %else16, %then2, %then115, %then013
+  %iftmp18 = phi double [ 0.000000e+00, %then013 ], [ 1.000000e+00, %then115 ], [ 2.000000e+00, %then2 ], [ 3.000000e+00, %else16 ]
+  ret double %iftmp18
 }
 
 declare double @extern_a(double, double)
@@ -242,7 +397,8 @@ def_a.entry:
 define double @cse_test(double %x) {
 cse_test.entry:
   %tmp.12 = fadd double 3.000000e+00, %x
-  %tmp.14 = fmul double %tmp.12, %tmp.12
+  %tmp.13 = fadd double %x, 3.000000e+00
+  %tmp.14 = fmul double %tmp.12, %tmp.13
   ret double %tmp.14
 }
 
@@ -251,7 +407,7 @@ ta.entry:
   %tmp.15 = fmul double %b, %c
   ret double %tmp.15
 }
-2.000000
+1.000000
 >Token (TOKEN_NUMBER, 3.000000)
 Token (TOKEN_OP, +)
 Token (TOKEN_NUMBER, 4.000000)
@@ -386,10 +542,10 @@ Token (TOKEN_SEMICOLON)
 Token (TOKEN_ELSE)
 Token (TOKEN_NUMBER, 4.000000)
 Token (TOKEN_SEMICOLON)
-IfExprAST
-  CondExpr
+IfExprAST: have 1 CondThenExprs, have 1 ElseExpr
+  CondExpr #1
     VariableExprAST name = a
-  ThenExpr
+  ThenExpr #1
     NumberExprAST val = 3.000000
   ElseExpr
     NumberExprAST val = 4.000000
@@ -429,10 +585,10 @@ Token (TOKEN_OP, -)
 Token (TOKEN_NUMBER, 5.000000)
 Token (TOKEN_SEMICOLON)
 Token (TOKEN_RBRACE)
-IfExprAST
-  CondExpr
+IfExprAST: have 1 CondThenExprs, have 1 ElseExpr
+  CondExpr #1
     VariableExprAST name = a
-  ThenExpr
+  ThenExpr #1
     BlockExprAST: have 1 exprs
       BinaryExprAST op = +
         NumberExprAST val = 3.000000
@@ -442,5 +598,115 @@ IfExprAST
       BinaryExprAST op = -
         NumberExprAST val = 7.000000
         NumberExprAST val = 5.000000
-Token (TOKEN_EOF)
 2.000000
+>Token (TOKEN_IF)
+Token (TOKEN_LPAREN)
+Token (TOKEN_NUMBER, 1.000000)
+Token (TOKEN_RPAREN)
+Token (TOKEN_LBRACE)
+Token (TOKEN_NUMBER, 4.000000)
+Token (TOKEN_OP, +)
+Token (TOKEN_NUMBER, 1.000000)
+Token (TOKEN_SEMICOLON)
+Token (TOKEN_RBRACE)
+Token (TOKEN_ELSE)
+Token (TOKEN_LBRACE)
+Token (TOKEN_NUMBER, 7.000000)
+Token (TOKEN_OP, +)
+Token (TOKEN_NUMBER, 4.000000)
+Token (TOKEN_SEMICOLON)
+Token (TOKEN_RBRACE)
+IfExprAST: have 1 CondThenExprs, have 1 ElseExpr
+  CondExpr #1
+    NumberExprAST val = 1.000000
+  ThenExpr #1
+    BlockExprAST: have 1 exprs
+      BinaryExprAST op = +
+        NumberExprAST val = 4.000000
+        NumberExprAST val = 1.000000
+  ElseExpr
+    BlockExprAST: have 1 exprs
+      BinaryExprAST op = +
+        NumberExprAST val = 7.000000
+        NumberExprAST val = 4.000000
+5.000000
+>Token (TOKEN_IF)
+Token (TOKEN_LPAREN)
+Token (TOKEN_NUMBER, 0.000000)
+Token (TOKEN_RPAREN)
+Token (TOKEN_LBRACE)
+Token (TOKEN_NUMBER, 0.000000)
+Token (TOKEN_SEMICOLON)
+Token (TOKEN_RBRACE)
+Token (TOKEN_ELIF)
+Token (TOKEN_LPAREN)
+Token (TOKEN_NUMBER, 1.000000)
+Token (TOKEN_RPAREN)
+Token (TOKEN_LBRACE)
+Token (TOKEN_NUMBER, 1.000000)
+Token (TOKEN_SEMICOLON)
+Token (TOKEN_RBRACE)
+Token (TOKEN_IF)
+unread Token (TOKEN_IF)
+IfExprAST: have 2 CondThenExprs, have 0 ElseExpr
+  CondExpr #1
+    NumberExprAST val = 0.000000
+  ThenExpr #1
+    BlockExprAST: have 1 exprs
+      NumberExprAST val = 0.000000
+  CondExpr #2
+    NumberExprAST val = 1.000000
+  ThenExpr #2
+    BlockExprAST: have 1 exprs
+      NumberExprAST val = 1.000000
+Token (TOKEN_IF)
+Token (TOKEN_LPAREN)
+Token (TOKEN_NUMBER, 0.000000)
+Token (TOKEN_RPAREN)
+Token (TOKEN_LBRACE)
+1.000000
+>Token (TOKEN_NUMBER, 0.000000)
+Token (TOKEN_SEMICOLON)
+Token (TOKEN_RBRACE)
+Token (TOKEN_ELIF)
+Token (TOKEN_LPAREN)
+Token (TOKEN_NUMBER, 1.000000)
+Token (TOKEN_RPAREN)
+Token (TOKEN_LBRACE)
+Token (TOKEN_NUMBER, 1.000000)
+Token (TOKEN_SEMICOLON)
+Token (TOKEN_RBRACE)
+Token (TOKEN_ELIF)
+Token (TOKEN_LPAREN)
+Token (TOKEN_NUMBER, 2.000000)
+Token (TOKEN_RPAREN)
+Token (TOKEN_LBRACE)
+Token (TOKEN_NUMBER, 2.000000)
+Token (TOKEN_SEMICOLON)
+Token (TOKEN_RBRACE)
+Token (TOKEN_ELSE)
+Token (TOKEN_LBRACE)
+Token (TOKEN_NUMBER, 3.000000)
+Token (TOKEN_SEMICOLON)
+Token (TOKEN_RBRACE)
+IfExprAST: have 3 CondThenExprs, have 1 ElseExpr
+  CondExpr #1
+    NumberExprAST val = 0.000000
+  ThenExpr #1
+    BlockExprAST: have 1 exprs
+      NumberExprAST val = 0.000000
+  CondExpr #2
+    NumberExprAST val = 1.000000
+  ThenExpr #2
+    BlockExprAST: have 1 exprs
+      NumberExprAST val = 1.000000
+  CondExpr #3
+    NumberExprAST val = 2.000000
+  ThenExpr #3
+    BlockExprAST: have 1 exprs
+      NumberExprAST val = 2.000000
+  ElseExpr
+    BlockExprAST: have 1 exprs
+      NumberExprAST val = 3.000000
+Token (TOKEN_EOF)
+1.000000

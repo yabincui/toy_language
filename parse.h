@@ -118,10 +118,10 @@ class CallExprAST : public ExprAST {
 
 class IfExprAST : public ExprAST {
  public:
-  IfExprAST(ExprAST* CondExpr, ExprAST* ThenExpr, ExprAST* ElseExpr)
+  IfExprAST(const std::vector<std::pair<ExprAST*, ExprAST*>>& CondThenExprs,
+            ExprAST* ElseExpr)
       : ExprAST(IF_EXPR_AST),
-        CondExpr_(CondExpr),
-        ThenExpr_(ThenExpr),
+        CondThenExprs_(CondThenExprs),
         ElseExpr_(ElseExpr) {
   }
 
@@ -129,8 +129,7 @@ class IfExprAST : public ExprAST {
   llvm::Value* codegen() override;
 
  private:
-  ExprAST* CondExpr_;
-  ExprAST* ThenExpr_;
+  std::vector<std::pair<ExprAST*, ExprAST*>> CondThenExprs_;
   ExprAST* ElseExpr_;
 };
 

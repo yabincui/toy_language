@@ -136,13 +136,13 @@ static void interactiveMain() {
       if (Function != nullptr) {
         executionPipeline(Function);
       }
+      ExprsInCurrLine++;
+    } else {
+      Token Curr = currToken();
+      if (Curr.Type == TOKEN_EOF) {
+        break;
+      }
     }
-
-    Token Curr = currToken();
-    if (Curr.Type == TOKEN_EOF) {
-      break;
-    }
-    ExprsInCurrLine++;
   }
 
   finishExecutionPipeline();

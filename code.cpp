@@ -139,36 +139,63 @@ llvm::Value* CallExprAST::codegen() {
 }
 
 llvm::Value* IfExprAST::codegen() {
-  llvm::Value* CondValue = CondExpr_->codegen();
-  CHECK(CondValue != nullptr);
-  CondValue = CurrBuilder->CreateFCmpONE(
-      CondValue, llvm::ConstantFP::get(*Context, llvm::APFloat(0.0)));
-  CondValue = llvm::ConstantFP::get(*Context, llvm::APFloat(0.0));
-  llvm::BasicBlock* ThenBlock =
-      llvm::BasicBlock::Create(*Context, "then", CurrFunction);
-  llvm::BasicBlock* ElseBlock =
-      llvm::BasicBlock::Create(*Context, "else", CurrFunction);
-  llvm::BasicBlock* MergeBlock =
-      llvm::BasicBlock::Create(*Context, "endif", CurrFunction);
-  CurrBuilder->CreateCondBr(CondValue, ThenBlock, ElseBlock);
-  // Emit then block.
-  CurrBuilder->SetInsertPoint(ThenBlock);
-  llvm::Value* ThenValue = ThenExpr_->codegen();
-  CHECK(ThenValue != nullptr);
-  CurrBuilder->CreateBr(MergeBlock);
-  ThenBlock = CurrBuilder->GetInsertBlock();
+  std::vector<llvm::BasicBlock*> CondBlocks;
+  std::vector<llvm::BasicBlock*> ThenBlocks;
+  std::vector<llvm::Value*> ThenValues;
+  llvm::BasicBlock* ElseBlock;
+  llvm::Value* ElseValue;
+  llvm::BasicBlock* MergeBlock;
+
+  for (size_t i = 0; i < CondThenExprs_.size(); ++i) {
+    if (i == 0) {
+      CondBlocks.push_back(nullptr);
+    } else {
+      llvm::BasicBlock* CondBlock = llvm::BasicBlock::Create(
+          *Context, stringPrintf("cond%zu", i), CurrFunction);
+      CondBlocks.push_back(CondBlock);
+    }
+    llvm::BasicBlock* ThenBlock = llvm::BasicBlock::Create(
+        *Context, stringPrintf("then%zu", i), CurrFunction);
+    ThenBlocks.push_back(ThenBlock);
+  }
+  ElseBlock = llvm::BasicBlock::Create(*Context, "else", CurrFunction);
+  MergeBlock = llvm::BasicBlock::Create(*Context, "endif", CurrFunction);
+
+  for (size_t i = 0; i < CondThenExprs_.size(); ++i) {
+    if (i != 0) {
+      CurrBuilder->SetInsertPoint(CondBlocks[i]);
+    }
+    llvm::Value* CondValue = CondThenExprs_[i].first->codegen();
+    CHECK(CondValue != nullptr);
+    llvm::Value* CmpValue = CurrBuilder->CreateFCmpONE(
+        CondValue, llvm::ConstantFP::get(*Context, llvm::APFloat(0.0)));
+    CurrBuilder->CreateCondBr(
+        CmpValue, ThenBlocks[i],
+        (i + 1 < CondThenExprs_.size() ? CondBlocks[i + 1] : ElseBlock));
+    CurrBuilder->SetInsertPoint(ThenBlocks[i]);
+    llvm::Value* ThenValue = CondThenExprs_[i].second->codegen();
+    CHECK(ThenValue != nullptr);
+    CurrBuilder->CreateBr(MergeBlock);
+    ThenValues.push_back(ThenValue);
+    // In case the last block is different from previous ThenBlock.
+    ThenBlocks[i] = CurrBuilder->GetInsertBlock();
+  }
   // Emit else block.
   CurrBuilder->SetInsertPoint(ElseBlock);
-  llvm::Value* ElseValue = llvm::ConstantFP::get(*Context, llvm::APFloat(0.0));
+  ElseValue = llvm::ConstantFP::get(*Context, llvm::APFloat(0.0));
   if (ElseExpr_ != nullptr) {
     ElseValue = ElseExpr_->codegen();
   }
   CurrBuilder->CreateBr(MergeBlock);
+  // In case the last block is different from previous ElseBlock.
   ElseBlock = CurrBuilder->GetInsertBlock();
+  // Emit merge block.
   CurrBuilder->SetInsertPoint(MergeBlock);
-  llvm::PHINode* PHINode =
-      CurrBuilder->CreatePHI(llvm::Type::getDoubleTy(*Context), 2, "iftmp");
-  PHINode->addIncoming(ThenValue, ThenBlock);
+  llvm::PHINode* PHINode = CurrBuilder->CreatePHI(
+      llvm::Type::getDoubleTy(*Context), CondThenExprs_.size() + 1, "iftmp");
+  for (size_t i = 0; i < CondThenExprs_.size(); ++i) {
+    PHINode->addIncoming(ThenValues[i], ThenBlocks[i]);
+  }
   PHINode->addIncoming(ElseValue, ElseBlock);
   return PHINode;
 }
@@ -253,11 +280,11 @@ std::unique_ptr<llvm::Module> codeMain(const std::vector<ExprAST*>& Exprs) {
 
   CurrBuilder->CreateRet(RetVal);
 
-  optMain(TheModule.get());
-
   if (GlobalOption.DumpCode) {
     TheModule->dump();
   }
+  optMain(TheModule.get());
+
   finishCodePipeline();
   return TheModule;
 }
