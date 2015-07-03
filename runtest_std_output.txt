@@ -135,6 +135,53 @@ IfExprAST
     NumberExprAST val = 3.000000
   ElseExpr
     NumberExprAST val = 4.000000
+Token (TOKEN_LBRACE)
+Token (TOKEN_NUMBER, 3.000000)
+Token (TOKEN_OP, +)
+Token (TOKEN_NUMBER, 2.000000)
+Token (TOKEN_SEMICOLON)
+Token (TOKEN_IDENTIFIER, a)
+Token (TOKEN_OP, -)
+Token (TOKEN_NUMBER, 6.000000)
+Token (TOKEN_SEMICOLON)
+Token (TOKEN_RBRACE)
+BlockExprAST: have 2 exprs
+  BinaryExprAST op = +
+    NumberExprAST val = 3.000000
+    NumberExprAST val = 2.000000
+  BinaryExprAST op = -
+    VariableExprAST name = a
+    NumberExprAST val = 6.000000
+Token (TOKEN_IF)
+Token (TOKEN_LPAREN)
+Token (TOKEN_IDENTIFIER, a)
+Token (TOKEN_RPAREN)
+Token (TOKEN_LBRACE)
+Token (TOKEN_NUMBER, 3.000000)
+Token (TOKEN_OP, +)
+Token (TOKEN_NUMBER, 2.000000)
+Token (TOKEN_SEMICOLON)
+Token (TOKEN_RBRACE)
+Token (TOKEN_ELSE)
+Token (TOKEN_LBRACE)
+Token (TOKEN_NUMBER, 7.000000)
+Token (TOKEN_OP, -)
+Token (TOKEN_NUMBER, 5.000000)
+Token (TOKEN_SEMICOLON)
+Token (TOKEN_RBRACE)
+IfExprAST
+  CondExpr
+    VariableExprAST name = a
+  ThenExpr
+    BlockExprAST: have 1 exprs
+      BinaryExprAST op = +
+        NumberExprAST val = 3.000000
+        NumberExprAST val = 2.000000
+  ElseExpr
+    BlockExprAST: have 1 exprs
+      BinaryExprAST op = -
+        NumberExprAST val = 7.000000
+        NumberExprAST val = 5.000000
 Token (TOKEN_EOF)
 ; ModuleID = 'my module'
 
@@ -142,6 +189,8 @@ Token (TOKEN_EOF)
 @b = internal global double 0.000000e+00
 @c = internal global double 0.000000e+00
 @a.1 = internal global double 0.000000e+00
+@a.2 = internal global double 0.000000e+00
+@a.3 = internal global double 0.000000e+00
 
 define internal double @__toy_main() {
   %tmp.3 = load double, double* @a
@@ -163,7 +212,21 @@ else:                                             ; preds = %0
 
 endif:                                            ; preds = %else, %then
   %iftmp = phi double [ 3.000000e+00, %then ], [ 4.000000e+00, %else ]
-  ret double %iftmp
+  %tmp.19 = load double, double* @a.2
+  %tmp.20 = fsub double %tmp.19, 6.000000e+00
+  %tmp.21 = load double, double* @a.3
+  %2 = fcmp one double %tmp.21, 0.000000e+00
+  br double 0.000000e+00, label %then1, label %else2
+
+then1:                                            ; preds = %endif
+  br label %endif3
+
+else2:                                            ; preds = %endif
+  br label %endif3
+
+endif3:                                           ; preds = %else2, %then1
+  %iftmp4 = phi double [ 5.000000e+00, %then1 ], [ 2.000000e+00, %else2 ]
+  ret double %iftmp4
 }
 
 declare double @extern_a(double, double)
@@ -188,7 +251,7 @@ ta.entry:
   %tmp.15 = fmul double %b, %c
   ret double %tmp.15
 }
-4.000000
+2.000000
 >Token (TOKEN_NUMBER, 3.000000)
 Token (TOKEN_OP, +)
 Token (TOKEN_NUMBER, 4.000000)
@@ -330,5 +393,54 @@ IfExprAST
     NumberExprAST val = 3.000000
   ElseExpr
     NumberExprAST val = 4.000000
-Token (TOKEN_EOF)
 4.000000
+>Token (TOKEN_LBRACE)
+Token (TOKEN_NUMBER, 3.000000)
+Token (TOKEN_OP, +)
+Token (TOKEN_NUMBER, 2.000000)
+Token (TOKEN_SEMICOLON)
+Token (TOKEN_IDENTIFIER, a)
+Token (TOKEN_OP, -)
+Token (TOKEN_NUMBER, 6.000000)
+Token (TOKEN_SEMICOLON)
+Token (TOKEN_RBRACE)
+BlockExprAST: have 2 exprs
+  BinaryExprAST op = +
+    NumberExprAST val = 3.000000
+    NumberExprAST val = 2.000000
+  BinaryExprAST op = -
+    VariableExprAST name = a
+    NumberExprAST val = 6.000000
+-6.000000
+>Token (TOKEN_IF)
+Token (TOKEN_LPAREN)
+Token (TOKEN_IDENTIFIER, a)
+Token (TOKEN_RPAREN)
+Token (TOKEN_LBRACE)
+Token (TOKEN_NUMBER, 3.000000)
+Token (TOKEN_OP, +)
+Token (TOKEN_NUMBER, 2.000000)
+Token (TOKEN_SEMICOLON)
+Token (TOKEN_RBRACE)
+Token (TOKEN_ELSE)
+Token (TOKEN_LBRACE)
+Token (TOKEN_NUMBER, 7.000000)
+Token (TOKEN_OP, -)
+Token (TOKEN_NUMBER, 5.000000)
+Token (TOKEN_SEMICOLON)
+Token (TOKEN_RBRACE)
+IfExprAST
+  CondExpr
+    VariableExprAST name = a
+  ThenExpr
+    BlockExprAST: have 1 exprs
+      BinaryExprAST op = +
+        NumberExprAST val = 3.000000
+        NumberExprAST val = 2.000000
+  ElseExpr
+    BlockExprAST: have 1 exprs
+      BinaryExprAST op = -
+        NumberExprAST val = 7.000000
+        NumberExprAST val = 5.000000
+Token (TOKEN_EOF)
+2.000000

@@ -29,6 +29,8 @@ std::map<int, std::string> TokenNameMap = {
     {TOKEN_IF, "TOKEN_IF"},
     {TOKEN_ELIF, "TOKEN_ELIF"},
     {TOKEN_ELSE, "TOKEN_ELSE"},
+    {TOKEN_LBRACE, "TOKEN_LBRACE"},
+    {TOKEN_RBRACE, "TOKEN_RBRACE"},
 };
 
 Token::Token(TokenType Type, const std::string& Identifier, double Number,
@@ -148,6 +150,10 @@ Repeat:
     return Token::createToken(TOKEN_SEMICOLON);
   } else if (ThisChar == ',') {
     return Token::createToken(TOKEN_COMMA);
+  } else if (ThisChar == '{') {
+    return Token::createToken(TOKEN_LBRACE);
+  } else if (ThisChar == '}') {
+    return Token::createToken(TOKEN_RBRACE);
   } else {
     return Token::createOpToken(ThisChar);
   }

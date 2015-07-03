@@ -62,6 +62,13 @@ void IfExprAST::dump(int Indent) const {
   }
 }
 
+void BlockExprAST::dump(int Indent) const {
+  fprintIndented(stderr, Indent, "BlockExprAST: have %zu exprs\n", Exprs_.size());
+  for (auto& Expr : Exprs_) {
+    Expr->dump(Indent + 1);
+  }
+}
+
 static ExprAST* parseExpression();
 
 // Primary := identifier
@@ -163,6 +170,8 @@ static ExprAST* parseExpression() {
 // Statement := Expression ;
 //           := if ( Expression ) Statement
 //           := if ( Expression ) Statement else Statement
+//           := { }
+//           := { Statement... }
 static ExprAST* parseStatement() {
   Token Curr = currToken();
   switch (Curr.Type) {
@@ -199,6 +208,22 @@ static ExprAST* parseStatement() {
       IfExprAST* IfExpr = new IfExprAST(CondExpr, ThenExpr, ElseExpr);
       ExprStorage.push_back(std::unique_ptr<ExprAST>(IfExpr));
       return IfExpr;
+    }
+    case TOKEN_LBRACE: {
+      std::vector<ExprAST*> Exprs;
+      while (true) {
+        nextToken();
+        Curr = currToken();
+        if (Curr.Type == TOKEN_RBRACE) {
+          break;
+        }
+        ExprAST* Expr = parseStatement();
+        CHECK(Expr != nullptr);
+        Exprs.push_back(Expr);
+      }
+      BlockExprAST* BlockExpr = new BlockExprAST(Exprs);
+      ExprStorage.push_back(std::unique_ptr<ExprAST>(BlockExpr));
+      return BlockExpr;
     }
     default:
       LOG(FATAL) << "Unexpected token " << Curr.toString();
@@ -276,7 +301,8 @@ ExprAST* parsePipeline() {
     case TOKEN_IDENTIFIER:
     case TOKEN_NUMBER:
     case TOKEN_LPAREN:
-    case TOKEN_IF: {
+    case TOKEN_IF:
+    case TOKEN_LBRACE: {
       ExprAST* Expr = parseStatement();
       CHECK(Expr != nullptr);
       if (GlobalOption.DumpAST) {

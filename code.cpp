@@ -173,6 +173,14 @@ llvm::Value* IfExprAST::codegen() {
   return PHINode;
 }
 
+llvm::Value* BlockExprAST::codegen() {
+  llvm::Value* LastValue = llvm::ConstantFP::get(*Context, llvm::APFloat(0.0));
+  for (auto& Expr : Exprs_) {
+    LastValue = Expr->codegen();
+  }
+  return LastValue;
+}
+
 static llvm::Function* createTmpFunction(const std::string& FunctionName) {
   llvm::FunctionType* FunctionType = llvm::FunctionType::get(
       llvm::Type::getDoubleTy(*Context), std::vector<llvm::Type*>(), false);
@@ -198,7 +206,8 @@ llvm::Function* codePipeline(ExprAST* Expr) {
     case VARIABLE_EXPR_AST:
     case BINARY_EXPR_AST:
     case CALL_EXPR_AST:
-    case IF_EXPR_AST: {
+    case IF_EXPR_AST:
+    case BLOCK_EXPR_AST: {
       // Create a temporary function for execution.
       llvm::Function* TmpFunction = createTmpFunction(getTmpFunctionName());
       llvm::IRBuilder<>::InsertPointGuard InsertPointGuard(*CurrBuilder);
@@ -234,6 +243,7 @@ std::unique_ptr<llvm::Module> codeMain(const std::vector<ExprAST*>& Exprs) {
       case BINARY_EXPR_AST:
       case CALL_EXPR_AST:
       case IF_EXPR_AST:
+      case BLOCK_EXPR_AST:
         RetVal = Value;
         break;
       default:

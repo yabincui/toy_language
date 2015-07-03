@@ -18,6 +18,8 @@ enum TokenType {
   TOKEN_IF,
   TOKEN_ELIF,
   TOKEN_ELSE,
+  TOKEN_LBRACE,
+  TOKEN_RBRACE,
 };
 
 struct Token {
