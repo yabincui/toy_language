@@ -9,8 +9,8 @@ class ExprAST;
 constexpr const char* ToyMainFunctionName = "__toy_main";
 
 // Used in interactive mode.
-std::unique_ptr<llvm::Module> prepareCodePipeline();
-llvm::Function* codePipeline(ExprAST* Expr);
+void prepareCodePipeline();
+std::unique_ptr<llvm::Module> codePipeline(ExprAST* Expr);
 void finishCodePipeline();
 
 // Used in non-interactive mode.

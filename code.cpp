@@ -23,6 +23,8 @@ static llvm::Module* CurrModule;
 static llvm::Function* GlobalFunction;
 static llvm::Function* CurrFunction;
 static std::unique_ptr<llvm::IRBuilder<>> CurrBuilder;
+static std::vector<PrototypeAST*> ExternFunctions;
+static std::vector<VariableExprAST*> ExternVariables;
 
 llvm::Value* NumberExprAST::codegen() {
   return llvm::ConstantFP::get(*Context, llvm::APFloat(Val_));
@@ -33,9 +35,9 @@ static std::string getTmpName() {
   return stringPrintf("tmp.%" PRIu64, ++TmpCount);
 }
 
-static std::string getTmpFunctionName() {
+static std::string getTmpModuleName() {
   static uint64_t TmpCount = 0;
-  return stringPrintf("tmpfunction.%" PRIu64, ++TmpCount);
+  return stringPrintf("tmpmodule.%" PRIu64, ++TmpCount);
 }
 
 llvm::Value* VariableExprAST::codegen() {
@@ -52,6 +54,7 @@ llvm::Value* VariableExprAST::codegen() {
         *CurrModule, llvm::Type::getDoubleTy(*Context), false,
         llvm::GlobalVariable::InternalLinkage,
         llvm::ConstantFP::get(*Context, llvm::APFloat(0.0)), Name_);
+    ExternVariables.push_back(this);
   }
   llvm::LoadInst* LoadInst = CurrBuilder->CreateLoad(Variable, getTmpName());
   return LoadInst;
@@ -218,51 +221,33 @@ static llvm::Function* createTmpFunction(const std::string& FunctionName) {
   return Function;
 }
 
-std::unique_ptr<llvm::Module> prepareCodePipeline() {
+void prepareCodePipeline() {
   Context = &llvm::getGlobalContext();
-  std::unique_ptr<llvm::Module> TheModule(
-      new llvm::Module("my module", *Context));
-  CurrModule = TheModule.get();
   CurrBuilder.reset(new llvm::IRBuilder<>(*Context));
-  return TheModule;
+  ExternFunctions.clear();
+  ExternVariables.clear();
 }
 
-llvm::Function* codePipeline(ExprAST* Expr) {
-  switch (Expr->type()) {
-    case NUMBER_EXPR_AST:
-    case VARIABLE_EXPR_AST:
-    case BINARY_EXPR_AST:
-    case CALL_EXPR_AST:
-    case IF_EXPR_AST:
-    case BLOCK_EXPR_AST: {
-      // Create a temporary function for execution.
-      llvm::Function* TmpFunction = createTmpFunction(getTmpFunctionName());
-      llvm::IRBuilder<>::InsertPointGuard InsertPointGuard(*CurrBuilder);
-      CurrBuilder->SetInsertPoint(&TmpFunction->back());
-      CurrFunctionGuard FunctionGuard(TmpFunction);
-      llvm::Value* RetVal = Expr->codegen();
-      CurrBuilder->CreateRet(RetVal);
-      return TmpFunction;
-    }
-    default:
-      Expr->codegen();
-      return nullptr;
-  }
-}
-
-void finishCodePipeline() {
-  CurrBuilder.reset(nullptr);
-}
-
-std::unique_ptr<llvm::Module> codeMain(const std::vector<ExprAST*>& Exprs) {
-  std::unique_ptr<llvm::Module> TheModule = prepareCodePipeline();
+static std::unique_ptr<llvm::Module> codePipeline(
+    const std::vector<ExprAST*>& Exprs) {
+  std::unique_ptr<llvm::Module> TheModule(
+      new llvm::Module(getTmpModuleName(), *Context));
+  CurrModule = TheModule.get();
   GlobalFunction = createTmpFunction(ToyMainFunctionName);
-  llvm::IRBuilder<>::InsertPointGuard InsertPointGuard(*CurrBuilder);
   CurrBuilder->SetInsertPoint(&GlobalFunction->back());
   CurrFunction = GlobalFunction;
+  llvm::Value* RetValue = llvm::ConstantFP::get(*Context, llvm::APFloat(0.0));
 
-  llvm::Value* RetVal = llvm::ConstantFP::get(*Context, llvm::APFloat(0.0));
-  for (auto& Expr : Exprs) {
+  for (auto Expr : ExternVariables) {
+    new llvm::GlobalVariable(*CurrModule, llvm::Type::getDoubleTy(*Context),
+                             false, llvm::GlobalVariable::ExternalLinkage,
+                             nullptr, Expr->getName());
+  }
+
+  for (auto Expr : ExternFunctions) {
+    Expr->codegen();
+  }
+  for (auto Expr : Exprs) {
     llvm::Value* Value = Expr->codegen();
     switch (Expr->type()) {
       case NUMBER_EXPR_AST:
@@ -270,21 +255,52 @@ std::unique_ptr<llvm::Module> codeMain(const std::vector<ExprAST*>& Exprs) {
       case BINARY_EXPR_AST:
       case CALL_EXPR_AST:
       case IF_EXPR_AST:
-      case BLOCK_EXPR_AST:
-        RetVal = Value;
+      case BLOCK_EXPR_AST: {
+        RetValue = Value;
         break;
+      }
       default:
         break;
     }
   }
-
-  CurrBuilder->CreateRet(RetVal);
-
+  for (auto Expr : Exprs) {
+    switch (Expr->type()) {
+      case PROTOTYPE_AST:
+        ExternFunctions.push_back(reinterpret_cast<PrototypeAST*>(Expr));
+        break;
+      case FUNCTION_AST: {
+        FunctionAST* Function = reinterpret_cast<FunctionAST*>(Expr);
+        ExternFunctions.push_back(Function->getPrototype());
+        break;
+      }
+      default:
+        break;
+    }
+  }
+  CurrBuilder->CreateRet(RetValue);
   if (GlobalOption.DumpCode) {
     TheModule->dump();
   }
-  optMain(TheModule.get());
-
-  finishCodePipeline();
+  CurrFunction = nullptr;
+  GlobalFunction = nullptr;
+  CurrModule = nullptr;
   return TheModule;
+}
+
+std::unique_ptr<llvm::Module> codePipeline(ExprAST* Expr) {
+  return codePipeline(std::vector<ExprAST*>({Expr}));
+}
+
+void finishCodePipeline() {
+  ExternVariables.clear();
+  ExternFunctions.clear();
+  CurrBuilder.reset(nullptr);
+}
+
+std::unique_ptr<llvm::Module> codeMain(const std::vector<ExprAST*>& Exprs) {
+  prepareCodePipeline();
+  std::unique_ptr<llvm::Module> Module = codePipeline(Exprs);
+  finishCodePipeline();
+
+  return Module;
 }

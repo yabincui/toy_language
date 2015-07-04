@@ -55,6 +55,10 @@ class VariableExprAST : public ExprAST {
   void dump(int Indent = 0) const override;
   llvm::Value* codegen() override;
 
+  const std::string& getName() const {
+    return Name_;
+  }
+
  private:
   const std::string Name_;
 };
@@ -96,6 +100,10 @@ class FunctionAST : public ExprAST {
 
   void dump(int Indent = 0) const override;
   llvm::Function* codegen() override;
+
+  PrototypeAST* getPrototype() const {
+    return Prototype_;
+  }
 
  private:
   PrototypeAST* Prototype_;

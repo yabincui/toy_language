@@ -290,7 +290,7 @@ IfExprAST: have 3 CondThenExprs, have 1 ElseExpr
     BlockExprAST: have 1 exprs
       NumberExprAST val = 3.000000
 Token (TOKEN_EOF)
-; ModuleID = 'my module'
+; ModuleID = 'tmpmodule.1'
 
 @a = internal global double 0.000000e+00
 @b = internal global double 0.000000e+00
@@ -419,6 +419,11 @@ BinaryExprAST op = +
   BinaryExprAST op = *
     NumberExprAST val = 4.000000
     NumberExprAST val = 2.000000
+; ModuleID = 'tmpmodule.1'
+
+define internal double @__toy_main() {
+  ret double 1.100000e+01
+}
 11.000000
 >Token (TOKEN_IDENTIFIER, a)
 Token (TOKEN_OP, +)
@@ -431,6 +436,20 @@ BinaryExprAST op = +
   BinaryExprAST op = *
     VariableExprAST name = b
     VariableExprAST name = c
+; ModuleID = 'tmpmodule.2'
+
+@a = internal global double 0.000000e+00
+@b = internal global double 0.000000e+00
+@c = internal global double 0.000000e+00
+
+define internal double @__toy_main() {
+  %tmp.3 = load double, double* @a
+  %tmp.4 = load double, double* @b
+  %tmp.5 = load double, double* @c
+  %tmp.6 = fmul double %tmp.4, %tmp.5
+  %tmp.7 = fadd double %tmp.3, %tmp.6
+  ret double %tmp.7
+}
 0.000000
 >Token (TOKEN_EXTERN)
 Token (TOKEN_IDENTIFIER, extern_a)
@@ -441,6 +460,18 @@ Token (TOKEN_IDENTIFIER, extern_c)
 Token (TOKEN_RPAREN)
 Token (TOKEN_SEMICOLON)
 PrototypeAST extern_a (extern_b, extern_c)
+; ModuleID = 'tmpmodule.3'
+
+@a = external global double
+@b = external global double
+@c = external global double
+
+define internal double @__toy_main() {
+  ret double 0.000000e+00
+}
+
+declare double @extern_a(double, double)
+0.000000
 >Token (TOKEN_DEF)
 Token (TOKEN_IDENTIFIER, def_a)
 Token (TOKEN_LPAREN)
@@ -465,6 +496,26 @@ FunctionAST
         NumberExprAST val = 2.000000
         VariableExprAST name = def_c
     NumberExprAST val = 6.000000
+; ModuleID = 'tmpmodule.4'
+
+@a = external global double
+@b = external global double
+@c = external global double
+
+define internal double @__toy_main() {
+  ret double 0.000000e+00
+}
+
+declare double @extern_a(double, double)
+
+define double @def_a(double %def_b, double %def_c) {
+def_a.entry:
+  %tmp.8 = fmul double 2.000000e+00, %def_c
+  %tmp.9 = fadd double %def_b, %tmp.8
+  %tmp.10 = fsub double %tmp.9, 6.000000e+00
+  ret double %tmp.10
+}
+0.000000
 >Token (TOKEN_IDENTIFIER, def_a)
 Token (TOKEN_LPAREN)
 Token (TOKEN_NUMBER, 2.000000)
@@ -477,6 +528,20 @@ CallExprAST Callee = def_a
     NumberExprAST val = 2.000000
   Arg #1:
     NumberExprAST val = 4.000000
+; ModuleID = 'tmpmodule.5'
+
+@a = external global double
+@b = external global double
+@c = external global double
+
+define internal double @__toy_main() {
+  %tmp.11 = call double @def_a(double 2.000000e+00, double 4.000000e+00)
+  ret double %tmp.11
+}
+
+declare double @extern_a(double, double)
+
+declare double @def_a(double, double)
 4.000000
 >Token (TOKEN_DEF)
 Token (TOKEN_IDENTIFIER, cse_test)
@@ -504,6 +569,28 @@ FunctionAST
     BinaryExprAST op = +
       VariableExprAST name = x
       NumberExprAST val = 3.000000
+; ModuleID = 'tmpmodule.6'
+
+@a = external global double
+@b = external global double
+@c = external global double
+
+define internal double @__toy_main() {
+  ret double 0.000000e+00
+}
+
+declare double @extern_a(double, double)
+
+declare double @def_a(double, double)
+
+define double @cse_test(double %x) {
+cse_test.entry:
+  %tmp.12 = fadd double 3.000000e+00, %x
+  %tmp.13 = fadd double %x, 3.000000e+00
+  %tmp.14 = fmul double %tmp.12, %tmp.13
+  ret double %tmp.14
+}
+0.000000
 >Token (TOKEN_DEF)
 Token (TOKEN_IDENTIFIER, ta)
 Token (TOKEN_LPAREN)
@@ -520,6 +607,28 @@ FunctionAST
   BinaryExprAST op = *
     VariableExprAST name = b
     VariableExprAST name = c
+; ModuleID = 'tmpmodule.7'
+
+@a = external global double
+@b = external global double
+@c = external global double
+
+define internal double @__toy_main() {
+  ret double 0.000000e+00
+}
+
+declare double @extern_a(double, double)
+
+declare double @def_a(double, double)
+
+declare double @cse_test(double)
+
+define double @ta(double %b, double %c) {
+ta.entry:
+  %tmp.15 = fmul double %b, %c
+  ret double %tmp.15
+}
+0.000000
 >Token (TOKEN_IDENTIFIER, ta)
 Token (TOKEN_LPAREN)
 Token (TOKEN_NUMBER, 3.000000)
@@ -532,6 +641,24 @@ CallExprAST Callee = ta
     NumberExprAST val = 3.000000
   Arg #1:
     NumberExprAST val = 4.000000
+; ModuleID = 'tmpmodule.8'
+
+@a = external global double
+@b = external global double
+@c = external global double
+
+define internal double @__toy_main() {
+  %tmp.16 = call double @ta(double 3.000000e+00, double 4.000000e+00)
+  ret double %tmp.16
+}
+
+declare double @extern_a(double, double)
+
+declare double @def_a(double, double)
+
+declare double @cse_test(double)
+
+declare double @ta(double, double)
 12.000000
 >Token (TOKEN_IF)
 Token (TOKEN_LPAREN)
@@ -549,6 +676,35 @@ IfExprAST: have 1 CondThenExprs, have 1 ElseExpr
     NumberExprAST val = 3.000000
   ElseExpr
     NumberExprAST val = 4.000000
+; ModuleID = 'tmpmodule.9'
+
+@a = external global double
+@b = external global double
+@c = external global double
+
+define internal double @__toy_main() {
+  %tmp.17 = load double, double* @a
+  %1 = fcmp one double %tmp.17, 0.000000e+00
+  br i1 %1, label %then0, label %else
+
+then0:                                            ; preds = %0
+  br label %endif
+
+else:                                             ; preds = %0
+  br label %endif
+
+endif:                                            ; preds = %else, %then0
+  %iftmp = phi double [ 3.000000e+00, %then0 ], [ 4.000000e+00, %else ]
+  ret double %iftmp
+}
+
+declare double @extern_a(double, double)
+
+declare double @def_a(double, double)
+
+declare double @cse_test(double)
+
+declare double @ta(double, double)
 4.000000
 >Token (TOKEN_LBRACE)
 Token (TOKEN_NUMBER, 3.000000)
@@ -567,6 +723,25 @@ BlockExprAST: have 2 exprs
   BinaryExprAST op = -
     VariableExprAST name = a
     NumberExprAST val = 6.000000
+; ModuleID = 'tmpmodule.10'
+
+@a = external global double
+@b = external global double
+@c = external global double
+
+define internal double @__toy_main() {
+  %tmp.19 = load double, double* @a
+  %tmp.20 = fsub double %tmp.19, 6.000000e+00
+  ret double %tmp.20
+}
+
+declare double @extern_a(double, double)
+
+declare double @def_a(double, double)
+
+declare double @cse_test(double)
+
+declare double @ta(double, double)
 -6.000000
 >Token (TOKEN_IF)
 Token (TOKEN_LPAREN)
@@ -598,6 +773,35 @@ IfExprAST: have 1 CondThenExprs, have 1 ElseExpr
       BinaryExprAST op = -
         NumberExprAST val = 7.000000
         NumberExprAST val = 5.000000
+; ModuleID = 'tmpmodule.11'
+
+@a = external global double
+@b = external global double
+@c = external global double
+
+define internal double @__toy_main() {
+  %tmp.21 = load double, double* @a
+  %1 = fcmp one double %tmp.21, 0.000000e+00
+  br i1 %1, label %then0, label %else
+
+then0:                                            ; preds = %0
+  br label %endif
+
+else:                                             ; preds = %0
+  br label %endif
+
+endif:                                            ; preds = %else, %then0
+  %iftmp = phi double [ 5.000000e+00, %then0 ], [ 2.000000e+00, %else ]
+  ret double %iftmp
+}
+
+declare double @extern_a(double, double)
+
+declare double @def_a(double, double)
+
+declare double @cse_test(double)
+
+declare double @ta(double, double)
 2.000000
 >Token (TOKEN_IF)
 Token (TOKEN_LPAREN)
@@ -629,6 +833,33 @@ IfExprAST: have 1 CondThenExprs, have 1 ElseExpr
       BinaryExprAST op = +
         NumberExprAST val = 7.000000
         NumberExprAST val = 4.000000
+; ModuleID = 'tmpmodule.12'
+
+@a = external global double
+@b = external global double
+@c = external global double
+
+define internal double @__toy_main() {
+  br i1 true, label %then0, label %else
+
+then0:                                            ; preds = %0
+  br label %endif
+
+else:                                             ; preds = %0
+  br label %endif
+
+endif:                                            ; preds = %else, %then0
+  %iftmp = phi double [ 5.000000e+00, %then0 ], [ 1.100000e+01, %else ]
+  ret double %iftmp
+}
+
+declare double @extern_a(double, double)
+
+declare double @def_a(double, double)
+
+declare double @cse_test(double)
+
+declare double @ta(double, double)
 5.000000
 >Token (TOKEN_IF)
 Token (TOKEN_LPAREN)
@@ -659,6 +890,39 @@ IfExprAST: have 2 CondThenExprs, have 0 ElseExpr
   ThenExpr #2
     BlockExprAST: have 1 exprs
       NumberExprAST val = 1.000000
+; ModuleID = 'tmpmodule.13'
+
+@a = external global double
+@b = external global double
+@c = external global double
+
+define internal double @__toy_main() {
+  br i1 false, label %then0, label %cond1
+
+then0:                                            ; preds = %0
+  br label %endif
+
+cond1:                                            ; preds = %0
+  br i1 true, label %then1, label %else
+
+then1:                                            ; preds = %cond1
+  br label %endif
+
+else:                                             ; preds = %cond1
+  br label %endif
+
+endif:                                            ; preds = %else, %then1, %then0
+  %iftmp = phi double [ 0.000000e+00, %then0 ], [ 1.000000e+00, %then1 ], [ 0.000000e+00, %else ]
+  ret double %iftmp
+}
+
+declare double @extern_a(double, double)
+
+declare double @def_a(double, double)
+
+declare double @cse_test(double)
+
+declare double @ta(double, double)
 Token (TOKEN_IF)
 Token (TOKEN_LPAREN)
 Token (TOKEN_NUMBER, 0.000000)
@@ -708,5 +972,44 @@ IfExprAST: have 3 CondThenExprs, have 1 ElseExpr
   ElseExpr
     BlockExprAST: have 1 exprs
       NumberExprAST val = 3.000000
+; ModuleID = 'tmpmodule.14'
+
+@a = external global double
+@b = external global double
+@c = external global double
+
+define internal double @__toy_main() {
+  br i1 false, label %then0, label %cond1
+
+then0:                                            ; preds = %0
+  br label %endif
+
+cond1:                                            ; preds = %0
+  br i1 true, label %then1, label %cond2
+
+then1:                                            ; preds = %cond1
+  br label %endif
+
+cond2:                                            ; preds = %cond1
+  br i1 true, label %then2, label %else
+
+then2:                                            ; preds = %cond2
+  br label %endif
+
+else:                                             ; preds = %cond2
+  br label %endif
+
+endif:                                            ; preds = %else, %then2, %then1, %then0
+  %iftmp = phi double [ 0.000000e+00, %then0 ], [ 1.000000e+00, %then1 ], [ 2.000000e+00, %then2 ], [ 3.000000e+00, %else ]
+  ret double %iftmp
+}
+
+declare double @extern_a(double, double)
+
+declare double @def_a(double, double)
+
+declare double @cse_test(double)
+
+declare double @ta(double, double)
 Token (TOKEN_EOF)
 1.000000

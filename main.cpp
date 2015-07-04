@@ -6,6 +6,7 @@
 #include "logging.h"
 #include "parse.h"
 #include "string.h"
+#include "supportlib.h"
 
 static void usage(const std::string& ExecName) {
   printf("%s  Experiment a toy language\n", ExecName.c_str());
@@ -125,16 +126,16 @@ void printPrompt() {
 
 static void interactiveMain() {
   prepareParsePipeline();
-  std::unique_ptr<llvm::Module> Module = prepareCodePipeline();
-  prepareExecutionPipeline(Module.release());
+  prepareCodePipeline();
+  prepareExecutionPipeline();
 
   printPrompt();
   while (true) {
     ExprAST* Expr = parsePipeline();
     if (Expr != nullptr) {
-      llvm::Function* Function = codePipeline(Expr);
-      if (Function != nullptr) {
-        executionPipeline(Function);
+      std::unique_ptr<llvm::Module> Module = codePipeline(Expr);
+      if (Module != nullptr) {
+        executionPipeline(Module.release());
       }
       ExprsInCurrLine++;
     } else {
@@ -151,8 +152,11 @@ static void interactiveMain() {
 }
 
 static void nonInteractiveMain() {
+  LOG(DEBUG) << "parseMain()";
   std::vector<ExprAST*> Exprs = parseMain();
+  LOG(DEBUG) << "codeMain()";
   std::unique_ptr<llvm::Module> Module = codeMain(Exprs);
+  LOG(DEBUG) << "executionMain()";
   executionMain(Module.release());
 }
 
@@ -161,6 +165,7 @@ int main(int argc, char** argv) {
     return -1;
   }
 
+  initSupportLib();
   if (GlobalOption.Interactive) {
     interactiveMain();
   } else {

@@ -5,8 +5,8 @@
 #include <llvm/IR/Module.h>
 
 // Used in interactive mode.
-void prepareExecutionPipeline(llvm::Module* Module);
-void executionPipeline(llvm::Function* Function);
+void prepareExecutionPipeline();
+void executionPipeline(llvm::Module* Module);
 void finishExecutionPipeline();
 
 // Used in non-interactive mode.

@@ -11,6 +11,7 @@ SRCS := \
   main.cpp \
   optimization.cpp \
   string.cpp \
+  supportlib.cpp \
   utils.cpp \
 
 OBJS := $(subst .cpp,.o,$(SRCS))
