@@ -133,15 +133,18 @@ static ExprAST* parsePrimary() {
   return nullptr;
 }
 
-static std::map<char, int> OpPrecedenceMap = {
-    {'+', 10}, {'-', 10}, {'*', 20}, {'/', 20},
-};
-
-static std::set<char> BinaryOpSet = {
-    '+', '-', '*', '/',
+static std::map<OpType, int> OpPrecedenceMap = {
+    {OP_LT, 10}, {OP_LE, 10},  {OP_EQ, 10},  {OP_NE, 10},  {OP_GT, 10},
+    {OP_GE, 10}, {OP_ADD, 20}, {OP_SUB, 20}, {OP_MUL, 30}, {OP_DIV, 30},
 };
 
 // BinaryExpression := Primary
+//                  := BinaryExpression < BinaryExpression
+//                  := BinaryExpression <= BinaryExpression
+//                  := BinaryExpression == BinaryExpression
+//                  := BinaryExpression != BinaryExpression
+//                  := BinaryExpression > BinaryExpression
+//                  := BinaryExpression >= BinaryExpression
 //                  := BinaryExpression + BinaryExpression
 //                  := BinaryExpression - BinaryExpression
 //                  := BinaryExpression * BinaryExpression
@@ -150,8 +153,7 @@ static ExprAST* parseBinaryExpression(int PrevPrecedence = 0) {
   ExprAST* Result = parsePrimary();
   while (true) {
     Token Curr = currToken();
-    if (Curr.Type != TOKEN_OP ||
-        BinaryOpSet.find(Curr.Op) == BinaryOpSet.end()) {
+    if (Curr.Type != TOKEN_OP) {
       break;
     }
     int Precedence = OpPrecedenceMap.find(Curr.Op)->second;

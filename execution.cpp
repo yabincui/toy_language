@@ -36,10 +36,14 @@ void executionPipeline(llvm::Module* Module) {
   }
   llvm::Function* MainFunction = Module->getFunction(ToyMainFunctionName);
   if (MainFunction != nullptr) {
+    LOG(DEBUG) << "Before finalizing Object";
     Engine->finalizeObject();
+    LOG(DEBUG) << "After finalizing Object";
     void* JITFunction = Engine->getPointerToFunction(MainFunction);
     CHECK(JITFunction != nullptr);
+    LOG(DEBUG) << "Before executing JITFunction";
     double Value = reinterpret_cast<double (*)()>(JITFunction)();
+    LOG(DEBUG) << "After executing JITFunction";
     printf("%lf\n", Value);
   }
 }

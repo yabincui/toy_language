@@ -14,7 +14,7 @@ static size_t CurrLine = 1;
 size_t ExprsInCurrLine = 0;  // Used to decide whether to show prompt.
 
 // Lexer
-std::map<int, std::string> TokenNameMap = {
+static std::map<TokenType, std::string> TokenNameMap = {
     {TOKEN_INVALID, "TOKEN_INVALID"},
     {TOKEN_EOF, "TOKEN_EOF"},
     {TOKEN_DEF, "TOKEN_DEF"},
@@ -33,25 +33,32 @@ std::map<int, std::string> TokenNameMap = {
     {TOKEN_RBRACE, "TOKEN_RBRACE"},
 };
 
+static std::map<OpType, std::string> OpNameMap = {
+    {OP_LT, "OP_LT"},   {OP_LE, "OP_LE"},   {OP_EQ, "OP_EQ"},
+    {OP_NE, "OP_NE"},   {OP_GT, "OP_GT"},   {OP_GE, "OP_GE"},
+    {OP_ADD, "OP_ADD"}, {OP_SUB, "OP_SUB"}, {OP_MUL, "OP_MUL"},
+    {OP_DIV, "OP_DIV"},
+};
+
 Token::Token(TokenType Type, const std::string& Identifier, double Number,
-             char Op)
+             OpType Op)
     : Type(Type), Identifier(Identifier), Number(Number), Op(Op), Line(CurrLine) {
 }
 
 Token Token::createNumberToken(double Number) {
-  return Token(TOKEN_NUMBER, "", Number, '\0');
+  return Token(TOKEN_NUMBER, "", Number, OP_INVALID);
 }
 
 Token Token::createIdentifierToken(const std::string& Identifier) {
-  return Token(TOKEN_IDENTIFIER, Identifier, 0.0, '\0');
+  return Token(TOKEN_IDENTIFIER, Identifier, 0.0, OP_INVALID);
 }
 
-Token Token::createOpToken(char Op) {
+Token Token::createOpToken(OpType Op) {
   return Token(TOKEN_OP, "", 0.0, Op);
 }
 
 Token Token::createToken(TokenType Type) {
-  return Token(Type, "", 0.0, '\0');
+  return Token(Type, "", 0.0, OP_INVALID);
 }
 
 std::string Token::toString() const {
@@ -65,7 +72,8 @@ std::string Token::toString() const {
   } else if (Type == TOKEN_NUMBER) {
     s += ", " + stringPrintf("%lf", Number);
   } else if (Type == TOKEN_OP) {
-    s += ", " + stringPrintf("%c", Op);
+    CHECK(OpNameMap.find(Op) != OpNameMap.end()) << "Op: " << Op;
+    s += ", " + OpNameMap[Op];
   }
   s += ")";
   return s;
@@ -155,12 +163,51 @@ Repeat:
   } else if (ThisChar == '}') {
     return Token::createToken(TOKEN_RBRACE);
   } else {
-    return Token::createOpToken(ThisChar);
+    OpType Op = OP_INVALID;
+    if (ThisChar == '<') {
+      Op = OP_LT;
+      LastChar = getChar();
+      if (LastChar == '=') {
+        Op = OP_LE;
+        LastChar = ' ';
+      }
+    } else if (ThisChar == '=') {
+      LastChar = getChar();
+      if (LastChar == '=') {
+        Op = OP_EQ;
+        LastChar = ' ';
+      }
+    } else if (ThisChar == '!') {
+      LastChar = getChar();
+      if (LastChar == '=') {
+        Op = OP_NE;
+        LastChar = ' ';
+      }
+    } else if (ThisChar == '>') {
+      Op = OP_GT;
+      LastChar = getChar();
+      if (LastChar == '=') {
+        Op = OP_GE;
+        LastChar = ' ';
+      }
+    } else if (ThisChar == '+') {
+      Op = OP_ADD;
+    } else if (ThisChar == '-') {
+      Op = OP_SUB;
+    } else if (ThisChar == '*') {
+      Op = OP_MUL;
+    } else if (ThisChar == '/') {
+      Op = OP_DIV;
+    } else {
+      LOG(FATAL) << "Unexpected character: " << ThisChar;
+    }
+    CHECK_NE(OP_INVALID, Op);
+    return Token::createOpToken(Op);
   }
 }
 
-static Token CurToken(TOKEN_INVALID, "", 0.0, '\0');
-static Token BufferedToken(TOKEN_INVALID, "", 0.0, '\0');
+static Token CurToken(TOKEN_INVALID, "", 0.0, OP_INVALID);
+static Token BufferedToken(TOKEN_INVALID, "", 0.0, OP_INVALID);
 
 const Token& currToken() {
   CHECK_NE(TOKEN_INVALID, CurToken.Type);

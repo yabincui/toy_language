@@ -20,20 +20,44 @@ enum TokenType {
   TOKEN_ELSE,
   TOKEN_LBRACE,
   TOKEN_RBRACE,
+  TOKEN_LT,
+  TOKEN_LE,
+  TOKEN_EQ,
+  TOKEN_NE,
+  TOKEN_GT,
+  TOKEN_GE,
+  TOKEN_ADD,
+  TOKEN_SUB,
+  TOKEN_MUL,
+  TOKEN_DIV,
+};
+
+enum OpType {
+  OP_INVALID,
+  OP_LT,
+  OP_LE,
+  OP_EQ,
+  OP_NE,
+  OP_GT,
+  OP_GE,
+  OP_ADD,
+  OP_SUB,
+  OP_MUL,
+  OP_DIV,
 };
 
 struct Token {
   TokenType Type;
   std::string Identifier;
   double Number;
-  char Op;
+  OpType Op;
   size_t Line;
 
-  Token(TokenType Type, const std::string& Identifier, double Number, char Op);
+  Token(TokenType Type, const std::string& Identifier, double Number, OpType Op);
 
   static Token createNumberToken(double Number);
   static Token createIdentifierToken(const std::string& Identifier);
-  static Token createOpToken(char Op);
+  static Token createOpToken(OpType Op);
   static Token createToken(TokenType Type);
 
   std::string toString() const;

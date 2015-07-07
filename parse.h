@@ -4,6 +4,8 @@
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Value.h>
 
+#include "lexer.h"
+
 enum ASTType {
   NUMBER_EXPR_AST,
   VARIABLE_EXPR_AST,
@@ -65,7 +67,7 @@ class VariableExprAST : public ExprAST {
 
 class BinaryExprAST : public ExprAST {
  public:
-  BinaryExprAST(char Op, ExprAST* Left, ExprAST* Right)
+  BinaryExprAST(OpType Op, ExprAST* Left, ExprAST* Right)
       : ExprAST(BINARY_EXPR_AST), Op_(Op), Left_(Left), Right_(Right) {
   }
 
@@ -73,7 +75,7 @@ class BinaryExprAST : public ExprAST {
   llvm::Value* codegen() override;
 
  private:
-  char Op_;
+  OpType Op_;
   ExprAST* Left_;
   ExprAST* Right_;
 };

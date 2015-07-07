@@ -67,21 +67,40 @@ llvm::Value* BinaryExprAST::codegen() {
   CHECK(RightValue != nullptr);
   llvm::Value* Result = nullptr;
   switch (Op_) {
-    case '+':
+    case OP_LT:
+      Result = CurrBuilder->CreateFCmpOLT(LeftValue, RightValue, getTmpName());
+      break;
+    case OP_LE:
+      Result = CurrBuilder->CreateFCmpOLE(LeftValue, RightValue, getTmpName());
+      break;
+    case OP_EQ:
+      Result = CurrBuilder->CreateFCmpOEQ(LeftValue, RightValue, getTmpName());
+      break;
+    case OP_NE:
+      Result = CurrBuilder->CreateFCmpONE(LeftValue, RightValue, getTmpName());
+      break;
+    case OP_GT:
+      Result = CurrBuilder->CreateFCmpOGT(LeftValue, RightValue, getTmpName());
+      break;
+    case OP_GE:
+      Result = CurrBuilder->CreateFCmpOGT(LeftValue, RightValue, getTmpName());
+      break;
+    case OP_ADD:
       Result = CurrBuilder->CreateFAdd(LeftValue, RightValue, getTmpName());
       break;
-    case '-':
+    case OP_SUB:
       Result = CurrBuilder->CreateFSub(LeftValue, RightValue, getTmpName());
       break;
-    case '*':
+    case OP_MUL:
       Result = CurrBuilder->CreateFMul(LeftValue, RightValue, getTmpName());
       break;
-    case '/':
+    case OP_DIV:
       Result = CurrBuilder->CreateFDiv(LeftValue, RightValue, getTmpName());
       break;
     default:
       LOG(FATAL) << "Unexpected binary operator " << Op_;
   }
+  Result = CurrBuilder->CreateUIToFP(Result, llvm::Type::getDoubleTy(*Context));
   return Result;
 }
 
