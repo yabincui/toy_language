@@ -8,6 +8,7 @@
 #include <llvm/Support/TargetSelect.h>
 #include "code.h"
 #include "logging.h"
+#include "option.h"
 
 static std::unique_ptr<llvm::ExecutionEngine> Engine;
 
@@ -29,6 +30,9 @@ static void prepareExecutionPipeline(llvm::Module* Module) {
 }
 
 void executionPipeline(llvm::Module* Module) {
+  if (GlobalOption.Execute == false) {
+    return;
+  }
   if (Engine == nullptr) {
     prepareExecutionPipeline(Module);
   } else {

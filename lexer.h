@@ -20,16 +20,8 @@ enum TokenType {
   TOKEN_ELSE,
   TOKEN_LBRACE,
   TOKEN_RBRACE,
-  TOKEN_LT,
-  TOKEN_LE,
-  TOKEN_EQ,
-  TOKEN_NE,
-  TOKEN_GT,
-  TOKEN_GE,
-  TOKEN_ADD,
-  TOKEN_SUB,
-  TOKEN_MUL,
-  TOKEN_DIV,
+  TOKEN_FOR,
+  TOKEN_ASSIGNMENT,
 };
 
 enum OpType {
@@ -69,5 +61,7 @@ void unreadToken();
 
 extern size_t ExprsInCurrLine;
 void printPrompt();
+
+std::string OpToString(OpType Op);
 
 #endif  // LEXER_H_

@@ -31,6 +31,8 @@ static std::map<TokenType, std::string> TokenNameMap = {
     {TOKEN_ELSE, "TOKEN_ELSE"},
     {TOKEN_LBRACE, "TOKEN_LBRACE"},
     {TOKEN_RBRACE, "TOKEN_RBRACE"},
+    {TOKEN_FOR, "TOKEN_FOR"},
+    {TOKEN_ASSIGNMENT, "TOKEN_ASSIGNMENT"},
 };
 
 static std::map<OpType, std::string> OpNameMap = {
@@ -39,6 +41,10 @@ static std::map<OpType, std::string> OpNameMap = {
     {OP_ADD, "OP_ADD"}, {OP_SUB, "OP_SUB"}, {OP_MUL, "OP_MUL"},
     {OP_DIV, "OP_DIV"},
 };
+
+std::string OpToString(OpType Op) {
+  return OpNameMap[Op];
+}
 
 Token::Token(TokenType Type, const std::string& Identifier, double Number,
              OpType Op)
@@ -128,6 +134,9 @@ Repeat:
     if (s == "else") {
       return Token::createToken(TOKEN_ELSE);
     }
+    if (s == "for") {
+      return Token::createToken(TOKEN_FOR);
+    }
     return Token::createIdentifierToken(s);
   }
 
@@ -176,6 +185,8 @@ Repeat:
       if (LastChar == '=') {
         Op = OP_EQ;
         LastChar = ' ';
+      } else {
+        return Token::createToken(TOKEN_ASSIGNMENT);
       }
     } else if (ThisChar == '!') {
       LastChar = getChar();

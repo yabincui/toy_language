@@ -23,7 +23,8 @@ void VariableExprAST::dump(int Indent) const {
 }
 
 void BinaryExprAST::dump(int Indent) const {
-  fprintIndented(stderr, Indent, "BinaryExprAST op = %c\n", Op_);
+  fprintIndented(stderr, Indent, "BinaryExprAST op = %s\n",
+                 OpToString(Op_).c_str());
   Left_->dump(Indent + 1);
   Right_->dump(Indent + 1);
 }
@@ -73,6 +74,18 @@ void BlockExprAST::dump(int Indent) const {
   for (auto& Expr : Exprs_) {
     Expr->dump(Indent + 1);
   }
+}
+
+void ForExprAST::dump(int Indent) const {
+  fprintIndented(stderr, Indent, "ForExprAST: VarName = %s\n", VarName_.c_str());
+  fprintIndented(stderr, Indent + 1, "InitExpr:\n");
+  InitExpr_->dump(Indent + 2);
+  fprintIndented(stderr, Indent + 1, "CondExpr:\n");
+  CondExpr_->dump(Indent + 2);
+  fprintIndented(stderr, Indent + 1, "StepExpr:\n");
+  StepExpr_->dump(Indent + 2);
+  fprintIndented(stderr, Indent + 1, "BlockExpr:\n");
+  BlockExpr_->dump(Indent + 2);
 }
 
 static ExprAST* parseExpression();
@@ -183,6 +196,8 @@ static ExprAST* parseExpression() {
 //           else Statement
 //           := { }
 //           := { Statement... }
+//           := for ( Identifier = Expression, Expression, Expression ) {
+//           Statement... }
 static ExprAST* parseStatement() {
   Token Curr = currToken();
   switch (Curr.Type) {
@@ -254,6 +269,42 @@ static ExprAST* parseStatement() {
       BlockExprAST* BlockExpr = new BlockExprAST(Exprs);
       ExprStorage.push_back(std::unique_ptr<ExprAST>(BlockExpr));
       return BlockExpr;
+    }
+    case TOKEN_FOR: {
+      nextToken();
+      Curr = currToken();
+      CHECK_EQ(TOKEN_LPAREN, Curr.Type);
+      nextToken();
+      Curr = currToken();
+      CHECK_EQ(TOKEN_IDENTIFIER, Curr.Type);
+      std::string VarName = Curr.Identifier;
+      nextToken();
+      Curr = currToken();
+      CHECK_EQ(TOKEN_ASSIGNMENT, Curr.Type);
+      nextToken();
+      ExprAST* InitExpr = parseExpression();
+      CHECK(InitExpr != nullptr);
+      Curr = currToken();
+      CHECK_EQ(TOKEN_COMMA, Curr.Type);
+      nextToken();
+      ExprAST* CondExpr = parseExpression();
+      CHECK(CondExpr != nullptr);
+      Curr = currToken();
+      CHECK_EQ(TOKEN_COMMA, Curr.Type);
+      nextToken();
+      ExprAST* StepExpr = parseExpression();
+      CHECK(StepExpr != nullptr);
+      Curr = currToken();
+      CHECK_EQ(TOKEN_RPAREN, Curr.Type);
+      nextToken();
+      Curr = currToken();
+      CHECK_EQ(TOKEN_LBRACE, Curr.Type);
+      ExprAST* BlockExpr = parseStatement();
+      CHECK(BlockExpr != nullptr);
+      ForExprAST* ForExpr =
+          new ForExprAST(VarName, InitExpr, CondExpr, StepExpr, BlockExpr);
+      ExprStorage.push_back(std::unique_ptr<ExprAST>(ForExpr));
+      return ForExpr;
     }
     default:
       LOG(FATAL) << "Unexpected token " << Curr.toString();
@@ -332,7 +383,8 @@ ExprAST* parsePipeline() {
     case TOKEN_NUMBER:
     case TOKEN_LPAREN:
     case TOKEN_IF:
-    case TOKEN_LBRACE: {
+    case TOKEN_LBRACE:
+    case TOKEN_FOR: {
       ExprAST* Expr = parseStatement();
       CHECK(Expr != nullptr);
       if (GlobalOption.DumpAST) {

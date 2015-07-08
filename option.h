@@ -14,6 +14,7 @@ struct Option {
   bool DumpAST;
   bool DumpCode;
   LogSeverity LogLevel;
+  bool Execute;
 };
 
 extern Option GlobalOption;

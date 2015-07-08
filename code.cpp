@@ -1,5 +1,6 @@
 #include "code.h"
 
+#include <unordered_map>
 #include <llvm/ADT/APFloat.h>
 #include <llvm/IR/BasicBlock.h>
 #include <llvm/IR/Constants.h>
@@ -26,6 +27,8 @@ static std::unique_ptr<llvm::IRBuilder<>> CurrBuilder;
 static std::vector<PrototypeAST*> ExternFunctions;
 static std::vector<VariableExprAST*> ExternVariables;
 
+static std::unordered_map<std::string, llvm::Value*> LocalVariableMap;
+
 llvm::Value* NumberExprAST::codegen() {
   return llvm::ConstantFP::get(*Context, llvm::APFloat(Val_));
 }
@@ -41,6 +44,10 @@ static std::string getTmpModuleName() {
 }
 
 llvm::Value* VariableExprAST::codegen() {
+  auto It = LocalVariableMap.find(Name_);
+  if (It != LocalVariableMap.end()) {
+    return It->second;
+  }
   if (CurrFunction != GlobalFunction) {
     llvm::ValueSymbolTable& SymbolTable = CurrFunction->getValueSymbolTable();
     llvm::Value* Variable = SymbolTable.lookup(Name_);
@@ -161,64 +168,74 @@ llvm::Value* CallExprAST::codegen() {
 }
 
 llvm::Value* IfExprAST::codegen() {
-  std::vector<llvm::BasicBlock*> CondBlocks;
-  std::vector<llvm::BasicBlock*> ThenBlocks;
+  std::vector<llvm::BasicBlock*> CondBeginBlocks;
+  std::vector<llvm::BasicBlock*> CondEndBlocks;
+  std::vector<llvm::BasicBlock*> ThenBeginBlocks;
+  std::vector<llvm::BasicBlock*> ThenEndBlocks;
+  std::vector<llvm::Value*> CondValues;
   std::vector<llvm::Value*> ThenValues;
-  llvm::BasicBlock* ElseBlock;
-  llvm::Value* ElseValue;
-  llvm::BasicBlock* MergeBlock;
 
   for (size_t i = 0; i < CondThenExprs_.size(); ++i) {
-    if (i == 0) {
-      CondBlocks.push_back(nullptr);
-    } else {
-      llvm::BasicBlock* CondBlock = llvm::BasicBlock::Create(
-          *Context, stringPrintf("cond%zu", i), CurrFunction);
-      CondBlocks.push_back(CondBlock);
-    }
-    llvm::BasicBlock* ThenBlock = llvm::BasicBlock::Create(
-        *Context, stringPrintf("then%zu", i), CurrFunction);
-    ThenBlocks.push_back(ThenBlock);
-  }
-  ElseBlock = llvm::BasicBlock::Create(*Context, "else", CurrFunction);
-  MergeBlock = llvm::BasicBlock::Create(*Context, "endif", CurrFunction);
-
-  for (size_t i = 0; i < CondThenExprs_.size(); ++i) {
+    // Cond block.
     if (i != 0) {
-      CurrBuilder->SetInsertPoint(CondBlocks[i]);
+      llvm::BasicBlock* CondBlock =
+          llvm::BasicBlock::Create(*Context, "if_cond", CurrFunction);
+      CurrBuilder->SetInsertPoint(CondBlock);
     }
+    CondBeginBlocks.push_back(CurrBuilder->GetInsertBlock());
     llvm::Value* CondValue = CondThenExprs_[i].first->codegen();
-    CHECK(CondValue != nullptr);
-    llvm::Value* CmpValue = CurrBuilder->CreateFCmpONE(
-        CondValue, llvm::ConstantFP::get(*Context, llvm::APFloat(0.0)));
-    CurrBuilder->CreateCondBr(
-        CmpValue, ThenBlocks[i],
-        (i + 1 < CondThenExprs_.size() ? CondBlocks[i + 1] : ElseBlock));
-    CurrBuilder->SetInsertPoint(ThenBlocks[i]);
+    CondValues.push_back(CondValue);
+    CondEndBlocks.push_back(CurrBuilder->GetInsertBlock());
+
+    // Then block.
+    llvm::BasicBlock* ThenBlock =
+        llvm::BasicBlock::Create(*Context, "if_then", CurrFunction);
+    CurrBuilder->SetInsertPoint(ThenBlock);
+    ThenBeginBlocks.push_back(CurrBuilder->GetInsertBlock());
     llvm::Value* ThenValue = CondThenExprs_[i].second->codegen();
-    CHECK(ThenValue != nullptr);
-    CurrBuilder->CreateBr(MergeBlock);
     ThenValues.push_back(ThenValue);
-    // In case the last block is different from previous ThenBlock.
-    ThenBlocks[i] = CurrBuilder->GetInsertBlock();
+    ThenEndBlocks.push_back(CurrBuilder->GetInsertBlock());
   }
-  // Emit else block.
-  CurrBuilder->SetInsertPoint(ElseBlock);
-  ElseValue = llvm::ConstantFP::get(*Context, llvm::APFloat(0.0));
+  // Else block.
+  llvm::BasicBlock* ElseBeginBlock =
+      llvm::BasicBlock::Create(*Context, "if_else", CurrFunction);
+  CurrBuilder->SetInsertPoint(ElseBeginBlock);
+  llvm::Value* ElseValue = llvm::ConstantFP::get(*Context, llvm::APFloat(0.0));
   if (ElseExpr_ != nullptr) {
     ElseValue = ElseExpr_->codegen();
   }
+  llvm::BasicBlock* ElseEndBlock = CurrBuilder->GetInsertBlock();
+
+  llvm::BasicBlock* MergeBlock =
+      llvm::BasicBlock::Create(*Context, "if_endif", CurrFunction);
+
+  // Fix up branches.
+  for (size_t i = 0; i < CondThenExprs_.size(); ++i) {
+    CurrBuilder->SetInsertPoint(CondEndBlocks[i]);
+    llvm::Value* CmpValue = CondValues[i];
+    if (CmpValue->getType() == llvm::Type::getDoubleTy(*Context)) {
+      CmpValue = CurrBuilder->CreateFCmpONE(
+          CondValues[i], llvm::ConstantFP::get(*Context, llvm::APFloat(0.0)));
+    }
+    CurrBuilder->CreateCondBr(
+        CmpValue, ThenBeginBlocks[i],
+        (i + 1 < CondThenExprs_.size() ? CondBeginBlocks[i + 1]
+                                       : ElseBeginBlock));
+
+    CurrBuilder->SetInsertPoint(ThenEndBlocks[i]);
+    CurrBuilder->CreateBr(MergeBlock);
+  }
+
+  CurrBuilder->SetInsertPoint(ElseEndBlock);
   CurrBuilder->CreateBr(MergeBlock);
-  // In case the last block is different from previous ElseBlock.
-  ElseBlock = CurrBuilder->GetInsertBlock();
-  // Emit merge block.
+
   CurrBuilder->SetInsertPoint(MergeBlock);
   llvm::PHINode* PHINode = CurrBuilder->CreatePHI(
       llvm::Type::getDoubleTy(*Context), CondThenExprs_.size() + 1, "iftmp");
   for (size_t i = 0; i < CondThenExprs_.size(); ++i) {
-    PHINode->addIncoming(ThenValues[i], ThenBlocks[i]);
+    PHINode->addIncoming(ThenValues[i], ThenEndBlocks[i]);
   }
-  PHINode->addIncoming(ElseValue, ElseBlock);
+  PHINode->addIncoming(ElseValue, ElseEndBlock);
   return PHINode;
 }
 
@@ -228,6 +245,80 @@ llvm::Value* BlockExprAST::codegen() {
     LastValue = Expr->codegen();
   }
   return LastValue;
+}
+
+class LocalVariableGuard {
+ public:
+  LocalVariableGuard(const std::string& Name, llvm::Value* Value)
+      : Name_(Name) {
+    auto It = LocalVariableMap.find(Name_);
+    if (It != LocalVariableMap.end()) {
+      OldValue_ = It->second;
+    } else {
+      OldValue_ = nullptr;
+    }
+    LocalVariableMap[Name_] = Value;
+  }
+
+  ~LocalVariableGuard() {
+    if (OldValue_ == nullptr) {
+      LocalVariableMap.erase(Name_);
+    } else {
+      LocalVariableMap[Name_] = OldValue_;
+    }
+  }
+
+ private:
+  const std::string Name_;
+  llvm::Value* OldValue_;
+};
+
+llvm::Value* ForExprAST::codegen() {
+  // Init block.
+  llvm::Value* InitValue = InitExpr_->codegen();
+  llvm::BasicBlock* InitEndBlock = CurrBuilder->GetInsertBlock();
+
+  // Cmp block.
+  llvm::BasicBlock* CmpBeginBlock =
+      llvm::BasicBlock::Create(*Context, "for_cmp", CurrFunction);
+  CurrBuilder->SetInsertPoint(CmpBeginBlock);
+  llvm::PHINode* PHINode =
+      CurrBuilder->CreatePHI(llvm::Type::getDoubleTy(*Context), 2, "i");
+  LocalVariableGuard Guard(VarName_, PHINode);
+  llvm::Value* CondValue = CondExpr_->codegen();
+  llvm::BasicBlock* CmpEndBlock = CurrBuilder->GetInsertBlock();
+
+  // Loop block.
+  llvm::BasicBlock* LoopBeginBlock =
+      llvm::BasicBlock::Create(*Context, "for_loop", CurrFunction);
+  CurrBuilder->SetInsertPoint(LoopBeginBlock);
+  BlockExpr_->codegen();
+  llvm::Value* StepValue = StepExpr_->codegen();
+  llvm::Value* StepAddValue = CurrBuilder->CreateFAdd(PHINode, StepValue);
+  llvm::BasicBlock* LoopEndBlock = CurrBuilder->GetInsertBlock();
+
+  // After loop block.
+  llvm::BasicBlock* AfterLoopBlock =
+      llvm::BasicBlock::Create(*Context, "for_after_loop", CurrFunction);
+
+  // Fix branches.
+  CurrBuilder->SetInsertPoint(InitEndBlock);
+  CurrBuilder->CreateBr(CmpBeginBlock);
+  PHINode->addIncoming(InitValue, InitEndBlock);
+  PHINode->addIncoming(StepAddValue, LoopEndBlock);
+  CurrBuilder->SetInsertPoint(CmpEndBlock);
+  llvm::Value* CmpValue = CondValue;
+  if (CmpValue->getType() == llvm::Type::getDoubleTy(*Context)) {
+    CmpValue = CurrBuilder->CreateFCmpONE(
+        CondValue, llvm::ConstantFP::get(*Context, llvm::APFloat(0.0)));
+  }
+  CurrBuilder->CreateCondBr(CmpValue, LoopBeginBlock, AfterLoopBlock);
+
+  CurrBuilder->SetInsertPoint(LoopEndBlock);
+  CurrBuilder->CreateBr(CmpBeginBlock);
+
+  CurrBuilder->SetInsertPoint(AfterLoopBlock);
+  return PHINode;
 }
 
 static llvm::Function* createTmpFunction(const std::string& FunctionName) {
@@ -274,7 +365,8 @@ static std::unique_ptr<llvm::Module> codePipeline(
       case BINARY_EXPR_AST:
       case CALL_EXPR_AST:
       case IF_EXPR_AST:
-      case BLOCK_EXPR_AST: {
+      case BLOCK_EXPR_AST:
+      case FOR_EXPR_AST: {
         RetValue = Value;
         break;
       }

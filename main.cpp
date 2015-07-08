@@ -10,21 +10,22 @@
 
 static void usage(const std::string& ExecName) {
   printf("%s  Experiment a toy language\n", ExecName.c_str());
-  printf("Usage:\n");
-  printf("--dump dumpType1, dumpType2,...\n");
-  printf("                Dump specified contents. Possible type list:\n");
-  printf("                  token:  Dump all tokens received.\n");
-  printf("                  ast:    Dump abstract syntax tree.\n");
-  printf("                  code:   Dump generated IR code.\n");
-  printf("                  none:   Don't dump any thing.\n");
-  printf("-h/--help       Print this help information.\n");
   printf(
-      "-i <file>       Read input from specified file instead of standard "
-      "input.\n");
-  printf(
-      "--log <log_level>  Set log level, can be debug/info/error/fatal, "
-      "default is debug.\n");
-  printf("Default Option: --dump code\n");
+      "Usage:\n"
+      "--dump dumpType1, dumpType2,...\n"
+      "                Dump specified contents. Possible type list:\n"
+      "                  token:  Dump all tokens received.\n"
+      "                  ast:    Dump abstract syntax tree.\n"
+      "                  code:   Dump generated IR code.\n"
+      "                  none:   Don't dump any thing.\n"
+      "-h/--help       Print this help information.\n"
+      "-i <file>       Read input from specified file instead of standard\n"
+      "                input.\n"
+      "--log <log_level>\n"
+      "                Set log level, can be debug/info/error/fatal.\n"
+      "                Default is debug.\n"
+      "--no-execute    Don't execute code.\n"
+      "Default Option: --dump code\n\n");
 }
 
 Option GlobalOption = {
@@ -35,6 +36,7 @@ Option GlobalOption = {
     false,      // DumpAST
     true,       // DumpCode
     INFO,       // LogLevel
+    true,       // Execute
 };
 
 bool nextArgumentOrError(const std::vector<std::string>& Args, size_t& i) {
@@ -102,6 +104,8 @@ static bool parseOptions(int argc, char** argv) {
         LOG(ERROR) << "Unknown log level: " << Args[i];
         return false;
       }
+    } else if (Args[i] == "--no-execute") {
+      GlobalOption.Execute = false;
     } else {
       LOG(ERROR) << "Unknown Option: " << Args[i];
       return false;
