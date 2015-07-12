@@ -24,18 +24,11 @@ enum TokenType {
   TOKEN_ASSIGNMENT,
 };
 
-enum OpType {
-  OP_INVALID,
-  OP_LT,
-  OP_LE,
-  OP_EQ,
-  OP_NE,
-  OP_GT,
-  OP_GE,
-  OP_ADD,
-  OP_SUB,
-  OP_MUL,
-  OP_DIV,
+struct OpType {
+  OpType(const std::string s = "") : desc(s) {
+  }
+
+  std::string desc;
 };
 
 struct Token {
@@ -43,6 +36,7 @@ struct Token {
   std::string Identifier;
   double Number;
   OpType Op;
+  char DynamicOp;
   size_t Line;
 
   Token(TokenType Type, const std::string& Identifier, double Number, OpType Op);
@@ -50,6 +44,7 @@ struct Token {
   static Token createNumberToken(double Number);
   static Token createIdentifierToken(const std::string& Identifier);
   static Token createOpToken(OpType Op);
+  static Token createDynamicOpToken(char Op);
   static Token createToken(TokenType Type);
 
   std::string toString() const;
@@ -62,6 +57,6 @@ void unreadToken();
 extern size_t ExprsInCurrLine;
 void printPrompt();
 
-std::string OpToString(OpType Op);
+void addDynamicOp(char Op);
 
 #endif  // LEXER_H_

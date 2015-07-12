@@ -24,7 +24,7 @@ void VariableExprAST::dump(int Indent) const {
 
 void BinaryExprAST::dump(int Indent) const {
   fprintIndented(stderr, Indent, "BinaryExprAST op = %s\n",
-                 OpToString(Op_).c_str());
+                 Op_.desc.c_str());
   Left_->dump(Indent + 1);
   Right_->dump(Indent + 1);
 }
@@ -146,9 +146,9 @@ static ExprAST* parsePrimary() {
   return nullptr;
 }
 
-static std::map<OpType, int> OpPrecedenceMap = {
-    {OP_LT, 10}, {OP_LE, 10},  {OP_EQ, 10},  {OP_NE, 10},  {OP_GT, 10},
-    {OP_GE, 10}, {OP_ADD, 20}, {OP_SUB, 20}, {OP_MUL, 30}, {OP_DIV, 30},
+static std::map<std::string, int> OpPrecedenceMap = {
+    {"<", 10}, {"<=", 10},  {"==", 10},  {"!=", 10},  {">", 10},
+    {">=", 10}, {"+", 20}, {"-", 20}, {"*", 30}, {"/", 30},
 };
 
 // BinaryExpression := Primary
@@ -169,7 +169,7 @@ static ExprAST* parseBinaryExpression(int PrevPrecedence = 0) {
     if (Curr.Type != TOKEN_OP) {
       break;
     }
-    int Precedence = OpPrecedenceMap.find(Curr.Op)->second;
+    int Precedence = OpPrecedenceMap.find(Curr.Op.desc)->second;
     if (Precedence <= PrevPrecedence) {
       break;
     }

@@ -13,6 +13,7 @@
 #include <llvm/IR/Value.h>
 #include <llvm/IR/ValueSymbolTable.h>
 
+#include "lexer.h"
 #include "logging.h"
 #include "optimization.h"
 #include "option.h"
@@ -73,39 +74,29 @@ llvm::Value* BinaryExprAST::codegen() {
   llvm::Value* RightValue = Right_->codegen();
   CHECK(RightValue != nullptr);
   llvm::Value* Result = nullptr;
-  switch (Op_) {
-    case OP_LT:
-      Result = CurrBuilder->CreateFCmpOLT(LeftValue, RightValue, getTmpName());
-      break;
-    case OP_LE:
-      Result = CurrBuilder->CreateFCmpOLE(LeftValue, RightValue, getTmpName());
-      break;
-    case OP_EQ:
-      Result = CurrBuilder->CreateFCmpOEQ(LeftValue, RightValue, getTmpName());
-      break;
-    case OP_NE:
-      Result = CurrBuilder->CreateFCmpONE(LeftValue, RightValue, getTmpName());
-      break;
-    case OP_GT:
-      Result = CurrBuilder->CreateFCmpOGT(LeftValue, RightValue, getTmpName());
-      break;
-    case OP_GE:
-      Result = CurrBuilder->CreateFCmpOGT(LeftValue, RightValue, getTmpName());
-      break;
-    case OP_ADD:
-      Result = CurrBuilder->CreateFAdd(LeftValue, RightValue, getTmpName());
-      break;
-    case OP_SUB:
-      Result = CurrBuilder->CreateFSub(LeftValue, RightValue, getTmpName());
-      break;
-    case OP_MUL:
-      Result = CurrBuilder->CreateFMul(LeftValue, RightValue, getTmpName());
-      break;
-    case OP_DIV:
-      Result = CurrBuilder->CreateFDiv(LeftValue, RightValue, getTmpName());
-      break;
-    default:
-      LOG(FATAL) << "Unexpected binary operator " << Op_;
+  std::string OpStr = Op_.desc;
+  if (OpStr == "<") {
+    Result = CurrBuilder->CreateFCmpOLT(LeftValue, RightValue, getTmpName());
+  } else if (OpStr == "<=") {
+    Result = CurrBuilder->CreateFCmpOLE(LeftValue, RightValue, getTmpName());
+  } else if (OpStr == "==") {
+    Result = CurrBuilder->CreateFCmpOEQ(LeftValue, RightValue, getTmpName());
+  } else if (OpStr == "!=") {
+    Result = CurrBuilder->CreateFCmpONE(LeftValue, RightValue, getTmpName());
+  } else if (OpStr == ">") {
+    Result = CurrBuilder->CreateFCmpOGT(LeftValue, RightValue, getTmpName());
+  } else if (OpStr == ">=") {
+    Result = CurrBuilder->CreateFCmpOGT(LeftValue, RightValue, getTmpName());
+  } else if (OpStr == "+") {
+    Result = CurrBuilder->CreateFAdd(LeftValue, RightValue, getTmpName());
+  } else if (OpStr == "-") {
+    Result = CurrBuilder->CreateFSub(LeftValue, RightValue, getTmpName());
+  } else if (OpStr == "*") {
+    Result = CurrBuilder->CreateFMul(LeftValue, RightValue, getTmpName());
+  } else if (OpStr == "/") {
+    Result = CurrBuilder->CreateFDiv(LeftValue, RightValue, getTmpName());
+  } else {
+    LOG(FATAL) << "Unexpected binary operator " << OpStr;
   }
   Result = CurrBuilder->CreateUIToFP(Result, llvm::Type::getDoubleTy(*Context));
   return Result;
