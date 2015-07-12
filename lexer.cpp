@@ -23,17 +23,13 @@ static std::map<TokenType, std::string> TokenNameMap = {
     {TOKEN_IDENTIFIER, "TOKEN_IDENTIFIER"},
     {TOKEN_NUMBER, "TOKEN_NUMBER"},
     {TOKEN_OP, "TOKEN_OP"},
-    {TOKEN_LPAREN, "TOKEN_LPAREN"},
-    {TOKEN_RPAREN, "TOKEN_RPAREN"},
-    {TOKEN_SEMICOLON, "TOKEN_SEMICOLON"},
-    {TOKEN_COMMA, "TOKEN_COMMA"},
     {TOKEN_IF, "TOKEN_IF"},
     {TOKEN_ELIF, "TOKEN_ELIF"},
     {TOKEN_ELSE, "TOKEN_ELSE"},
-    {TOKEN_LBRACE, "TOKEN_LBRACE"},
-    {TOKEN_RBRACE, "TOKEN_RBRACE"},
     {TOKEN_FOR, "TOKEN_FOR"},
-    {TOKEN_ASSIGNMENT, "TOKEN_ASSIGNMENT"},
+    {TOKEN_BINARY, "TOKEN_BINARY"},
+    {TOKEN_UNARY, "TOKEN_UNARY"},
+    {TOKEN_LETTER, "TOKEN_LETTER"},
 };
 
 static std::vector<std::string> OpMap = {
@@ -41,24 +37,33 @@ static std::vector<std::string> OpMap = {
 };
 
 Token::Token(TokenType Type, const std::string& Identifier, double Number,
-             OpType Op)
-    : Type(Type), Identifier(Identifier), Number(Number), Op(Op), DynamicOp(0), Line(CurrLine) {
+             OpType Op, char Letter)
+    : Type(Type),
+      Identifier(Identifier),
+      Number(Number),
+      Op(Op),
+      Letter(Letter),
+      Line(CurrLine) {
 }
 
 Token Token::createNumberToken(double Number) {
-  return Token(TOKEN_NUMBER, "", Number, OpType());
+  return Token(TOKEN_NUMBER, "", Number, OpType(), 0);
 }
 
 Token Token::createIdentifierToken(const std::string& Identifier) {
-  return Token(TOKEN_IDENTIFIER, Identifier, 0.0, OpType());
+  return Token(TOKEN_IDENTIFIER, Identifier, 0.0, OpType(), 0);
 }
 
 Token Token::createOpToken(OpType Op) {
-  return Token(TOKEN_OP, "", 0.0, Op);
+  return Token(TOKEN_OP, "", 0.0, Op, 0);
+}
+
+Token Token::createLetterToken(char Letter) {
+  return Token(TOKEN_LETTER, "", 0.0, OpType(), Letter);
 }
 
 Token Token::createToken(TokenType Type) {
-  return Token(Type, "", 0.0, OpType());
+  return Token(Type, "", 0.0, OpType(), 0);
 }
 
 std::string Token::toString() const {
@@ -73,6 +78,8 @@ std::string Token::toString() const {
     s += ", " + stringPrintf("%lf", Number);
   } else if (Type == TOKEN_OP) {
     s += ", " + Op.desc;
+  } else if (Type == TOKEN_LETTER) {
+    s += ", " + std::string(1, Letter);
   }
   s += ")";
   return s;
@@ -142,6 +149,12 @@ Repeat:
     if (s == "for") {
       return Token::createToken(TOKEN_FOR);
     }
+    if (s == "binary") {
+      return Token::createToken(TOKEN_BINARY);
+    }
+    if (s == "unary") {
+      return Token::createToken(TOKEN_UNARY);
+    }
     return Token::createIdentifierToken(s);
   }
 
@@ -190,28 +203,11 @@ Repeat:
     return Token::createOpToken(OpType(MatchOp));
   }
 
-  if (LastChar == '(') {
-    return Token::createToken(TOKEN_LPAREN);
-  } else if (LastChar == ')') {
-    return Token::createToken(TOKEN_RPAREN);
-  } else if (LastChar == ';') {
-    return Token::createToken(TOKEN_SEMICOLON);
-  } else if (LastChar == ',') {
-    return Token::createToken(TOKEN_COMMA);
-  } else if (LastChar == '{') {
-    return Token::createToken(TOKEN_LBRACE);
-  } else if (LastChar == '}') {
-    return Token::createToken(TOKEN_RBRACE);
-  } else if (LastChar == '=') {
-    return Token::createToken(TOKEN_ASSIGNMENT);
-  } else {
-    LOG(FATAL) << "Unexpected character: " << LastChar;
-  }
-  return Token::createToken(TOKEN_INVALID);
+  return Token::createLetterToken(LastChar);
 }
 
-static Token CurToken(TOKEN_INVALID, "", 0.0, OpType());
-static Token BufferedToken(TOKEN_INVALID, "", 0.0, OpType());
+static Token CurToken(TOKEN_INVALID, "", 0.0, OpType(), 0);
+static Token BufferedToken(TOKEN_INVALID, "", 0.0, OpType(), 0);
 
 const Token& currToken() {
   CHECK_NE(TOKEN_INVALID, CurToken.Type);

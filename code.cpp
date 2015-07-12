@@ -68,6 +68,20 @@ llvm::Value* VariableExprAST::codegen() {
   return LoadInst;
 }
 
+llvm::Value* UnaryExprAST::codegen() {
+  llvm::Value* RightValue = Right_->codegen();
+  CHECK(RightValue != nullptr);
+  std::string OpStr = Op_.desc;
+  llvm::Function* Function = CurrModule->getFunction("unary" + OpStr);
+  if (Function != nullptr) {
+    CHECK_EQ(1u, Function->arg_size());
+    std::vector<llvm::Value*> Values(1, RightValue);
+    return CurrBuilder->CreateCall(Function, Values, getTmpName());
+  }
+  LOG(FATAL) << "Unexpected unary operator " << OpStr;
+  return nullptr;
+}
+
 llvm::Value* BinaryExprAST::codegen() {
   llvm::Value* LeftValue = Left_->codegen();
   CHECK(LeftValue != nullptr);
@@ -75,6 +89,14 @@ llvm::Value* BinaryExprAST::codegen() {
   CHECK(RightValue != nullptr);
   llvm::Value* Result = nullptr;
   std::string OpStr = Op_.desc;
+  llvm::Function* Function = CurrModule->getFunction("binary" + OpStr);
+  if (Function != nullptr) {
+    CHECK_EQ(2u, Function->arg_size());
+    std::vector<llvm::Value*> Values;
+    Values.push_back(LeftValue);
+    Values.push_back(RightValue);
+    return CurrBuilder->CreateCall(Function, Values, getTmpName());
+  }
   if (OpStr == "<") {
     Result = CurrBuilder->CreateFCmpOLT(LeftValue, RightValue, getTmpName());
   } else if (OpStr == "<=") {
@@ -353,6 +375,7 @@ static std::unique_ptr<llvm::Module> codePipeline(
     switch (Expr->type()) {
       case NUMBER_EXPR_AST:
       case VARIABLE_EXPR_AST:
+      case UNARY_EXPR_AST:
       case BINARY_EXPR_AST:
       case CALL_EXPR_AST:
       case IF_EXPR_AST:

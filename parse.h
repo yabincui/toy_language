@@ -9,6 +9,7 @@
 enum ASTType {
   NUMBER_EXPR_AST,
   VARIABLE_EXPR_AST,
+  UNARY_EXPR_AST,
   BINARY_EXPR_AST,
   PROTOTYPE_AST,
   FUNCTION_AST,
@@ -64,6 +65,20 @@ class VariableExprAST : public ExprAST {
 
  private:
   const std::string Name_;
+};
+
+class UnaryExprAST : public ExprAST {
+ public:
+  UnaryExprAST(OpType Op, ExprAST* Right)
+      : ExprAST(UNARY_EXPR_AST), Op_(Op), Right_(Right) {
+  }
+
+  void dump(int Indent = 0) const override;
+  llvm::Value* codegen() override;
+
+ private:
+  OpType Op_;
+  ExprAST* Right_;
 };
 
 class BinaryExprAST : public ExprAST {
