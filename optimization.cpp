@@ -23,9 +23,13 @@ static llvm::RegisterPass<HelloPass> HelloPassRegister("helloPass", "Hello World
 Pass");
 */
 
-void optMain(llvm::Module* Module) {
+void prepareOptPipeline() {
+}
+
+void optPipeline(llvm::Module* Module) {
   llvm::legacy::FunctionPassManager FPM(Module);
   FPM.add(llvm::createGVNPass(false));
+  FPM.add(llvm::createPromoteMemoryToRegisterPass());
   FPM.doInitialization();
 
   for (auto FunctionIt = Module->begin(); FunctionIt != Module->end();
@@ -33,4 +37,11 @@ void optMain(llvm::Module* Module) {
     llvm::Function& Function = *FunctionIt;
     FPM.run(Function);
   }
+}
+
+void finishOptPipeline() {
+}
+
+void optMain(llvm::Module* Module) {
+  optPipeline(Module);
 }

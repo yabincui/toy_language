@@ -4,6 +4,7 @@
 #include "execution.h"
 #include "lexer.h"
 #include "logging.h"
+#include "optimization.h"
 #include "parse.h"
 #include "string.h"
 #include "supportlib.h"
@@ -131,6 +132,7 @@ void printPrompt() {
 static void interactiveMain() {
   prepareParsePipeline();
   prepareCodePipeline();
+  prepareOptPipeline();
   prepareExecutionPipeline();
 
   printPrompt();
@@ -139,6 +141,7 @@ static void interactiveMain() {
     if (Expr != nullptr) {
       std::unique_ptr<llvm::Module> Module = codePipeline(Expr);
       if (Module != nullptr) {
+        optPipeline(Module.get());
         executionPipeline(Module.release());
       }
       ExprsInCurrLine++;
@@ -152,6 +155,7 @@ static void interactiveMain() {
 
   finishExecutionPipeline();
   finishCodePipeline();
+  finishOptPipeline();
   finishParsePipeline();
 }
 
@@ -160,6 +164,8 @@ static void nonInteractiveMain() {
   std::vector<ExprAST*> Exprs = parseMain();
   LOG(DEBUG) << "codeMain()";
   std::unique_ptr<llvm::Module> Module = codeMain(Exprs);
+  LOG(DEBUG) << "optMain()";
+  optMain(Module.get());
   LOG(DEBUG) << "executionMain()";
   executionMain(Module.release());
 }
