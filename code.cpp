@@ -103,13 +103,18 @@ static std::string getTmpModuleName() {
   return stringPrintf("tmpmodule.%" PRIu64, ++TmpCount);
 }
 
-static llvm::Value* getOrCreateVariable(const std::string& Name) {
+static llvm::Value* getVariable(const std::string& Name) {
   llvm::Value* Variable = nullptr;
   CHECK(CurrScope != nullptr);
   Variable = CurrScope->findVariableFromScopeList(Name);
   if (Variable == nullptr) {
     Variable = CurrModule->getGlobalVariable(Name);
   }
+  return Variable;
+}
+
+static llvm::Value* getOrCreateVariable(const std::string& Name) {
+  llvm::Value* Variable = getVariable(Name);
   if (Variable == nullptr) {
     if (CurrScope == GlobalScope.get()) {
       Variable = new llvm::GlobalVariable(
@@ -129,7 +134,10 @@ static llvm::Value* getOrCreateVariable(const std::string& Name) {
 }
 
 llvm::Value* VariableExprAST::codegen() {
-  llvm::Value* Variable = getOrCreateVariable(Name_);
+  llvm::Value* Variable = getVariable(Name_);
+  if (Variable == nullptr) {
+    LOG(FATAL) << "Using unassigned variable: " << Name_;
+  }
   llvm::LoadInst* LoadInst = CurrBuilder->CreateLoad(Variable, getTmpName());
   return LoadInst;
 }

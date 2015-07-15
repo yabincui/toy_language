@@ -1,3 +1,27 @@
+Token (TOKEN_IDENTIFIER, a)
+Token (TOKEN_LETTER, =)
+Token (TOKEN_NUMBER, 0.000000)
+Token (TOKEN_LETTER, ;)
+unread Token (TOKEN_LETTER, ;)
+Token (TOKEN_LETTER, ;)
+AssignmentExprAST name = a
+  NumberExprAST val = 0.000000
+Token (TOKEN_IDENTIFIER, b)
+Token (TOKEN_LETTER, =)
+Token (TOKEN_NUMBER, 0.000000)
+Token (TOKEN_LETTER, ;)
+unread Token (TOKEN_LETTER, ;)
+Token (TOKEN_LETTER, ;)
+AssignmentExprAST name = b
+  NumberExprAST val = 0.000000
+Token (TOKEN_IDENTIFIER, c)
+Token (TOKEN_LETTER, =)
+Token (TOKEN_NUMBER, 0.000000)
+Token (TOKEN_LETTER, ;)
+unread Token (TOKEN_LETTER, ;)
+Token (TOKEN_LETTER, ;)
+AssignmentExprAST name = c
+  NumberExprAST val = 0.000000
 Token (TOKEN_NUMBER, 3.000000)
 Token (TOKEN_OP, +)
 Token (TOKEN_NUMBER, 4.000000)
@@ -963,6 +987,9 @@ Token (TOKEN_EOF)
 @c = internal global double 0.000000e+00
 
 define internal double @__toy_main() {
+  store double 0.000000e+00, double* @a
+  store double 0.000000e+00, double* @b
+  store double 0.000000e+00, double* @c
   %tmp.3 = load double, double* @a
   %tmp.4 = load double, double* @b
   %tmp.5 = load double, double* @c
@@ -1196,6 +1223,60 @@ a_function.entry:
 *
 **
 210.000000
+>Token (TOKEN_IDENTIFIER, a)
+Token (TOKEN_LETTER, =)
+Token (TOKEN_NUMBER, 0.000000)
+Token (TOKEN_LETTER, ;)
+unread Token (TOKEN_LETTER, ;)
+Token (TOKEN_LETTER, ;)
+AssignmentExprAST name = a
+  NumberExprAST val = 0.000000
+; ModuleID = 'tmpmodule.1'
+
+@a = internal global double 0.000000e+00
+
+define internal double @__toy_main() {
+  store double 0.000000e+00, double* @a
+  ret double 0.000000e+00
+}
+0.000000
+Token (TOKEN_IDENTIFIER, b)
+Token (TOKEN_LETTER, =)
+Token (TOKEN_NUMBER, 0.000000)
+Token (TOKEN_LETTER, ;)
+unread Token (TOKEN_LETTER, ;)
+Token (TOKEN_LETTER, ;)
+AssignmentExprAST name = b
+  NumberExprAST val = 0.000000
+; ModuleID = 'tmpmodule.2'
+
+@a = external global double
+@b = internal global double 0.000000e+00
+
+define internal double @__toy_main() {
+  store double 0.000000e+00, double* @b
+  ret double 0.000000e+00
+}
+0.000000
+Token (TOKEN_IDENTIFIER, c)
+Token (TOKEN_LETTER, =)
+Token (TOKEN_NUMBER, 0.000000)
+Token (TOKEN_LETTER, ;)
+unread Token (TOKEN_LETTER, ;)
+Token (TOKEN_LETTER, ;)
+AssignmentExprAST name = c
+  NumberExprAST val = 0.000000
+; ModuleID = 'tmpmodule.3'
+
+@a = external global double
+@b = external global double
+@c = internal global double 0.000000e+00
+
+define internal double @__toy_main() {
+  store double 0.000000e+00, double* @c
+  ret double 0.000000e+00
+}
+0.000000
 >Token (TOKEN_NUMBER, 3.000000)
 Token (TOKEN_OP, +)
 Token (TOKEN_NUMBER, 4.000000)
@@ -1213,7 +1294,11 @@ BinaryExprAST op = +
   BinaryExprAST op = *
     NumberExprAST val = 4.000000
     NumberExprAST val = 2.000000
-; ModuleID = 'tmpmodule.1'
+; ModuleID = 'tmpmodule.4'
+
+@a = external global double
+@b = external global double
+@c = external global double
 
 define internal double @__toy_main() {
   ret double 1.100000e+01
@@ -1244,11 +1329,11 @@ BinaryExprAST op = +
   BinaryExprAST op = *
     VariableExprAST name = b
     VariableExprAST name = c
-; ModuleID = 'tmpmodule.2'
+; ModuleID = 'tmpmodule.5'
 
-@a = internal global double 0.000000e+00
-@b = internal global double 0.000000e+00
-@c = internal global double 0.000000e+00
+@a = external global double
+@b = external global double
+@c = external global double
 
 define internal double @__toy_main() {
   %tmp.3 = load double, double* @a
@@ -1268,7 +1353,7 @@ Token (TOKEN_IDENTIFIER, extern_c)
 Token (TOKEN_LETTER, ))
 Token (TOKEN_LETTER, ;)
 PrototypeAST extern_a (extern_b, extern_c)
-; ModuleID = 'tmpmodule.3'
+; ModuleID = 'tmpmodule.6'
 
 @a = external global double
 @b = external global double
@@ -1318,7 +1403,7 @@ FunctionAST
         NumberExprAST val = 2.000000
         VariableExprAST name = def_c
     NumberExprAST val = 6.000000
-; ModuleID = 'tmpmodule.4'
+; ModuleID = 'tmpmodule.7'
 
 @a = external global double
 @b = external global double
@@ -1364,7 +1449,7 @@ CallExprAST Callee = def_a
     NumberExprAST val = 2.000000
   Arg #1:
     NumberExprAST val = 4.000000
-; ModuleID = 'tmpmodule.5'
+; ModuleID = 'tmpmodule.8'
 
 @a = external global double
 @b = external global double
@@ -1423,7 +1508,7 @@ FunctionAST
     BinaryExprAST op = +
       VariableExprAST name = x
       NumberExprAST val = 3.000000
-; ModuleID = 'tmpmodule.6'
+; ModuleID = 'tmpmodule.9'
 
 @a = external global double
 @b = external global double
@@ -1475,7 +1560,7 @@ FunctionAST
   BinaryExprAST op = *
     VariableExprAST name = b
     VariableExprAST name = c
-; ModuleID = 'tmpmodule.7'
+; ModuleID = 'tmpmodule.10'
 
 @a = external global double
 @b = external global double
@@ -1521,7 +1606,7 @@ CallExprAST Callee = ta
     NumberExprAST val = 3.000000
   Arg #1:
     NumberExprAST val = 4.000000
-; ModuleID = 'tmpmodule.8'
+; ModuleID = 'tmpmodule.11'
 
 @a = external global double
 @b = external global double
@@ -1566,7 +1651,7 @@ IfExprAST: have 1 CondThenExprs, have 1 ElseExpr
     NumberExprAST val = 3.000000
   ElseExpr
     NumberExprAST val = 4.000000
-; ModuleID = 'tmpmodule.9'
+; ModuleID = 'tmpmodule.12'
 
 @a = external global double
 @b = external global double
@@ -1625,7 +1710,7 @@ BlockExprAST: have 2 exprs
   BinaryExprAST op = -
     VariableExprAST name = a
     NumberExprAST val = 6.000000
-; ModuleID = 'tmpmodule.10'
+; ModuleID = 'tmpmodule.13'
 
 @a = external global double
 @b = external global double
@@ -1689,7 +1774,7 @@ IfExprAST: have 1 CondThenExprs, have 1 ElseExpr
       BinaryExprAST op = -
         NumberExprAST val = 7.000000
         NumberExprAST val = 5.000000
-; ModuleID = 'tmpmodule.11'
+; ModuleID = 'tmpmodule.14'
 
 @a = external global double
 @b = external global double
@@ -1759,7 +1844,7 @@ IfExprAST: have 1 CondThenExprs, have 1 ElseExpr
       BinaryExprAST op = +
         NumberExprAST val = 7.000000
         NumberExprAST val = 4.000000
-; ModuleID = 'tmpmodule.12'
+; ModuleID = 'tmpmodule.15'
 
 @a = external global double
 @b = external global double
@@ -1824,7 +1909,7 @@ IfExprAST: have 2 CondThenExprs, have 0 ElseExpr
   ThenExpr #2
     BlockExprAST: have 1 exprs
       NumberExprAST val = 1.000000
-; ModuleID = 'tmpmodule.13'
+; ModuleID = 'tmpmodule.16'
 
 @a = external global double
 @b = external global double
@@ -1920,7 +2005,7 @@ IfExprAST: have 3 CondThenExprs, have 1 ElseExpr
   ElseExpr
     BlockExprAST: have 1 exprs
       NumberExprAST val = 3.000000
-; ModuleID = 'tmpmodule.14'
+; ModuleID = 'tmpmodule.17'
 
 @a = external global double
 @b = external global double
@@ -2015,7 +2100,7 @@ IfExprAST: have 1 CondThenExprs, have 1 ElseExpr
         ElseExpr
           BlockExprAST: have 1 exprs
             NumberExprAST val = 2.000000
-; ModuleID = 'tmpmodule.15'
+; ModuleID = 'tmpmodule.18'
 
 @a = external global double
 @b = external global double
@@ -2062,7 +2147,7 @@ Token (TOKEN_IDENTIFIER, x)
 Token (TOKEN_LETTER, ))
 Token (TOKEN_LETTER, ;)
 PrototypeAST printc (x)
-; ModuleID = 'tmpmodule.16'
+; ModuleID = 'tmpmodule.19'
 
 @a = external global double
 @b = external global double
@@ -2096,7 +2181,7 @@ Token (TOKEN_LETTER, ;)
 CallExprAST Callee = printc
   Arg #0:
     NumberExprAST val = 42.000000
-; ModuleID = 'tmpmodule.17'
+; ModuleID = 'tmpmodule.20'
 
 @a = external global double
 @b = external global double
@@ -2131,7 +2216,7 @@ Token (TOKEN_LETTER, ;)
 CallExprAST Callee = printc
   Arg #0:
     NumberExprAST val = 10.000000
-; ModuleID = 'tmpmodule.18'
+; ModuleID = 'tmpmodule.21'
 
 @a = external global double
 @b = external global double
@@ -2164,7 +2249,7 @@ Token (TOKEN_LETTER, ;)
 BinaryExprAST op = <
   NumberExprAST val = 1.000000
   NumberExprAST val = 2.000000
-; ModuleID = 'tmpmodule.19'
+; ModuleID = 'tmpmodule.22'
 
 @a = external global double
 @b = external global double
@@ -2195,7 +2280,7 @@ Token (TOKEN_LETTER, ;)
 BinaryExprAST op = <
   NumberExprAST val = 1.000000
   NumberExprAST val = 0.000000
-; ModuleID = 'tmpmodule.20'
+; ModuleID = 'tmpmodule.23'
 
 @a = external global double
 @b = external global double
@@ -2226,7 +2311,7 @@ Token (TOKEN_LETTER, ;)
 BinaryExprAST op = <=
   NumberExprAST val = 1.000000
   NumberExprAST val = 1.000000
-; ModuleID = 'tmpmodule.21'
+; ModuleID = 'tmpmodule.24'
 
 @a = external global double
 @b = external global double
@@ -2257,7 +2342,7 @@ Token (TOKEN_LETTER, ;)
 BinaryExprAST op = <=
   NumberExprAST val = 1.000000
   NumberExprAST val = 0.000000
-; ModuleID = 'tmpmodule.22'
+; ModuleID = 'tmpmodule.25'
 
 @a = external global double
 @b = external global double
@@ -2288,7 +2373,7 @@ Token (TOKEN_LETTER, ;)
 BinaryExprAST op = ==
   NumberExprAST val = 1.000000
   NumberExprAST val = 1.000000
-; ModuleID = 'tmpmodule.23'
+; ModuleID = 'tmpmodule.26'
 
 @a = external global double
 @b = external global double
@@ -2319,7 +2404,7 @@ Token (TOKEN_LETTER, ;)
 BinaryExprAST op = !=
   NumberExprAST val = 1.000000
   NumberExprAST val = 2.000000
-; ModuleID = 'tmpmodule.24'
+; ModuleID = 'tmpmodule.27'
 
 @a = external global double
 @b = external global double
@@ -2350,7 +2435,7 @@ Token (TOKEN_LETTER, ;)
 BinaryExprAST op = >
   NumberExprAST val = 1.000000
   NumberExprAST val = 0.000000
-; ModuleID = 'tmpmodule.25'
+; ModuleID = 'tmpmodule.28'
 
 @a = external global double
 @b = external global double
@@ -2381,7 +2466,7 @@ Token (TOKEN_LETTER, ;)
 BinaryExprAST op = >=
   NumberExprAST val = 1.000000
   NumberExprAST val = 5.000000
-; ModuleID = 'tmpmodule.26'
+; ModuleID = 'tmpmodule.29'
 
 @a = external global double
 @b = external global double
@@ -2466,7 +2551,7 @@ ForExprAST
       CallExprAST Callee = printc
         Arg #0:
           NumberExprAST val = 42.000000
-; ModuleID = 'tmpmodule.27'
+; ModuleID = 'tmpmodule.30'
 
 @a = external global double
 @b = external global double
@@ -2518,7 +2603,7 @@ Token (TOKEN_LETTER, ;)
 CallExprAST Callee = printc
   Arg #0:
     NumberExprAST val = 10.000000
-; ModuleID = 'tmpmodule.28'
+; ModuleID = 'tmpmodule.31'
 
 @a = external global double
 @b = external global double
@@ -2571,7 +2656,7 @@ FunctionAST
   BlockExprAST: have 2 exprs
     VariableExprAST name = LHS
     VariableExprAST name = RHS
-; ModuleID = 'tmpmodule.29'
+; ModuleID = 'tmpmodule.32'
 
 @a = external global double
 @b = external global double
@@ -2629,7 +2714,7 @@ BinaryExprAST op = :
   CallExprAST Callee = printc
     Arg #0:
       NumberExprAST val = 10.000000
-; ModuleID = 'tmpmodule.30'
+; ModuleID = 'tmpmodule.33'
 
 @a = external global double
 @b = external global double
@@ -2692,7 +2777,7 @@ FunctionAST
         NumberExprAST val = 0.000000
       ElseExpr
         NumberExprAST val = 1.000000
-; ModuleID = 'tmpmodule.31'
+; ModuleID = 'tmpmodule.34'
 
 @a = external global double
 @b = external global double
@@ -2740,7 +2825,7 @@ unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
 UnaryExprAST op = !
   NumberExprAST val = 3.000000
-; ModuleID = 'tmpmodule.32'
+; ModuleID = 'tmpmodule.35'
 
 @a = external global double
 @b = external global double
@@ -2772,7 +2857,7 @@ unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
 UnaryExprAST op = !
   NumberExprAST val = 0.000000
-; ModuleID = 'tmpmodule.33'
+; ModuleID = 'tmpmodule.36'
 
 @a = external global double
 @b = external global double
@@ -2805,7 +2890,7 @@ unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
 AssignmentExprAST name = a
   NumberExprAST val = 42.000000
-; ModuleID = 'tmpmodule.34'
+; ModuleID = 'tmpmodule.37'
 
 @a = external global double
 @b = external global double
@@ -2889,7 +2974,7 @@ FunctionAST
           BinaryExprAST op = -
             VariableExprAST name = a
             NumberExprAST val = 32.000000
-; ModuleID = 'tmpmodule.35'
+; ModuleID = 'tmpmodule.38'
 
 @a = external global double
 @b = external global double
@@ -2940,7 +3025,7 @@ Token (TOKEN_LETTER, ;)
 CallExprAST Callee = a_function
   Arg #0:
     NumberExprAST val = 42.000000
-; ModuleID = 'tmpmodule.36'
+; ModuleID = 'tmpmodule.39'
 
 @a = external global double
 @b = external global double
@@ -3026,7 +3111,7 @@ BinaryExprAST op = :
       BinaryExprAST op = -
         VariableExprAST name = a
         NumberExprAST val = 32.000000
-; ModuleID = 'tmpmodule.37'
+; ModuleID = 'tmpmodule.40'
 
 @a = external global double
 @b = external global double
@@ -3077,7 +3162,7 @@ Token (TOKEN_LETTER, ;)
 BinaryExprAST op = *
   VariableExprAST name = a
   NumberExprAST val = 5.000000
-; ModuleID = 'tmpmodule.38'
+; ModuleID = 'tmpmodule.41'
 
 @a = external global double
 @b = external global double
