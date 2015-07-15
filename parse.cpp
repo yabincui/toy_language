@@ -33,6 +33,12 @@ void BinaryExprAST::dump(int Indent) const {
   Right_->dump(Indent + 1);
 }
 
+void AssignmentExprAST::dump(int Indent) const {
+  fprintIndented(stderr, Indent, "AssignmentExprAST name = %s\n",
+                 VarName_.c_str());
+  Right_->dump(Indent + 1);
+}
+
 void PrototypeAST::dump(int Indent) const {
   fprintIndented(stderr, Indent, "PrototypeAST %s (", Name_.c_str());
   for (size_t i = 0; i < Args_.size(); ++i) {
@@ -209,7 +215,23 @@ static ExprAST* parseBinaryExpression(int PrevPrecedence = -1) {
 }
 
 // Expression := BinaryExpression
+//            := identifier = Expression
 static ExprAST* parseExpression() {
+  Token Curr = currToken();
+  if (Curr.Type == TOKEN_IDENTIFIER) {
+    std::string VarName = Curr.Identifier;
+    nextToken();
+    Curr = currToken();
+    if (Curr.Type == TOKEN_LETTER && Curr.Letter == '=') {
+      nextToken();
+      ExprAST* Expr = parseExpression();
+      CHECK(Expr != nullptr);
+      AssignmentExprAST* AssignmentExpr = new AssignmentExprAST(VarName, Expr);
+      ExprStorage.push_back(std::unique_ptr<ExprAST>(AssignmentExpr));
+      return AssignmentExpr;
+    }
+    unreadToken();
+  }
   return parseBinaryExpression();
 }
 

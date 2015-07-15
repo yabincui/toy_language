@@ -26,7 +26,7 @@ static llvm::Function* GlobalFunction;
 static llvm::Function* CurrFunction;
 static std::unique_ptr<llvm::IRBuilder<>> CurrBuilder;
 static std::vector<PrototypeAST*> ExternFunctions;
-static std::vector<VariableExprAST*> ExternVariables;
+static std::vector<std::string> ExternVariables;
 
 class Scope {
  public:
@@ -41,6 +41,7 @@ class Scope {
   std::unordered_map<std::string, llvm::Value*> SymbolTable_;
 };
 
+static std::unique_ptr<Scope> GlobalScope;
 static Scope* CurrScope;
 
 llvm::Value* Scope::findVariableFromScopeList(const std::string& Name) {
@@ -102,21 +103,33 @@ static std::string getTmpModuleName() {
   return stringPrintf("tmpmodule.%" PRIu64, ++TmpCount);
 }
 
-llvm::Value* VariableExprAST::codegen() {
+static llvm::Value* getOrCreateVariable(const std::string& Name) {
   llvm::Value* Variable = nullptr;
-  if (CurrScope != nullptr) {
-    Variable = CurrScope->findVariableFromScopeList(Name_);
+  CHECK(CurrScope != nullptr);
+  Variable = CurrScope->findVariableFromScopeList(Name);
+  if (Variable == nullptr) {
+    Variable = CurrModule->getGlobalVariable(Name);
   }
   if (Variable == nullptr) {
-    Variable = CurrModule->getGlobalVariable(Name_);
-    if (Variable == nullptr) {
+    if (CurrScope == GlobalScope.get()) {
       Variable = new llvm::GlobalVariable(
           *CurrModule, llvm::Type::getDoubleTy(*Context), false,
           llvm::GlobalVariable::InternalLinkage,
-          llvm::ConstantFP::get(*Context, llvm::APFloat(0.0)), Name_);
-      ExternVariables.push_back(this);
+          llvm::ConstantFP::get(*Context, llvm::APFloat(0.0)), Name);
+      ExternVariables.push_back(Name);
+      LOG(DEBUG) << "create global variable " << Name;
+    } else {
+      Variable = CurrBuilder->CreateAlloca(llvm::Type::getDoubleTy(*Context),
+                                           nullptr, Name);
+      LOG(DEBUG) << "create local variable " << Name;
     }
+    CurrScope->insertVariable(Name, Variable);
   }
+  return Variable;
+}
+
+llvm::Value* VariableExprAST::codegen() {
+  llvm::Value* Variable = getOrCreateVariable(Name_);
   llvm::LoadInst* LoadInst = CurrBuilder->CreateLoad(Variable, getTmpName());
   return LoadInst;
 }
@@ -177,6 +190,14 @@ llvm::Value* BinaryExprAST::codegen() {
   return Result;
 }
 
+llvm::Value* AssignmentExprAST::codegen() {
+  llvm::Value* Variable = getOrCreateVariable(VarName_);
+  CHECK(Variable != nullptr);
+  llvm::Value* Value = Right_->codegen();
+  CurrBuilder->CreateStore(Value, Variable);
+  return Value;
+}
+
 llvm::Function* PrototypeAST::codegen() {
   std::vector<llvm::Type*> Doubles(Args_.size(),
                                    llvm::Type::getDoubleTy(*Context));
@@ -203,10 +224,8 @@ llvm::Function* FunctionAST::codegen() {
 
   auto ArgIt = Function->arg_begin();
   for (size_t i = 0; i < Function->arg_size(); ++i, ++ArgIt) {
-    llvm::AllocaInst* AllocInst = CurrBuilder->CreateAlloca(
-        llvm::Type::getDoubleTy(*Context), nullptr, ArgIt->getName());
-    CurrBuilder->CreateStore(&*ArgIt, AllocInst);
-    CurrScope->insertVariable(ArgIt->getName(), AllocInst);
+    llvm::Value* Variable = getOrCreateVariable(ArgIt->getName());
+    CurrBuilder->CreateStore(&*ArgIt, Variable);
   }
 
   llvm::Value* RetVal = Body_->codegen();
@@ -310,11 +329,9 @@ llvm::Value* BlockExprAST::codegen() {
 llvm::Value* ForExprAST::codegen() {
   // Init block.
   ScopeGuard ScopeGuardInst;
-  llvm::AllocaInst* AllocInst = CurrBuilder->CreateAlloca(
-      llvm::Type::getDoubleTy(*Context), nullptr, VarName_);
+  llvm::Value* Variable = getOrCreateVariable(VarName_);
   llvm::Value* InitValue = InitExpr_->codegen();
-  CurrBuilder->CreateStore(InitValue, AllocInst);
-  CurrScope->insertVariable(VarName_, AllocInst);
+  CurrBuilder->CreateStore(InitValue, Variable);
 
   llvm::BasicBlock* InitEndBlock = CurrBuilder->GetInsertBlock();
 
@@ -331,9 +348,9 @@ llvm::Value* ForExprAST::codegen() {
   CurrBuilder->SetInsertPoint(LoopBeginBlock);
   BlockExpr_->codegen();
   llvm::Value* StepValue = StepExpr_->codegen();
-  llvm::Value* LoadValue = CurrBuilder->CreateLoad(AllocInst);
+  llvm::Value* LoadValue = CurrBuilder->CreateLoad(Variable);
   llvm::Value* StepAddValue = CurrBuilder->CreateFAdd(LoadValue, StepValue);
-  CurrBuilder->CreateStore(StepAddValue, AllocInst);
+  CurrBuilder->CreateStore(StepAddValue, Variable);
   llvm::BasicBlock* LoopEndBlock = CurrBuilder->GetInsertBlock();
 
   // After loop block.
@@ -355,7 +372,7 @@ llvm::Value* ForExprAST::codegen() {
   CurrBuilder->CreateBr(CmpBeginBlock);
 
   CurrBuilder->SetInsertPoint(AfterLoopBlock);
-  return CurrBuilder->CreateLoad(AllocInst);
+  return CurrBuilder->CreateLoad(Variable);
 }
 
 static llvm::Function* createTmpFunction(const std::string& FunctionName) {
@@ -373,7 +390,8 @@ void prepareCodePipeline() {
   CurrBuilder.reset(new llvm::IRBuilder<>(*Context));
   ExternFunctions.clear();
   ExternVariables.clear();
-  CurrScope = nullptr;
+  GlobalScope.reset(new Scope(nullptr));
+  CurrScope = GlobalScope.get();
 }
 
 static std::unique_ptr<llvm::Module> codePipeline(
@@ -386,10 +404,10 @@ static std::unique_ptr<llvm::Module> codePipeline(
   CurrFunction = GlobalFunction;
   llvm::Value* RetValue = llvm::ConstantFP::get(*Context, llvm::APFloat(0.0));
 
-  for (auto Expr : ExternVariables) {
+  for (auto& Name : ExternVariables) {
     new llvm::GlobalVariable(*CurrModule, llvm::Type::getDoubleTy(*Context),
                              false, llvm::GlobalVariable::ExternalLinkage,
-                             nullptr, Expr->getName());
+                             nullptr, Name);
   }
 
   for (auto Expr : ExternFunctions) {
@@ -402,6 +420,7 @@ static std::unique_ptr<llvm::Module> codePipeline(
       case VARIABLE_EXPR_AST:
       case UNARY_EXPR_AST:
       case BINARY_EXPR_AST:
+      case ASSIGNMENT_EXPR_AST:
       case CALL_EXPR_AST:
       case IF_EXPR_AST:
       case BLOCK_EXPR_AST:
@@ -443,6 +462,7 @@ std::unique_ptr<llvm::Module> codePipeline(ExprAST* Expr) {
 
 void finishCodePipeline() {
   CurrScope = nullptr;
+  GlobalScope.reset(nullptr);
   ExternVariables.clear();
   ExternFunctions.clear();
   CurrBuilder.reset(nullptr);

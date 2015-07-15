@@ -90,3 +90,13 @@ def unary! (RHS) {
 
 !3;
 !0;
+
+a = 42;
+def a_function(a) {
+  a = 42;
+  printc(a) : printc(a - 32);
+}
+
+a_function(42);
+printc(a) : printc(a) : printc(a - 32);
+a * 5;

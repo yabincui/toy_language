@@ -206,6 +206,7 @@ Repeat:
   return Token::createLetterToken(LastChar);
 }
 
+static Token PrevToken(TOKEN_INVALID, "", 0.0, OpType(), 0);
 static Token CurToken(TOKEN_INVALID, "", 0.0, OpType(), 0);
 static Token BufferedToken(TOKEN_INVALID, "", 0.0, OpType(), 0);
 
@@ -215,6 +216,7 @@ const Token& currToken() {
 }
 
 const Token& getNextToken() {
+  PrevToken = CurToken;
   if (BufferedToken.Type != TOKEN_INVALID) {
     CurToken = BufferedToken;
     BufferedToken = Token::createToken(TOKEN_INVALID);
@@ -228,10 +230,11 @@ const Token& getNextToken() {
 }
 
 void unreadToken() {
-  CHECK_NE(TOKEN_INVALID, CurToken.Type);
+  CHECK_NE(TOKEN_INVALID, PrevToken.Type);
   CHECK_EQ(TOKEN_INVALID, BufferedToken.Type);
   BufferedToken = CurToken;
-  CurToken = Token::createToken(TOKEN_INVALID);
+  CurToken = PrevToken;
+  PrevToken = Token::createToken(TOKEN_INVALID);
   if (GlobalOption.DumpToken) {
     fprintf(stderr, "unread %s\n", BufferedToken.toString().c_str());
   }

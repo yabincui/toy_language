@@ -11,6 +11,8 @@ BinaryExprAST op = +
     NumberExprAST val = 2.000000
 Token (TOKEN_IDENTIFIER, a)
 Token (TOKEN_OP, +)
+unread Token (TOKEN_OP, +)
+Token (TOKEN_OP, +)
 Token (TOKEN_IDENTIFIER, b)
 Token (TOKEN_OP, *)
 Token (TOKEN_IDENTIFIER, c)
@@ -38,6 +40,8 @@ Token (TOKEN_IDENTIFIER, def_c)
 Token (TOKEN_LETTER, ))
 Token (TOKEN_IDENTIFIER, def_b)
 Token (TOKEN_OP, +)
+unread Token (TOKEN_OP, +)
+Token (TOKEN_OP, +)
 Token (TOKEN_NUMBER, 2.000000)
 Token (TOKEN_OP, *)
 Token (TOKEN_IDENTIFIER, def_c)
@@ -54,6 +58,8 @@ FunctionAST
         VariableExprAST name = def_c
     NumberExprAST val = 6.000000
 Token (TOKEN_IDENTIFIER, def_a)
+Token (TOKEN_LETTER, ()
+unread Token (TOKEN_LETTER, ()
 Token (TOKEN_LETTER, ()
 Token (TOKEN_NUMBER, 2.000000)
 Token (TOKEN_LETTER, ,)
@@ -79,6 +85,8 @@ Token (TOKEN_OP, *)
 Token (TOKEN_LETTER, ()
 Token (TOKEN_IDENTIFIER, x)
 Token (TOKEN_OP, +)
+unread Token (TOKEN_OP, +)
+Token (TOKEN_OP, +)
 Token (TOKEN_NUMBER, 3.000000)
 Token (TOKEN_LETTER, ))
 Token (TOKEN_LETTER, ;)
@@ -100,6 +108,8 @@ Token (TOKEN_IDENTIFIER, c)
 Token (TOKEN_LETTER, ))
 Token (TOKEN_IDENTIFIER, b)
 Token (TOKEN_OP, *)
+unread Token (TOKEN_OP, *)
+Token (TOKEN_OP, *)
 Token (TOKEN_IDENTIFIER, c)
 Token (TOKEN_LETTER, ;)
 FunctionAST
@@ -108,6 +118,8 @@ FunctionAST
     VariableExprAST name = b
     VariableExprAST name = c
 Token (TOKEN_IDENTIFIER, ta)
+Token (TOKEN_LETTER, ()
+unread Token (TOKEN_LETTER, ()
 Token (TOKEN_LETTER, ()
 Token (TOKEN_NUMBER, 3.000000)
 Token (TOKEN_LETTER, ,)
@@ -122,6 +134,8 @@ CallExprAST Callee = ta
 Token (TOKEN_IF)
 Token (TOKEN_LETTER, ()
 Token (TOKEN_IDENTIFIER, a)
+Token (TOKEN_LETTER, ))
+unread Token (TOKEN_LETTER, ))
 Token (TOKEN_LETTER, ))
 Token (TOKEN_NUMBER, 3.000000)
 Token (TOKEN_LETTER, ;)
@@ -142,6 +156,8 @@ Token (TOKEN_NUMBER, 2.000000)
 Token (TOKEN_LETTER, ;)
 Token (TOKEN_IDENTIFIER, a)
 Token (TOKEN_OP, -)
+unread Token (TOKEN_OP, -)
+Token (TOKEN_OP, -)
 Token (TOKEN_NUMBER, 6.000000)
 Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, })
@@ -155,6 +171,8 @@ BlockExprAST: have 2 exprs
 Token (TOKEN_IF)
 Token (TOKEN_LETTER, ()
 Token (TOKEN_IDENTIFIER, a)
+Token (TOKEN_LETTER, ))
+unread Token (TOKEN_LETTER, ))
 Token (TOKEN_LETTER, ))
 Token (TOKEN_LETTER, {)
 Token (TOKEN_NUMBER, 3.000000)
@@ -303,6 +321,8 @@ Token (TOKEN_IF)
 Token (TOKEN_LETTER, ()
 Token (TOKEN_IDENTIFIER, a)
 Token (TOKEN_LETTER, ))
+unread Token (TOKEN_LETTER, ))
+Token (TOKEN_LETTER, ))
 Token (TOKEN_LETTER, {)
 Token (TOKEN_NUMBER, 1.000000)
 Token (TOKEN_LETTER, ;)
@@ -339,6 +359,8 @@ Token (TOKEN_LETTER, ;)
 PrototypeAST printc (x)
 Token (TOKEN_IDENTIFIER, printc)
 Token (TOKEN_LETTER, ()
+unread Token (TOKEN_LETTER, ()
+Token (TOKEN_LETTER, ()
 Token (TOKEN_NUMBER, 42.000000)
 Token (TOKEN_LETTER, ))
 Token (TOKEN_LETTER, ;)
@@ -346,6 +368,8 @@ CallExprAST Callee = printc
   Arg #0:
     NumberExprAST val = 42.000000
 Token (TOKEN_IDENTIFIER, printc)
+Token (TOKEN_LETTER, ()
+unread Token (TOKEN_LETTER, ()
 Token (TOKEN_LETTER, ()
 Token (TOKEN_NUMBER, 10.000000)
 Token (TOKEN_LETTER, ))
@@ -417,12 +441,16 @@ Token (TOKEN_NUMBER, 1.000000)
 Token (TOKEN_LETTER, ,)
 Token (TOKEN_IDENTIFIER, a)
 Token (TOKEN_OP, <=)
+unread Token (TOKEN_OP, <=)
+Token (TOKEN_OP, <=)
 Token (TOKEN_NUMBER, 20.000000)
 Token (TOKEN_LETTER, ,)
 Token (TOKEN_NUMBER, 1.000000)
 Token (TOKEN_LETTER, ))
 Token (TOKEN_LETTER, {)
 Token (TOKEN_IDENTIFIER, printc)
+Token (TOKEN_LETTER, ()
+unread Token (TOKEN_LETTER, ()
 Token (TOKEN_LETTER, ()
 Token (TOKEN_NUMBER, 42.000000)
 Token (TOKEN_LETTER, ))
@@ -444,6 +472,8 @@ ForExprAST: VarName = a
           NumberExprAST val = 42.000000
 Token (TOKEN_IDENTIFIER, printc)
 Token (TOKEN_LETTER, ()
+unread Token (TOKEN_LETTER, ()
+Token (TOKEN_LETTER, ()
 Token (TOKEN_NUMBER, 10.000000)
 Token (TOKEN_LETTER, ))
 Token (TOKEN_LETTER, ;)
@@ -461,7 +491,11 @@ Token (TOKEN_LETTER, ))
 Token (TOKEN_LETTER, {)
 Token (TOKEN_IDENTIFIER, LHS)
 Token (TOKEN_LETTER, ;)
+unread Token (TOKEN_LETTER, ;)
+Token (TOKEN_LETTER, ;)
 Token (TOKEN_IDENTIFIER, RHS)
+Token (TOKEN_LETTER, ;)
+unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, })
 FunctionAST
@@ -470,6 +504,8 @@ FunctionAST
     VariableExprAST name = LHS
     VariableExprAST name = RHS
 Token (TOKEN_IDENTIFIER, printc)
+Token (TOKEN_LETTER, ()
+unread Token (TOKEN_LETTER, ()
 Token (TOKEN_LETTER, ()
 Token (TOKEN_NUMBER, 42.000000)
 Token (TOKEN_LETTER, ))
@@ -497,6 +533,8 @@ Token (TOKEN_IF)
 Token (TOKEN_LETTER, ()
 Token (TOKEN_IDENTIFIER, RHS)
 Token (TOKEN_LETTER, ))
+unread Token (TOKEN_LETTER, ))
+Token (TOKEN_LETTER, ))
 Token (TOKEN_NUMBER, 0.000000)
 Token (TOKEN_LETTER, ;)
 Token (TOKEN_ELSE)
@@ -523,16 +561,118 @@ Token (TOKEN_NUMBER, 0.000000)
 Token (TOKEN_LETTER, ;)
 UnaryExprAST op = !
   NumberExprAST val = 0.000000
+Token (TOKEN_IDENTIFIER, a)
+Token (TOKEN_LETTER, =)
+Token (TOKEN_NUMBER, 42.000000)
+Token (TOKEN_LETTER, ;)
+AssignmentExprAST name = a
+  NumberExprAST val = 42.000000
+Token (TOKEN_DEF)
+Token (TOKEN_IDENTIFIER, a_function)
+Token (TOKEN_LETTER, ()
+Token (TOKEN_IDENTIFIER, a)
+Token (TOKEN_LETTER, ))
+Token (TOKEN_LETTER, {)
+Token (TOKEN_IDENTIFIER, a)
+Token (TOKEN_LETTER, =)
+Token (TOKEN_NUMBER, 42.000000)
+Token (TOKEN_LETTER, ;)
+Token (TOKEN_IDENTIFIER, printc)
+Token (TOKEN_LETTER, ()
+unread Token (TOKEN_LETTER, ()
+Token (TOKEN_LETTER, ()
+Token (TOKEN_IDENTIFIER, a)
+Token (TOKEN_LETTER, ))
+unread Token (TOKEN_LETTER, ))
+Token (TOKEN_LETTER, ))
+Token (TOKEN_OP, :)
+Token (TOKEN_IDENTIFIER, printc)
+Token (TOKEN_LETTER, ()
+Token (TOKEN_IDENTIFIER, a)
+Token (TOKEN_OP, -)
+unread Token (TOKEN_OP, -)
+Token (TOKEN_OP, -)
+Token (TOKEN_NUMBER, 32.000000)
+Token (TOKEN_LETTER, ))
+Token (TOKEN_LETTER, ;)
+Token (TOKEN_LETTER, })
+FunctionAST
+  PrototypeAST a_function (a)
+  BlockExprAST: have 2 exprs
+    AssignmentExprAST name = a
+      NumberExprAST val = 42.000000
+    BinaryExprAST op = :
+      CallExprAST Callee = printc
+        Arg #0:
+          VariableExprAST name = a
+      CallExprAST Callee = printc
+        Arg #0:
+          BinaryExprAST op = -
+            VariableExprAST name = a
+            NumberExprAST val = 32.000000
+Token (TOKEN_IDENTIFIER, a_function)
+Token (TOKEN_LETTER, ()
+unread Token (TOKEN_LETTER, ()
+Token (TOKEN_LETTER, ()
+Token (TOKEN_NUMBER, 42.000000)
+Token (TOKEN_LETTER, ))
+Token (TOKEN_LETTER, ;)
+CallExprAST Callee = a_function
+  Arg #0:
+    NumberExprAST val = 42.000000
+Token (TOKEN_IDENTIFIER, printc)
+Token (TOKEN_LETTER, ()
+unread Token (TOKEN_LETTER, ()
+Token (TOKEN_LETTER, ()
+Token (TOKEN_IDENTIFIER, a)
+Token (TOKEN_LETTER, ))
+unread Token (TOKEN_LETTER, ))
+Token (TOKEN_LETTER, ))
+Token (TOKEN_OP, :)
+Token (TOKEN_IDENTIFIER, printc)
+Token (TOKEN_LETTER, ()
+Token (TOKEN_IDENTIFIER, a)
+Token (TOKEN_LETTER, ))
+unread Token (TOKEN_LETTER, ))
+Token (TOKEN_LETTER, ))
+Token (TOKEN_OP, :)
+Token (TOKEN_IDENTIFIER, printc)
+Token (TOKEN_LETTER, ()
+Token (TOKEN_IDENTIFIER, a)
+Token (TOKEN_OP, -)
+unread Token (TOKEN_OP, -)
+Token (TOKEN_OP, -)
+Token (TOKEN_NUMBER, 32.000000)
+Token (TOKEN_LETTER, ))
+Token (TOKEN_LETTER, ;)
+BinaryExprAST op = :
+  BinaryExprAST op = :
+    CallExprAST Callee = printc
+      Arg #0:
+        VariableExprAST name = a
+    CallExprAST Callee = printc
+      Arg #0:
+        VariableExprAST name = a
+  CallExprAST Callee = printc
+    Arg #0:
+      BinaryExprAST op = -
+        VariableExprAST name = a
+        NumberExprAST val = 32.000000
+Token (TOKEN_IDENTIFIER, a)
+Token (TOKEN_OP, *)
+unread Token (TOKEN_OP, *)
+Token (TOKEN_OP, *)
+Token (TOKEN_NUMBER, 5.000000)
+Token (TOKEN_LETTER, ;)
+BinaryExprAST op = *
+  VariableExprAST name = a
+  NumberExprAST val = 5.000000
 Token (TOKEN_EOF)
 ; ModuleID = 'tmpmodule.1'
 
 @a = internal global double 0.000000e+00
 @b = internal global double 0.000000e+00
 @c = internal global double 0.000000e+00
-@a.1 = internal global double 0.000000e+00
-@a.2 = internal global double 0.000000e+00
-@a.3 = internal global double 0.000000e+00
-@a.4 = internal global double 0.000000e+00
 
 define internal double @__toy_main() {
   %tmp.3 = load double, double* @a
@@ -542,7 +682,7 @@ define internal double @__toy_main() {
   %tmp.7 = fadd double %tmp.3, %tmp.6
   %tmp.13 = call double @def_a(double 2.000000e+00, double 4.000000e+00)
   %tmp.22 = call double @ta(double 3.000000e+00, double 4.000000e+00)
-  %tmp.23 = load double, double* @a.1
+  %tmp.23 = load double, double* @a
   %1 = fcmp one double %tmp.23, 0.000000e+00
   br i1 %1, label %if_then, label %if_else
 
@@ -554,9 +694,9 @@ if_else:                                          ; preds = %0
 
 if_endif:                                         ; preds = %if_else, %if_then
   %iftmp = phi double [ 3.000000e+00, %if_then ], [ 4.000000e+00, %if_else ]
-  %tmp.25 = load double, double* @a.2
+  %tmp.25 = load double, double* @a
   %tmp.26 = fsub double %tmp.25, 6.000000e+00
-  %tmp.27 = load double, double* @a.3
+  %tmp.27 = load double, double* @a
   %2 = fcmp one double %tmp.27, 0.000000e+00
   br i1 %2, label %if_then1, label %if_else2
 
@@ -622,7 +762,7 @@ if_then22:                                        ; preds = %if_endif20
   br label %if_endif28
 
 if_else23:                                        ; preds = %if_endif20
-  %tmp.32 = load double, double* @a.4
+  %tmp.32 = load double, double* @a
   %3 = fcmp one double %tmp.32, 0.000000e+00
   br i1 %3, label %if_then24, label %if_else25
 
@@ -640,12 +780,11 @@ if_endif28:                                       ; preds = %if_endif26, %if_the
   %iftmp29 = phi double [ 0.000000e+00, %if_then22 ], [ %iftmp27, %if_endif26 ]
   %tmp.33 = call double @printc(double 4.200000e+01)
   %tmp.34 = call double @printc(double 1.000000e+01)
-  %a = alloca double
-  store double 1.000000e+00, double* %a
+  store double 1.000000e+00, double* @a
   br label %for_cmp
 
 for_cmp:                                          ; preds = %for_loop, %if_endif28
-  %tmp.43 = load double, double* %a
+  %tmp.43 = load double, double* @a
   %tmp.44 = fcmp ole double %tmp.43, 2.000000e+01
   %4 = uitofp i1 %tmp.44 to double
   %5 = fcmp one double %4, 0.000000e+00
@@ -653,20 +792,33 @@ for_cmp:                                          ; preds = %for_loop, %if_endif
 
 for_loop:                                         ; preds = %for_cmp
   %tmp.45 = call double @printc(double 4.200000e+01)
-  %6 = load double, double* %a
+  %6 = load double, double* @a
   %7 = fadd double %6, 1.000000e+00
-  store double %7, double* %a
+  store double %7, double* @a
   br label %for_cmp
 
 for_after_loop:                                   ; preds = %for_cmp
-  %8 = load double, double* %a
+  %8 = load double, double* @a
   %tmp.46 = call double @printc(double 1.000000e+01)
   %tmp.49 = call double @printc(double 4.200000e+01)
   %tmp.50 = call double @printc(double 1.000000e+01)
   %tmp.51 = call double @"binary:"(double %tmp.49, double %tmp.50)
   %tmp.53 = call double @"unary!"(double 3.000000e+00)
   %tmp.54 = call double @"unary!"(double 0.000000e+00)
-  ret double %tmp.54
+  store double 4.200000e+01, double* @a
+  %tmp.61 = call double @a_function(double 4.200000e+01)
+  %tmp.62 = load double, double* @a
+  %tmp.63 = call double @printc(double %tmp.62)
+  %tmp.64 = load double, double* @a
+  %tmp.65 = call double @printc(double %tmp.64)
+  %tmp.66 = call double @"binary:"(double %tmp.63, double %tmp.65)
+  %tmp.67 = load double, double* @a
+  %tmp.68 = fsub double %tmp.67, 3.200000e+01
+  %tmp.69 = call double @printc(double %tmp.68)
+  %tmp.70 = call double @"binary:"(double %tmp.66, double %tmp.69)
+  %tmp.71 = load double, double* @a
+  %tmp.72 = fmul double %tmp.71, 5.000000e+00
+  ret double %tmp.72
 }
 
 declare double @extern_a(double, double)
@@ -699,12 +851,10 @@ cse_test.entry:
 
 define double @ta(double %b, double %c) {
 ta.entry:
-  %b1 = alloca double
-  store double %b, double* %b1
-  %c2 = alloca double
-  store double %c, double* %c2
-  %tmp.19 = load double, double* %b1
-  %tmp.20 = load double, double* %c2
+  store double %b, double* @b
+  store double %c, double* @c
+  %tmp.19 = load double, double* @b
+  %tmp.20 = load double, double* @c
   %tmp.21 = fmul double %tmp.19, %tmp.20
   ret double %tmp.21
 }
@@ -740,10 +890,25 @@ if_endif:                                         ; preds = %if_else, %if_then
   %iftmp = phi double [ 0.000000e+00, %if_then ], [ 1.000000e+00, %if_else ]
   ret double %iftmp
 }
+
+define double @a_function(double %a) {
+a_function.entry:
+  store double %a, double* @a
+  store double 4.200000e+01, double* @a
+  %tmp.55 = load double, double* @a
+  %tmp.56 = call double @printc(double %tmp.55)
+  %tmp.57 = load double, double* @a
+  %tmp.58 = fsub double %tmp.57, 3.200000e+01
+  %tmp.59 = call double @printc(double %tmp.58)
+  %tmp.60 = call double @"binary:"(double %tmp.56, double %tmp.59)
+  ret double %tmp.60
+}
 *
 ********************
 *
-1.000000
+*
+**
+210.000000
 >Token (TOKEN_NUMBER, 3.000000)
 Token (TOKEN_OP, +)
 Token (TOKEN_NUMBER, 4.000000)
@@ -762,6 +927,8 @@ define internal double @__toy_main() {
 }
 11.000000
 Token (TOKEN_IDENTIFIER, a)
+Token (TOKEN_OP, +)
+unread Token (TOKEN_OP, +)
 Token (TOKEN_OP, +)
 Token (TOKEN_IDENTIFIER, b)
 Token (TOKEN_OP, *)
@@ -817,6 +984,8 @@ Token (TOKEN_IDENTIFIER, def_c)
 Token (TOKEN_LETTER, ))
 Token (TOKEN_IDENTIFIER, def_b)
 Token (TOKEN_OP, +)
+unread Token (TOKEN_OP, +)
+Token (TOKEN_OP, +)
 Token (TOKEN_NUMBER, 2.000000)
 Token (TOKEN_OP, *)
 Token (TOKEN_IDENTIFIER, def_c)
@@ -860,6 +1029,8 @@ def_a.entry:
 0.000000
 >Token (TOKEN_IDENTIFIER, def_a)
 Token (TOKEN_LETTER, ()
+unread Token (TOKEN_LETTER, ()
+Token (TOKEN_LETTER, ()
 Token (TOKEN_NUMBER, 2.000000)
 Token (TOKEN_LETTER, ,)
 Token (TOKEN_NUMBER, 4.000000)
@@ -898,6 +1069,8 @@ Token (TOKEN_LETTER, ))
 Token (TOKEN_OP, *)
 Token (TOKEN_LETTER, ()
 Token (TOKEN_IDENTIFIER, x)
+Token (TOKEN_OP, +)
+unread Token (TOKEN_OP, +)
 Token (TOKEN_OP, +)
 Token (TOKEN_NUMBER, 3.000000)
 Token (TOKEN_LETTER, ))
@@ -946,6 +1119,8 @@ Token (TOKEN_IDENTIFIER, c)
 Token (TOKEN_LETTER, ))
 Token (TOKEN_IDENTIFIER, b)
 Token (TOKEN_OP, *)
+unread Token (TOKEN_OP, *)
+Token (TOKEN_OP, *)
 Token (TOKEN_IDENTIFIER, c)
 Token (TOKEN_LETTER, ;)
 FunctionAST
@@ -971,17 +1146,17 @@ declare double @cse_test(double)
 
 define double @ta(double %b, double %c) {
 ta.entry:
-  %b1 = alloca double
-  store double %b, double* %b1
-  %c2 = alloca double
-  store double %c, double* %c2
-  %tmp.19 = load double, double* %b1
-  %tmp.20 = load double, double* %c2
+  store double %b, double* @b
+  store double %c, double* @c
+  %tmp.19 = load double, double* @b
+  %tmp.20 = load double, double* @c
   %tmp.21 = fmul double %tmp.19, %tmp.20
   ret double %tmp.21
 }
 0.000000
 Token (TOKEN_IDENTIFIER, ta)
+Token (TOKEN_LETTER, ()
+unread Token (TOKEN_LETTER, ()
 Token (TOKEN_LETTER, ()
 Token (TOKEN_NUMBER, 3.000000)
 Token (TOKEN_LETTER, ,)
@@ -1015,6 +1190,8 @@ declare double @ta(double, double)
 >Token (TOKEN_IF)
 Token (TOKEN_LETTER, ()
 Token (TOKEN_IDENTIFIER, a)
+Token (TOKEN_LETTER, ))
+unread Token (TOKEN_LETTER, ))
 Token (TOKEN_LETTER, ))
 Token (TOKEN_NUMBER, 3.000000)
 Token (TOKEN_LETTER, ;)
@@ -1065,6 +1242,8 @@ Token (TOKEN_NUMBER, 2.000000)
 Token (TOKEN_LETTER, ;)
 Token (TOKEN_IDENTIFIER, a)
 Token (TOKEN_OP, -)
+unread Token (TOKEN_OP, -)
+Token (TOKEN_OP, -)
 Token (TOKEN_NUMBER, 6.000000)
 Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, })
@@ -1098,6 +1277,8 @@ declare double @ta(double, double)
 >Token (TOKEN_IF)
 Token (TOKEN_LETTER, ()
 Token (TOKEN_IDENTIFIER, a)
+Token (TOKEN_LETTER, ))
+unread Token (TOKEN_LETTER, ))
 Token (TOKEN_LETTER, ))
 Token (TOKEN_LETTER, {)
 Token (TOKEN_NUMBER, 3.000000)
@@ -1378,6 +1559,8 @@ Token (TOKEN_IF)
 Token (TOKEN_LETTER, ()
 Token (TOKEN_IDENTIFIER, a)
 Token (TOKEN_LETTER, ))
+unread Token (TOKEN_LETTER, ))
+Token (TOKEN_LETTER, ))
 Token (TOKEN_LETTER, {)
 Token (TOKEN_NUMBER, 1.000000)
 Token (TOKEN_LETTER, ;)
@@ -1474,6 +1657,8 @@ declare double @printc(double)
 0.000000
 Token (TOKEN_IDENTIFIER, printc)
 Token (TOKEN_LETTER, ()
+unread Token (TOKEN_LETTER, ()
+Token (TOKEN_LETTER, ()
 Token (TOKEN_NUMBER, 42.000000)
 Token (TOKEN_LETTER, ))
 Token (TOKEN_LETTER, ;)
@@ -1502,6 +1687,8 @@ declare double @ta(double, double)
 declare double @printc(double)
 *0.000000
 Token (TOKEN_IDENTIFIER, printc)
+Token (TOKEN_LETTER, ()
+unread Token (TOKEN_LETTER, ()
 Token (TOKEN_LETTER, ()
 Token (TOKEN_NUMBER, 10.000000)
 Token (TOKEN_LETTER, ))
@@ -1755,12 +1942,16 @@ Token (TOKEN_NUMBER, 1.000000)
 Token (TOKEN_LETTER, ,)
 Token (TOKEN_IDENTIFIER, a)
 Token (TOKEN_OP, <=)
+unread Token (TOKEN_OP, <=)
+Token (TOKEN_OP, <=)
 Token (TOKEN_NUMBER, 20.000000)
 Token (TOKEN_LETTER, ,)
 Token (TOKEN_NUMBER, 1.000000)
 Token (TOKEN_LETTER, ))
 Token (TOKEN_LETTER, {)
 Token (TOKEN_IDENTIFIER, printc)
+Token (TOKEN_LETTER, ()
+unread Token (TOKEN_LETTER, ()
 Token (TOKEN_LETTER, ()
 Token (TOKEN_NUMBER, 42.000000)
 Token (TOKEN_LETTER, ))
@@ -1787,12 +1978,11 @@ ForExprAST: VarName = a
 @c = external global double
 
 define internal double @__toy_main() {
-  %a = alloca double
-  store double 1.000000e+00, double* %a
+  store double 1.000000e+00, double* @a
   br label %for_cmp
 
 for_cmp:                                          ; preds = %for_loop, %0
-  %tmp.43 = load double, double* %a
+  %tmp.43 = load double, double* @a
   %tmp.44 = fcmp ole double %tmp.43, 2.000000e+01
   %1 = uitofp i1 %tmp.44 to double
   %2 = fcmp one double %1, 0.000000e+00
@@ -1800,13 +1990,13 @@ for_cmp:                                          ; preds = %for_loop, %0
 
 for_loop:                                         ; preds = %for_cmp
   %tmp.45 = call double @printc(double 4.200000e+01)
-  %3 = load double, double* %a
+  %3 = load double, double* @a
   %4 = fadd double %3, 1.000000e+00
-  store double %4, double* %a
+  store double %4, double* @a
   br label %for_cmp
 
 for_after_loop:                                   ; preds = %for_cmp
-  %5 = load double, double* %a
+  %5 = load double, double* @a
   ret double %5
 }
 
@@ -1821,6 +2011,8 @@ declare double @ta(double, double)
 declare double @printc(double)
 ********************21.000000
 Token (TOKEN_IDENTIFIER, printc)
+Token (TOKEN_LETTER, ()
+unread Token (TOKEN_LETTER, ()
 Token (TOKEN_LETTER, ()
 Token (TOKEN_NUMBER, 10.000000)
 Token (TOKEN_LETTER, ))
@@ -1861,7 +2053,11 @@ Token (TOKEN_LETTER, ))
 Token (TOKEN_LETTER, {)
 Token (TOKEN_IDENTIFIER, LHS)
 Token (TOKEN_LETTER, ;)
+unread Token (TOKEN_LETTER, ;)
+Token (TOKEN_LETTER, ;)
 Token (TOKEN_IDENTIFIER, RHS)
+Token (TOKEN_LETTER, ;)
+unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, })
 FunctionAST
@@ -1901,6 +2097,8 @@ define double @"binary:"(double %LHS, double %RHS) {
 }
 0.000000
 >Token (TOKEN_IDENTIFIER, printc)
+Token (TOKEN_LETTER, ()
+unread Token (TOKEN_LETTER, ()
 Token (TOKEN_LETTER, ()
 Token (TOKEN_NUMBER, 42.000000)
 Token (TOKEN_LETTER, ))
@@ -1953,6 +2151,8 @@ Token (TOKEN_LETTER, {)
 Token (TOKEN_IF)
 Token (TOKEN_LETTER, ()
 Token (TOKEN_IDENTIFIER, RHS)
+Token (TOKEN_LETTER, ))
+unread Token (TOKEN_LETTER, ))
 Token (TOKEN_LETTER, ))
 Token (TOKEN_NUMBER, 0.000000)
 Token (TOKEN_LETTER, ;)
@@ -2071,4 +2271,264 @@ declare double @"binary:"(double, double)
 
 declare double @"unary!"(double)
 1.000000
+>Token (TOKEN_IDENTIFIER, a)
+Token (TOKEN_LETTER, =)
+Token (TOKEN_NUMBER, 42.000000)
+Token (TOKEN_LETTER, ;)
+AssignmentExprAST name = a
+  NumberExprAST val = 42.000000
+; ModuleID = 'tmpmodule.34'
+
+@a = external global double
+@b = external global double
+@c = external global double
+
+define internal double @__toy_main() {
+  store double 4.200000e+01, double* @a
+  ret double 4.200000e+01
+}
+
+declare double @extern_a(double, double)
+
+declare double @def_a(double, double)
+
+declare double @cse_test(double)
+
+declare double @ta(double, double)
+
+declare double @printc(double)
+
+declare double @"binary:"(double, double)
+
+declare double @"unary!"(double)
+42.000000
+Token (TOKEN_DEF)
+Token (TOKEN_IDENTIFIER, a_function)
+Token (TOKEN_LETTER, ()
+Token (TOKEN_IDENTIFIER, a)
+Token (TOKEN_LETTER, ))
+Token (TOKEN_LETTER, {)
+Token (TOKEN_IDENTIFIER, a)
+Token (TOKEN_LETTER, =)
+Token (TOKEN_NUMBER, 42.000000)
+Token (TOKEN_LETTER, ;)
+Token (TOKEN_IDENTIFIER, printc)
+Token (TOKEN_LETTER, ()
+unread Token (TOKEN_LETTER, ()
+Token (TOKEN_LETTER, ()
+Token (TOKEN_IDENTIFIER, a)
+Token (TOKEN_LETTER, ))
+unread Token (TOKEN_LETTER, ))
+Token (TOKEN_LETTER, ))
+Token (TOKEN_OP, :)
+Token (TOKEN_IDENTIFIER, printc)
+Token (TOKEN_LETTER, ()
+Token (TOKEN_IDENTIFIER, a)
+Token (TOKEN_OP, -)
+unread Token (TOKEN_OP, -)
+Token (TOKEN_OP, -)
+Token (TOKEN_NUMBER, 32.000000)
+Token (TOKEN_LETTER, ))
+Token (TOKEN_LETTER, ;)
+Token (TOKEN_LETTER, })
+FunctionAST
+  PrototypeAST a_function (a)
+  BlockExprAST: have 2 exprs
+    AssignmentExprAST name = a
+      NumberExprAST val = 42.000000
+    BinaryExprAST op = :
+      CallExprAST Callee = printc
+        Arg #0:
+          VariableExprAST name = a
+      CallExprAST Callee = printc
+        Arg #0:
+          BinaryExprAST op = -
+            VariableExprAST name = a
+            NumberExprAST val = 32.000000
+; ModuleID = 'tmpmodule.35'
+
+@a = external global double
+@b = external global double
+@c = external global double
+
+define internal double @__toy_main() {
+  ret double 0.000000e+00
+}
+
+declare double @extern_a(double, double)
+
+declare double @def_a(double, double)
+
+declare double @cse_test(double)
+
+declare double @ta(double, double)
+
+declare double @printc(double)
+
+declare double @"binary:"(double, double)
+
+declare double @"unary!"(double)
+
+define double @a_function(double %a) {
+a_function.entry:
+  store double %a, double* @a
+  store double 4.200000e+01, double* @a
+  %tmp.55 = load double, double* @a
+  %tmp.56 = call double @printc(double %tmp.55)
+  %tmp.57 = load double, double* @a
+  %tmp.58 = fsub double %tmp.57, 3.200000e+01
+  %tmp.59 = call double @printc(double %tmp.58)
+  %tmp.60 = call double @"binary:"(double %tmp.56, double %tmp.59)
+  ret double %tmp.60
+}
+0.000000
+>Token (TOKEN_IDENTIFIER, a_function)
+Token (TOKEN_LETTER, ()
+unread Token (TOKEN_LETTER, ()
+Token (TOKEN_LETTER, ()
+Token (TOKEN_NUMBER, 42.000000)
+Token (TOKEN_LETTER, ))
+Token (TOKEN_LETTER, ;)
+CallExprAST Callee = a_function
+  Arg #0:
+    NumberExprAST val = 42.000000
+; ModuleID = 'tmpmodule.36'
+
+@a = external global double
+@b = external global double
+@c = external global double
+
+define internal double @__toy_main() {
+  %tmp.61 = call double @a_function(double 4.200000e+01)
+  ret double %tmp.61
+}
+
+declare double @extern_a(double, double)
+
+declare double @def_a(double, double)
+
+declare double @cse_test(double)
+
+declare double @ta(double, double)
+
+declare double @printc(double)
+
+declare double @"binary:"(double, double)
+
+declare double @"unary!"(double)
+
+declare double @a_function(double)
+*
+0.000000
+Token (TOKEN_IDENTIFIER, printc)
+Token (TOKEN_LETTER, ()
+unread Token (TOKEN_LETTER, ()
+Token (TOKEN_LETTER, ()
+Token (TOKEN_IDENTIFIER, a)
+Token (TOKEN_LETTER, ))
+unread Token (TOKEN_LETTER, ))
+Token (TOKEN_LETTER, ))
+Token (TOKEN_OP, :)
+Token (TOKEN_IDENTIFIER, printc)
+Token (TOKEN_LETTER, ()
+Token (TOKEN_IDENTIFIER, a)
+Token (TOKEN_LETTER, ))
+unread Token (TOKEN_LETTER, ))
+Token (TOKEN_LETTER, ))
+Token (TOKEN_OP, :)
+Token (TOKEN_IDENTIFIER, printc)
+Token (TOKEN_LETTER, ()
+Token (TOKEN_IDENTIFIER, a)
+Token (TOKEN_OP, -)
+unread Token (TOKEN_OP, -)
+Token (TOKEN_OP, -)
+Token (TOKEN_NUMBER, 32.000000)
+Token (TOKEN_LETTER, ))
+Token (TOKEN_LETTER, ;)
+BinaryExprAST op = :
+  BinaryExprAST op = :
+    CallExprAST Callee = printc
+      Arg #0:
+        VariableExprAST name = a
+    CallExprAST Callee = printc
+      Arg #0:
+        VariableExprAST name = a
+  CallExprAST Callee = printc
+    Arg #0:
+      BinaryExprAST op = -
+        VariableExprAST name = a
+        NumberExprAST val = 32.000000
+; ModuleID = 'tmpmodule.37'
+
+@a = external global double
+@b = external global double
+@c = external global double
+
+define internal double @__toy_main() {
+  %tmp.62 = load double, double* @a
+  %tmp.63 = call double @printc(double %tmp.62)
+  %tmp.64 = load double, double* @a
+  %tmp.65 = call double @printc(double %tmp.64)
+  %tmp.66 = call double @"binary:"(double %tmp.63, double %tmp.65)
+  %tmp.67 = load double, double* @a
+  %tmp.68 = fsub double %tmp.67, 3.200000e+01
+  %tmp.69 = call double @printc(double %tmp.68)
+  %tmp.70 = call double @"binary:"(double %tmp.66, double %tmp.69)
+  ret double %tmp.70
+}
+
+declare double @extern_a(double, double)
+
+declare double @def_a(double, double)
+
+declare double @cse_test(double)
+
+declare double @ta(double, double)
+
+declare double @printc(double)
+
+declare double @"binary:"(double, double)
+
+declare double @"unary!"(double)
+
+declare double @a_function(double)
+**
+0.000000
+Token (TOKEN_IDENTIFIER, a)
+Token (TOKEN_OP, *)
+unread Token (TOKEN_OP, *)
+Token (TOKEN_OP, *)
+Token (TOKEN_NUMBER, 5.000000)
+Token (TOKEN_LETTER, ;)
+BinaryExprAST op = *
+  VariableExprAST name = a
+  NumberExprAST val = 5.000000
+; ModuleID = 'tmpmodule.38'
+
+@a = external global double
+@b = external global double
+@c = external global double
+
+define internal double @__toy_main() {
+  %tmp.71 = load double, double* @a
+  %tmp.72 = fmul double %tmp.71, 5.000000e+00
+  ret double %tmp.72
+}
+
+declare double @extern_a(double, double)
+
+declare double @def_a(double, double)
+
+declare double @cse_test(double)
+
+declare double @ta(double, double)
+
+declare double @printc(double)
+
+declare double @"binary:"(double, double)
+
+declare double @"unary!"(double)
+
+declare double @a_function(double)
+210.000000
 Token (TOKEN_EOF)
