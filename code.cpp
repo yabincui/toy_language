@@ -28,7 +28,65 @@ static std::unique_ptr<llvm::IRBuilder<>> CurrBuilder;
 static std::vector<PrototypeAST*> ExternFunctions;
 static std::vector<VariableExprAST*> ExternVariables;
 
-static std::unordered_map<std::string, llvm::Value*> LocalVariableMap;
+class Scope {
+ public:
+  Scope(Scope* PrevScope) : PrevScope_(PrevScope) {
+  }
+
+  llvm::Value* findVariableFromScopeList(const std::string& Name);
+  void insertVariable(const std::string& Name, llvm::Value* Value);
+
+ private:
+  Scope* PrevScope_;
+  std::unordered_map<std::string, llvm::Value*> SymbolTable_;
+};
+
+static Scope* CurrScope;
+
+llvm::Value* Scope::findVariableFromScopeList(const std::string& Name) {
+  for (Scope* Curr = this; Curr != nullptr; Curr = Curr->PrevScope_) {
+    auto It = Curr->SymbolTable_.find(Name);
+    if (It != Curr->SymbolTable_.end()) {
+      return It->second;
+    }
+  }
+  return nullptr;
+}
+
+void Scope::insertVariable(const std::string& Name, llvm::Value* Value) {
+  SymbolTable_[Name] = Value;
+}
+
+class ScopeGuard {
+ public:
+  ScopeGuard() : SavedScope_(CurrScope), CurrScope_(CurrScope) {
+    CurrScope = &CurrScope_;
+  }
+
+  ~ScopeGuard() {
+    CurrScope = SavedScope_;
+  }
+
+ private:
+  Scope* SavedScope_;
+  Scope CurrScope_;
+};
+
+class CurrFunctionGuard {
+ public:
+  CurrFunctionGuard(llvm::Function* Function) {
+    SavedFunction_ = CurrFunction;
+    CurrFunction = Function;
+  }
+
+  ~CurrFunctionGuard() {
+    CurrFunction = SavedFunction_;
+  }
+
+ private:
+  llvm::Function* SavedFunction_;
+  ScopeGuard ScopeGuard_;
+};
 
 llvm::Value* NumberExprAST::codegen() {
   return llvm::ConstantFP::get(*Context, llvm::APFloat(Val_));
@@ -45,24 +103,19 @@ static std::string getTmpModuleName() {
 }
 
 llvm::Value* VariableExprAST::codegen() {
-  auto It = LocalVariableMap.find(Name_);
-  if (It != LocalVariableMap.end()) {
-    return It->second;
+  llvm::Value* Variable = nullptr;
+  if (CurrScope != nullptr) {
+    Variable = CurrScope->findVariableFromScopeList(Name_);
   }
-  if (CurrFunction != GlobalFunction) {
-    llvm::ValueSymbolTable& SymbolTable = CurrFunction->getValueSymbolTable();
-    llvm::Value* Variable = SymbolTable.lookup(Name_);
-    if (Variable != nullptr) {
-      return Variable;
-    }
-  }
-  llvm::GlobalVariable* Variable = CurrModule->getGlobalVariable(Name_);
   if (Variable == nullptr) {
-    Variable = new llvm::GlobalVariable(
-        *CurrModule, llvm::Type::getDoubleTy(*Context), false,
-        llvm::GlobalVariable::InternalLinkage,
-        llvm::ConstantFP::get(*Context, llvm::APFloat(0.0)), Name_);
-    ExternVariables.push_back(this);
+    Variable = CurrModule->getGlobalVariable(Name_);
+    if (Variable == nullptr) {
+      Variable = new llvm::GlobalVariable(
+          *CurrModule, llvm::Type::getDoubleTy(*Context), false,
+          llvm::GlobalVariable::InternalLinkage,
+          llvm::ConstantFP::get(*Context, llvm::APFloat(0.0)), Name_);
+      ExternVariables.push_back(this);
+    }
   }
   llvm::LoadInst* LoadInst = CurrBuilder->CreateLoad(Variable, getTmpName());
   return LoadInst;
@@ -138,21 +191,6 @@ llvm::Function* PrototypeAST::codegen() {
   return Function;
 }
 
-class CurrFunctionGuard {
- public:
-  CurrFunctionGuard(llvm::Function* Function) {
-    SavedFunction_ = CurrFunction;
-    CurrFunction = Function;
-  }
-
-  ~CurrFunctionGuard() {
-    CurrFunction = SavedFunction_;
-  }
-
- private:
-  llvm::Function* SavedFunction_;
-};
-
 llvm::Function* FunctionAST::codegen() {
   llvm::Function* Function = Prototype_->codegen();
   CHECK(Function != nullptr);
@@ -162,6 +200,15 @@ llvm::Function* FunctionAST::codegen() {
       llvm::BasicBlock::Create(*Context, BodyLabel, Function);
   llvm::IRBuilder<>::InsertPointGuard InsertPointGuard(*CurrBuilder);
   CurrBuilder->SetInsertPoint(BasicBlock);
+
+  auto ArgIt = Function->arg_begin();
+  for (size_t i = 0; i < Function->arg_size(); ++i, ++ArgIt) {
+    llvm::AllocaInst* AllocInst = CurrBuilder->CreateAlloca(
+        llvm::Type::getDoubleTy(*Context), nullptr, ArgIt->getName());
+    CurrBuilder->CreateStore(&*ArgIt, AllocInst);
+    CurrScope->insertVariable(ArgIt->getName(), AllocInst);
+  }
+
   llvm::Value* RetVal = Body_->codegen();
   CHECK(RetVal != nullptr);
   CurrBuilder->CreateRet(RetVal);
@@ -260,44 +307,21 @@ llvm::Value* BlockExprAST::codegen() {
   return LastValue;
 }
 
-class LocalVariableGuard {
- public:
-  LocalVariableGuard(const std::string& Name, llvm::Value* Value)
-      : Name_(Name) {
-    auto It = LocalVariableMap.find(Name_);
-    if (It != LocalVariableMap.end()) {
-      OldValue_ = It->second;
-    } else {
-      OldValue_ = nullptr;
-    }
-    LocalVariableMap[Name_] = Value;
-  }
-
-  ~LocalVariableGuard() {
-    if (OldValue_ == nullptr) {
-      LocalVariableMap.erase(Name_);
-    } else {
-      LocalVariableMap[Name_] = OldValue_;
-    }
-  }
-
- private:
-  const std::string Name_;
-  llvm::Value* OldValue_;
-};
-
 llvm::Value* ForExprAST::codegen() {
   // Init block.
+  ScopeGuard ScopeGuardInst;
+  llvm::AllocaInst* AllocInst = CurrBuilder->CreateAlloca(
+      llvm::Type::getDoubleTy(*Context), nullptr, VarName_);
   llvm::Value* InitValue = InitExpr_->codegen();
+  CurrBuilder->CreateStore(InitValue, AllocInst);
+  CurrScope->insertVariable(VarName_, AllocInst);
+
   llvm::BasicBlock* InitEndBlock = CurrBuilder->GetInsertBlock();
 
   // Cmp block.
   llvm::BasicBlock* CmpBeginBlock =
       llvm::BasicBlock::Create(*Context, "for_cmp", CurrFunction);
   CurrBuilder->SetInsertPoint(CmpBeginBlock);
-  llvm::PHINode* PHINode =
-      CurrBuilder->CreatePHI(llvm::Type::getDoubleTy(*Context), 2, "i");
-  LocalVariableGuard Guard(VarName_, PHINode);
   llvm::Value* CondValue = CondExpr_->codegen();
   llvm::BasicBlock* CmpEndBlock = CurrBuilder->GetInsertBlock();
 
@@ -307,7 +331,9 @@ llvm::Value* ForExprAST::codegen() {
   CurrBuilder->SetInsertPoint(LoopBeginBlock);
   BlockExpr_->codegen();
   llvm::Value* StepValue = StepExpr_->codegen();
-  llvm::Value* StepAddValue = CurrBuilder->CreateFAdd(PHINode, StepValue);
+  llvm::Value* LoadValue = CurrBuilder->CreateLoad(AllocInst);
+  llvm::Value* StepAddValue = CurrBuilder->CreateFAdd(LoadValue, StepValue);
+  CurrBuilder->CreateStore(StepAddValue, AllocInst);
   llvm::BasicBlock* LoopEndBlock = CurrBuilder->GetInsertBlock();
 
   // After loop block.
@@ -317,8 +343,6 @@ llvm::Value* ForExprAST::codegen() {
   // Fix branches.
   CurrBuilder->SetInsertPoint(InitEndBlock);
   CurrBuilder->CreateBr(CmpBeginBlock);
-  PHINode->addIncoming(InitValue, InitEndBlock);
-  PHINode->addIncoming(StepAddValue, LoopEndBlock);
   CurrBuilder->SetInsertPoint(CmpEndBlock);
   llvm::Value* CmpValue = CondValue;
   if (CmpValue->getType() == llvm::Type::getDoubleTy(*Context)) {
@@ -331,7 +355,7 @@ llvm::Value* ForExprAST::codegen() {
   CurrBuilder->CreateBr(CmpBeginBlock);
 
   CurrBuilder->SetInsertPoint(AfterLoopBlock);
-  return PHINode;
+  return CurrBuilder->CreateLoad(AllocInst);
 }
 
 static llvm::Function* createTmpFunction(const std::string& FunctionName) {
@@ -349,6 +373,7 @@ void prepareCodePipeline() {
   CurrBuilder.reset(new llvm::IRBuilder<>(*Context));
   ExternFunctions.clear();
   ExternVariables.clear();
+  CurrScope = nullptr;
 }
 
 static std::unique_ptr<llvm::Module> codePipeline(
@@ -417,6 +442,7 @@ std::unique_ptr<llvm::Module> codePipeline(ExprAST* Expr) {
 }
 
 void finishCodePipeline() {
+  CurrScope = nullptr;
   ExternVariables.clear();
   ExternFunctions.clear();
   CurrBuilder.reset(nullptr);

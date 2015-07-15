@@ -540,10 +540,10 @@ define internal double @__toy_main() {
   %tmp.5 = load double, double* @c
   %tmp.6 = fmul double %tmp.4, %tmp.5
   %tmp.7 = fadd double %tmp.3, %tmp.6
-  %tmp.11 = call double @def_a(double 2.000000e+00, double 4.000000e+00)
-  %tmp.16 = call double @ta(double 3.000000e+00, double 4.000000e+00)
-  %tmp.17 = load double, double* @a.1
-  %1 = fcmp one double %tmp.17, 0.000000e+00
+  %tmp.13 = call double @def_a(double 2.000000e+00, double 4.000000e+00)
+  %tmp.22 = call double @ta(double 3.000000e+00, double 4.000000e+00)
+  %tmp.23 = load double, double* @a.1
+  %1 = fcmp one double %tmp.23, 0.000000e+00
   br i1 %1, label %if_then, label %if_else
 
 if_then:                                          ; preds = %0
@@ -554,10 +554,10 @@ if_else:                                          ; preds = %0
 
 if_endif:                                         ; preds = %if_else, %if_then
   %iftmp = phi double [ 3.000000e+00, %if_then ], [ 4.000000e+00, %if_else ]
-  %tmp.19 = load double, double* @a.2
-  %tmp.20 = fsub double %tmp.19, 6.000000e+00
-  %tmp.21 = load double, double* @a.3
-  %2 = fcmp one double %tmp.21, 0.000000e+00
+  %tmp.25 = load double, double* @a.2
+  %tmp.26 = fsub double %tmp.25, 6.000000e+00
+  %tmp.27 = load double, double* @a.3
+  %2 = fcmp one double %tmp.27, 0.000000e+00
   br i1 %2, label %if_then1, label %if_else2
 
 if_then1:                                         ; preds = %if_endif
@@ -622,8 +622,8 @@ if_then22:                                        ; preds = %if_endif20
   br label %if_endif28
 
 if_else23:                                        ; preds = %if_endif20
-  %tmp.26 = load double, double* @a.4
-  %3 = fcmp one double %tmp.26, 0.000000e+00
+  %tmp.32 = load double, double* @a.4
+  %3 = fcmp one double %tmp.32, 0.000000e+00
   br i1 %3, label %if_then24, label %if_else25
 
 if_then24:                                        ; preds = %if_else23
@@ -638,66 +638,96 @@ if_endif26:                                       ; preds = %if_else25, %if_then
 
 if_endif28:                                       ; preds = %if_endif26, %if_then22
   %iftmp29 = phi double [ 0.000000e+00, %if_then22 ], [ %iftmp27, %if_endif26 ]
-  %tmp.27 = call double @printc(double 4.200000e+01)
-  %tmp.28 = call double @printc(double 1.000000e+01)
+  %tmp.33 = call double @printc(double 4.200000e+01)
+  %tmp.34 = call double @printc(double 1.000000e+01)
+  %a = alloca double
+  store double 1.000000e+00, double* %a
   br label %for_cmp
 
 for_cmp:                                          ; preds = %for_loop, %if_endif28
-  %i = phi double [ 1.000000e+00, %if_endif28 ], [ %6, %for_loop ]
-  %tmp.37 = fcmp ole double %i, 2.000000e+01
-  %4 = uitofp i1 %tmp.37 to double
+  %tmp.43 = load double, double* %a
+  %tmp.44 = fcmp ole double %tmp.43, 2.000000e+01
+  %4 = uitofp i1 %tmp.44 to double
   %5 = fcmp one double %4, 0.000000e+00
   br i1 %5, label %for_loop, label %for_after_loop
 
 for_loop:                                         ; preds = %for_cmp
-  %tmp.38 = call double @printc(double 4.200000e+01)
-  %6 = fadd double %i, 1.000000e+00
+  %tmp.45 = call double @printc(double 4.200000e+01)
+  %6 = load double, double* %a
+  %7 = fadd double %6, 1.000000e+00
+  store double %7, double* %a
   br label %for_cmp
 
 for_after_loop:                                   ; preds = %for_cmp
-  %tmp.39 = call double @printc(double 1.000000e+01)
-  %tmp.40 = call double @printc(double 4.200000e+01)
-  %tmp.41 = call double @printc(double 1.000000e+01)
-  %tmp.42 = call double @"binary:"(double %tmp.40, double %tmp.41)
-  %tmp.43 = call double @"unary!"(double 3.000000e+00)
-  %tmp.44 = call double @"unary!"(double 0.000000e+00)
-  ret double %tmp.44
+  %8 = load double, double* %a
+  %tmp.46 = call double @printc(double 1.000000e+01)
+  %tmp.49 = call double @printc(double 4.200000e+01)
+  %tmp.50 = call double @printc(double 1.000000e+01)
+  %tmp.51 = call double @"binary:"(double %tmp.49, double %tmp.50)
+  %tmp.53 = call double @"unary!"(double 3.000000e+00)
+  %tmp.54 = call double @"unary!"(double 0.000000e+00)
+  ret double %tmp.54
 }
 
 declare double @extern_a(double, double)
 
 define double @def_a(double %def_b, double %def_c) {
 def_a.entry:
-  %tmp.8 = fmul double 2.000000e+00, %def_c
-  %tmp.9 = fadd double %def_b, %tmp.8
-  %tmp.10 = fsub double %tmp.9, 6.000000e+00
-  ret double %tmp.10
+  %def_b1 = alloca double
+  store double %def_b, double* %def_b1
+  %def_c2 = alloca double
+  store double %def_c, double* %def_c2
+  %tmp.8 = load double, double* %def_b1
+  %tmp.9 = load double, double* %def_c2
+  %tmp.10 = fmul double 2.000000e+00, %tmp.9
+  %tmp.11 = fadd double %tmp.8, %tmp.10
+  %tmp.12 = fsub double %tmp.11, 6.000000e+00
+  ret double %tmp.12
 }
 
 define double @cse_test(double %x) {
 cse_test.entry:
-  %tmp.12 = fadd double 3.000000e+00, %x
-  %tmp.13 = fadd double %x, 3.000000e+00
-  %tmp.14 = fmul double %tmp.12, %tmp.13
-  ret double %tmp.14
+  %x1 = alloca double
+  store double %x, double* %x1
+  %tmp.14 = load double, double* %x1
+  %tmp.15 = fadd double 3.000000e+00, %tmp.14
+  %tmp.16 = load double, double* %x1
+  %tmp.17 = fadd double %tmp.16, 3.000000e+00
+  %tmp.18 = fmul double %tmp.15, %tmp.17
+  ret double %tmp.18
 }
 
 define double @ta(double %b, double %c) {
 ta.entry:
-  %tmp.15 = fmul double %b, %c
-  ret double %tmp.15
+  %b1 = alloca double
+  store double %b, double* %b1
+  %c2 = alloca double
+  store double %c, double* %c2
+  %tmp.19 = load double, double* %b1
+  %tmp.20 = load double, double* %c2
+  %tmp.21 = fmul double %tmp.19, %tmp.20
+  ret double %tmp.21
 }
 
 declare double @printc(double)
 
 define double @"binary:"(double %LHS, double %RHS) {
 "binary:.entry":
-  ret double %RHS
+  %LHS1 = alloca double
+  store double %LHS, double* %LHS1
+  %RHS2 = alloca double
+  store double %RHS, double* %RHS2
+  %tmp.47 = load double, double* %LHS1
+  %tmp.48 = load double, double* %RHS2
+  ret double %tmp.48
 }
 
 define double @"unary!"(double %RHS) {
 "unary!.entry":
-  %0 = fcmp one double %RHS, 0.000000e+00
+  %RHS1 = alloca double
+  store double %RHS, double* %RHS1
+  %tmp.52 = load double, double* %RHS1
+  %0 = fcmp one double %tmp.52, 0.000000e+00
   br i1 %0, label %if_then, label %if_else
 
 if_then:                                          ; preds = %"unary!.entry"
@@ -816,10 +846,16 @@ declare double @extern_a(double, double)
 
 define double @def_a(double %def_b, double %def_c) {
 def_a.entry:
-  %tmp.8 = fmul double 2.000000e+00, %def_c
-  %tmp.9 = fadd double %def_b, %tmp.8
-  %tmp.10 = fsub double %tmp.9, 6.000000e+00
-  ret double %tmp.10
+  %def_b1 = alloca double
+  store double %def_b, double* %def_b1
+  %def_c2 = alloca double
+  store double %def_c, double* %def_c2
+  %tmp.8 = load double, double* %def_b1
+  %tmp.9 = load double, double* %def_c2
+  %tmp.10 = fmul double 2.000000e+00, %tmp.9
+  %tmp.11 = fadd double %tmp.8, %tmp.10
+  %tmp.12 = fsub double %tmp.11, 6.000000e+00
+  ret double %tmp.12
 }
 0.000000
 >Token (TOKEN_IDENTIFIER, def_a)
@@ -841,8 +877,8 @@ CallExprAST Callee = def_a
 @c = external global double
 
 define internal double @__toy_main() {
-  %tmp.11 = call double @def_a(double 2.000000e+00, double 4.000000e+00)
-  ret double %tmp.11
+  %tmp.13 = call double @def_a(double 2.000000e+00, double 4.000000e+00)
+  ret double %tmp.13
 }
 
 declare double @extern_a(double, double)
@@ -891,10 +927,14 @@ declare double @def_a(double, double)
 
 define double @cse_test(double %x) {
 cse_test.entry:
-  %tmp.12 = fadd double 3.000000e+00, %x
-  %tmp.13 = fadd double %x, 3.000000e+00
-  %tmp.14 = fmul double %tmp.12, %tmp.13
-  ret double %tmp.14
+  %x1 = alloca double
+  store double %x, double* %x1
+  %tmp.14 = load double, double* %x1
+  %tmp.15 = fadd double 3.000000e+00, %tmp.14
+  %tmp.16 = load double, double* %x1
+  %tmp.17 = fadd double %tmp.16, 3.000000e+00
+  %tmp.18 = fmul double %tmp.15, %tmp.17
+  ret double %tmp.18
 }
 0.000000
 >Token (TOKEN_DEF)
@@ -931,8 +971,14 @@ declare double @cse_test(double)
 
 define double @ta(double %b, double %c) {
 ta.entry:
-  %tmp.15 = fmul double %b, %c
-  ret double %tmp.15
+  %b1 = alloca double
+  store double %b, double* %b1
+  %c2 = alloca double
+  store double %c, double* %c2
+  %tmp.19 = load double, double* %b1
+  %tmp.20 = load double, double* %c2
+  %tmp.21 = fmul double %tmp.19, %tmp.20
+  ret double %tmp.21
 }
 0.000000
 Token (TOKEN_IDENTIFIER, ta)
@@ -954,8 +1000,8 @@ CallExprAST Callee = ta
 @c = external global double
 
 define internal double @__toy_main() {
-  %tmp.16 = call double @ta(double 3.000000e+00, double 4.000000e+00)
-  ret double %tmp.16
+  %tmp.22 = call double @ta(double 3.000000e+00, double 4.000000e+00)
+  ret double %tmp.22
 }
 
 declare double @extern_a(double, double)
@@ -989,8 +1035,8 @@ IfExprAST: have 1 CondThenExprs, have 1 ElseExpr
 @c = external global double
 
 define internal double @__toy_main() {
-  %tmp.17 = load double, double* @a
-  %1 = fcmp one double %tmp.17, 0.000000e+00
+  %tmp.23 = load double, double* @a
+  %1 = fcmp one double %tmp.23, 0.000000e+00
   br i1 %1, label %if_then, label %if_else
 
 if_then:                                          ; preds = %0
@@ -1036,9 +1082,9 @@ BlockExprAST: have 2 exprs
 @c = external global double
 
 define internal double @__toy_main() {
-  %tmp.19 = load double, double* @a
-  %tmp.20 = fsub double %tmp.19, 6.000000e+00
-  ret double %tmp.20
+  %tmp.25 = load double, double* @a
+  %tmp.26 = fsub double %tmp.25, 6.000000e+00
+  ret double %tmp.26
 }
 
 declare double @extern_a(double, double)
@@ -1086,8 +1132,8 @@ IfExprAST: have 1 CondThenExprs, have 1 ElseExpr
 @c = external global double
 
 define internal double @__toy_main() {
-  %tmp.21 = load double, double* @a
-  %1 = fcmp one double %tmp.21, 0.000000e+00
+  %tmp.27 = load double, double* @a
+  %1 = fcmp one double %tmp.27, 0.000000e+00
   br i1 %1, label %if_then, label %if_else
 
 if_then:                                          ; preds = %0
@@ -1372,8 +1418,8 @@ if_then:                                          ; preds = %0
   br label %if_endif3
 
 if_else:                                          ; preds = %0
-  %tmp.26 = load double, double* @a
-  %1 = fcmp one double %tmp.26, 0.000000e+00
+  %tmp.32 = load double, double* @a
+  %1 = fcmp one double %tmp.32, 0.000000e+00
   br i1 %1, label %if_then1, label %if_else2
 
 if_then1:                                         ; preds = %if_else
@@ -1441,8 +1487,8 @@ CallExprAST Callee = printc
 @c = external global double
 
 define internal double @__toy_main() {
-  %tmp.27 = call double @printc(double 4.200000e+01)
-  ret double %tmp.27
+  %tmp.33 = call double @printc(double 4.200000e+01)
+  ret double %tmp.33
 }
 
 declare double @extern_a(double, double)
@@ -1470,8 +1516,8 @@ CallExprAST Callee = printc
 @c = external global double
 
 define internal double @__toy_main() {
-  %tmp.28 = call double @printc(double 1.000000e+01)
-  ret double %tmp.28
+  %tmp.34 = call double @printc(double 1.000000e+01)
+  ret double %tmp.34
 }
 
 declare double @extern_a(double, double)
@@ -1741,22 +1787,27 @@ ForExprAST: VarName = a
 @c = external global double
 
 define internal double @__toy_main() {
+  %a = alloca double
+  store double 1.000000e+00, double* %a
   br label %for_cmp
 
 for_cmp:                                          ; preds = %for_loop, %0
-  %i = phi double [ 1.000000e+00, %0 ], [ %3, %for_loop ]
-  %tmp.37 = fcmp ole double %i, 2.000000e+01
-  %1 = uitofp i1 %tmp.37 to double
+  %tmp.43 = load double, double* %a
+  %tmp.44 = fcmp ole double %tmp.43, 2.000000e+01
+  %1 = uitofp i1 %tmp.44 to double
   %2 = fcmp one double %1, 0.000000e+00
   br i1 %2, label %for_loop, label %for_after_loop
 
 for_loop:                                         ; preds = %for_cmp
-  %tmp.38 = call double @printc(double 4.200000e+01)
-  %3 = fadd double %i, 1.000000e+00
+  %tmp.45 = call double @printc(double 4.200000e+01)
+  %3 = load double, double* %a
+  %4 = fadd double %3, 1.000000e+00
+  store double %4, double* %a
   br label %for_cmp
 
 for_after_loop:                                   ; preds = %for_cmp
-  ret double %i
+  %5 = load double, double* %a
+  ret double %5
 }
 
 declare double @extern_a(double, double)
@@ -1784,8 +1835,8 @@ CallExprAST Callee = printc
 @c = external global double
 
 define internal double @__toy_main() {
-  %tmp.39 = call double @printc(double 1.000000e+01)
-  ret double %tmp.39
+  %tmp.46 = call double @printc(double 1.000000e+01)
+  ret double %tmp.46
 }
 
 declare double @extern_a(double, double)
@@ -1840,7 +1891,13 @@ declare double @printc(double)
 
 define double @"binary:"(double %LHS, double %RHS) {
 "binary:.entry":
-  ret double %RHS
+  %LHS1 = alloca double
+  store double %LHS, double* %LHS1
+  %RHS2 = alloca double
+  store double %RHS, double* %RHS2
+  %tmp.47 = load double, double* %LHS1
+  %tmp.48 = load double, double* %RHS2
+  ret double %tmp.48
 }
 0.000000
 >Token (TOKEN_IDENTIFIER, printc)
@@ -1867,10 +1924,10 @@ BinaryExprAST op = :
 @c = external global double
 
 define internal double @__toy_main() {
-  %tmp.40 = call double @printc(double 4.200000e+01)
-  %tmp.41 = call double @printc(double 1.000000e+01)
-  %tmp.42 = call double @"binary:"(double %tmp.40, double %tmp.41)
-  ret double %tmp.42
+  %tmp.49 = call double @printc(double 4.200000e+01)
+  %tmp.50 = call double @printc(double 1.000000e+01)
+  %tmp.51 = call double @"binary:"(double %tmp.49, double %tmp.50)
+  ret double %tmp.51
 }
 
 declare double @extern_a(double, double)
@@ -1937,7 +1994,10 @@ declare double @"binary:"(double, double)
 
 define double @"unary!"(double %RHS) {
 "unary!.entry":
-  %0 = fcmp one double %RHS, 0.000000e+00
+  %RHS1 = alloca double
+  store double %RHS, double* %RHS1
+  %tmp.52 = load double, double* %RHS1
+  %0 = fcmp one double %tmp.52, 0.000000e+00
   br i1 %0, label %if_then, label %if_else
 
 if_then:                                          ; preds = %"unary!.entry"
@@ -1963,8 +2023,8 @@ UnaryExprAST op = !
 @c = external global double
 
 define internal double @__toy_main() {
-  %tmp.43 = call double @"unary!"(double 3.000000e+00)
-  ret double %tmp.43
+  %tmp.53 = call double @"unary!"(double 3.000000e+00)
+  ret double %tmp.53
 }
 
 declare double @extern_a(double, double)
@@ -1993,8 +2053,8 @@ UnaryExprAST op = !
 @c = external global double
 
 define internal double @__toy_main() {
-  %tmp.44 = call double @"unary!"(double 0.000000e+00)
-  ret double %tmp.44
+  %tmp.54 = call double @"unary!"(double 0.000000e+00)
+  ret double %tmp.54
 }
 
 declare double @extern_a(double, double)
