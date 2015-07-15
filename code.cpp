@@ -329,10 +329,7 @@ llvm::Value* BlockExprAST::codegen() {
 llvm::Value* ForExprAST::codegen() {
   // Init block.
   ScopeGuard ScopeGuardInst;
-  llvm::Value* Variable = getOrCreateVariable(VarName_);
-  llvm::Value* InitValue = InitExpr_->codegen();
-  CurrBuilder->CreateStore(InitValue, Variable);
-
+  InitExpr_->codegen();
   llvm::BasicBlock* InitEndBlock = CurrBuilder->GetInsertBlock();
 
   // Cmp block.
@@ -347,10 +344,7 @@ llvm::Value* ForExprAST::codegen() {
       llvm::BasicBlock::Create(*Context, "for_loop", CurrFunction);
   CurrBuilder->SetInsertPoint(LoopBeginBlock);
   BlockExpr_->codegen();
-  llvm::Value* StepValue = StepExpr_->codegen();
-  llvm::Value* LoadValue = CurrBuilder->CreateLoad(Variable);
-  llvm::Value* StepAddValue = CurrBuilder->CreateFAdd(LoadValue, StepValue);
-  CurrBuilder->CreateStore(StepAddValue, Variable);
+  NextExpr_->codegen();
   llvm::BasicBlock* LoopEndBlock = CurrBuilder->GetInsertBlock();
 
   // After loop block.
@@ -372,7 +366,7 @@ llvm::Value* ForExprAST::codegen() {
   CurrBuilder->CreateBr(CmpBeginBlock);
 
   CurrBuilder->SetInsertPoint(AfterLoopBlock);
-  return CurrBuilder->CreateLoad(Variable);
+  return llvm::ConstantFP::get(*Context, llvm::APFloat(0.0));
 }
 
 static llvm::Function* createTmpFunction(const std::string& FunctionName) {

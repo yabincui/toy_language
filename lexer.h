@@ -49,7 +49,7 @@ struct Token {
 
 const Token& currToken();
 const Token& getNextToken();
-void unreadToken();
+void unreadCurrToken();
 
 extern size_t ExprsInCurrLine;
 void printPrompt();

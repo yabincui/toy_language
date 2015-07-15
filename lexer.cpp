@@ -229,7 +229,7 @@ const Token& getNextToken() {
   return CurToken;
 }
 
-void unreadToken() {
+void unreadCurrToken() {
   CHECK_NE(TOKEN_INVALID, PrevToken.Type);
   CHECK_EQ(TOKEN_INVALID, BufferedToken.Type);
   BufferedToken = CurToken;

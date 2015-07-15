@@ -72,7 +72,7 @@ printc(10);
 1 > 0;
 1 >= 5;
 
-for (a = 1, a <= 20, 1) {
+for (a = 1; a <= 20; a = a + 1) {
   printc(42);
 }
 printc(10);

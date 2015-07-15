@@ -189,13 +189,12 @@ class BlockExprAST : public ExprAST {
 
 class ForExprAST : public ExprAST {
  public:
-  ForExprAST(const std::string& VarName, ExprAST* InitExpr, ExprAST* CondExpr,
-             ExprAST* StepExpr, ExprAST* BlockExpr)
+  ForExprAST(ExprAST* InitExpr, ExprAST* CondExpr, ExprAST* NextExpr,
+             ExprAST* BlockExpr)
       : ExprAST(FOR_EXPR_AST),
-        VarName_(VarName),
         InitExpr_(InitExpr),
         CondExpr_(CondExpr),
-        StepExpr_(StepExpr),
+        NextExpr_(NextExpr),
         BlockExpr_(BlockExpr) {
   }
 
@@ -203,10 +202,9 @@ class ForExprAST : public ExprAST {
   llvm::Value* codegen() override;
 
  private:
-  const std::string VarName_;
   ExprAST* InitExpr_;
   ExprAST* CondExpr_;
-  ExprAST* StepExpr_;
+  ExprAST* NextExpr_;
   ExprAST* BlockExpr_;
 };
 

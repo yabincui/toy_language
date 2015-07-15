@@ -10,7 +10,23 @@
 #include "option.h"
 #include "utils.h"
 
-#define nextToken() LOG(DEBUG) << "nextToken() " << getNextToken().toString();
+#define nextToken() LOG(DEBUG) << "nextToken() " << getNextToken().toString()
+
+#define unreadToken()                                         \
+  do {                                                        \
+    LOG(DEBUG) << "unreadToken() " << currToken().toString(); \
+    unreadCurrToken();                                        \
+  } while (0)
+
+#define consumeLetterToken(Letter)                          \
+  do {                                                      \
+    CHECK(isLetterToken(Letter)) << currToken().toString(); \
+    nextToken();                                            \
+  } while (0)
+
+static bool isLetterToken(char Letter) {
+  return currToken().Type == TOKEN_LETTER && currToken().Letter == Letter;
+}
 
 std::vector<std::unique_ptr<ExprAST>> ExprStorage;
 
@@ -87,13 +103,13 @@ void BlockExprAST::dump(int Indent) const {
 }
 
 void ForExprAST::dump(int Indent) const {
-  fprintIndented(stderr, Indent, "ForExprAST: VarName = %s\n", VarName_.c_str());
+  fprintIndented(stderr, Indent, "ForExprAST\n");
   fprintIndented(stderr, Indent + 1, "InitExpr:\n");
   InitExpr_->dump(Indent + 2);
   fprintIndented(stderr, Indent + 1, "CondExpr:\n");
   CondExpr_->dump(Indent + 2);
-  fprintIndented(stderr, Indent + 1, "StepExpr:\n");
-  StepExpr_->dump(Indent + 2);
+  fprintIndented(stderr, Indent + 1, "NextExpr:\n");
+  NextExpr_->dump(Indent + 2);
   fprintIndented(stderr, Indent + 1, "BlockExpr:\n");
   BlockExpr_->dump(Indent + 2);
 }
@@ -108,7 +124,8 @@ static ExprAST* parsePrimary() {
   Token Curr = currToken();
   if (Curr.Type == TOKEN_IDENTIFIER) {
     nextToken();
-    if (currToken().Type != TOKEN_LETTER || currToken().Letter != '(') {
+    if (!isLetterToken('(')) {
+      unreadToken();
       ExprAST* Expr = new VariableExprAST(Curr.Identifier);
       ExprStorage.push_back(std::unique_ptr<ExprAST>(Expr));
       return Expr;
@@ -117,15 +134,15 @@ static ExprAST* parsePrimary() {
       nextToken();
       Curr = currToken();
       std::vector<ExprAST*> Args;
-      if (Curr.Type != TOKEN_LETTER || Curr.Letter != ')') {
+      if (!isLetterToken(')')) {
         while (true) {
           ExprAST* Arg = parseExpression();
           CHECK(Arg != nullptr);
           Args.push_back(Arg);
-          Curr = currToken();
-          if (Curr.Type == TOKEN_LETTER && Curr.Letter == ',') {
+          nextToken();
+          if (isLetterToken(',')) {
             nextToken();
-          } else if (Curr.Type == TOKEN_LETTER && Curr.Letter == ')') {
+          } else if (isLetterToken(')')) {
             break;
           } else {
             LOG(FATAL) << "Unexpected token " << Curr.toString();
@@ -134,23 +151,19 @@ static ExprAST* parsePrimary() {
       }
       CallExprAST* CallExpr = new CallExprAST(Callee, Args);
       ExprStorage.push_back(std::unique_ptr<ExprAST>(CallExpr));
-      nextToken();
       return CallExpr;
     }
   }
   if (Curr.Type == TOKEN_NUMBER) {
     ExprAST* Expr = new NumberExprAST(Curr.Number);
     ExprStorage.push_back(std::unique_ptr<ExprAST>(Expr));
-    nextToken();
     return Expr;
   }
-  if (Curr.Type == TOKEN_LETTER && Curr.Letter == '(') {
+  if (isLetterToken('(')) {
     nextToken();
     ExprAST* Expr = parseExpression();
-    Curr = currToken();
-    CHECK_EQ(TOKEN_LETTER, Curr.Type);
-    CHECK_EQ(')', Curr.Letter);
     nextToken();
+    CHECK(isLetterToken(')'));
     return Expr;
   }
   LOG(FATAL) << "Unexpected token " << Curr.toString();
@@ -196,12 +209,15 @@ static std::map<std::string, int> OpPrecedenceMap = {
 static ExprAST* parseBinaryExpression(int PrevPrecedence = -1) {
   ExprAST* Result = parseUnaryExpression();
   while (true) {
+    nextToken();
     Token Curr = currToken();
     if (Curr.Type != TOKEN_OP) {
+      unreadToken();
       break;
     }
     int Precedence = OpPrecedenceMap.find(Curr.Op.desc)->second;
     if (Precedence <= PrevPrecedence) {
+      unreadToken();
       break;
     }
     nextToken();
@@ -221,8 +237,7 @@ static ExprAST* parseExpression() {
   if (Curr.Type == TOKEN_IDENTIFIER) {
     std::string VarName = Curr.Identifier;
     nextToken();
-    Curr = currToken();
-    if (Curr.Type == TOKEN_LETTER && Curr.Letter == '=') {
+    if (isLetterToken('=')) {
       nextToken();
       ExprAST* Expr = parseExpression();
       CHECK(Expr != nullptr);
@@ -243,33 +258,27 @@ static ExprAST* parseExpression() {
 //           else Statement
 //           := { }
 //           := { Statement... }
-//           := for ( Identifier = Expression, Expression, Expression ) {
+//           := for ( Expression; Expression; Expression ) {
 //           Statement... }
 static ExprAST* parseStatement() {
   Token Curr = currToken();
   if (Curr.Type == TOKEN_IDENTIFIER || Curr.Type == TOKEN_NUMBER ||
-      (Curr.Type == TOKEN_LETTER && Curr.Letter == '(') ||
+      (isLetterToken('(')) ||
       (Curr.Type == TOKEN_OP &&
        UnaryOpSet.find(Curr.Op.desc) != UnaryOpSet.end())) {
     ExprAST* Expr = parseExpression();
-    Curr = currToken();
-    CHECK_EQ(TOKEN_LETTER, Curr.Type) << "Curr token: " << Curr.toString();
-    CHECK_EQ(';', Curr.Letter);
+    nextToken();
+    CHECK(isLetterToken(';')) << currToken().toString();
     return Expr;
   }
   if (Curr.Type == TOKEN_IF) {
     std::vector<std::pair<ExprAST*, ExprAST*>> CondThenExprs;
     nextToken();
-    Curr = currToken();
-    CHECK_EQ(TOKEN_LETTER, Curr.Type);
-    CHECK_EQ('(', Curr.Letter);
-    nextToken();
+    consumeLetterToken('(');
     ExprAST* CondExpr = parseExpression();
     CHECK(CondExpr != nullptr);
-    Curr = currToken();
-    CHECK_EQ(TOKEN_LETTER, Curr.Type);
-    CHECK_EQ(')', Curr.Letter);
     nextToken();
+    consumeLetterToken(')');
     ExprAST* ThenExpr = parseStatement();
     CHECK(ThenExpr != nullptr);
     CondThenExprs.push_back(std::make_pair(CondExpr, ThenExpr));
@@ -280,16 +289,11 @@ static ExprAST* parseStatement() {
         break;
       }
       nextToken();
-      Curr = currToken();
-      CHECK_EQ(TOKEN_LETTER, Curr.Type);
-      CHECK_EQ('(', Curr.Letter);
-      nextToken();
+      consumeLetterToken('(');
       ExprAST* CondExpr = parseExpression();
       CHECK(CondExpr != nullptr);
-      Curr = currToken();
-      CHECK_EQ(TOKEN_LETTER, Curr.Type);
-      CHECK_EQ(')', Curr.Letter);
       nextToken();
+      consumeLetterToken(')');
       ExprAST* ThenExpr = parseStatement();
       CHECK(ThenExpr != nullptr);
       CondThenExprs.push_back(std::make_pair(CondExpr, ThenExpr));
@@ -306,12 +310,12 @@ static ExprAST* parseStatement() {
     ExprStorage.push_back(std::unique_ptr<ExprAST>(IfExpr));
     return IfExpr;
   }
-  if (Curr.Type == TOKEN_LETTER && Curr.Letter == '{') {
+  if (isLetterToken('{')) {
     std::vector<ExprAST*> Exprs;
     while (true) {
       nextToken();
       Curr = currToken();
-      if (Curr.Type == TOKEN_LETTER && Curr.Letter == '}') {
+      if (isLetterToken('}')) {
         break;
       }
       ExprAST* Expr = parseStatement();
@@ -324,43 +328,20 @@ static ExprAST* parseStatement() {
   }
   if (Curr.Type == TOKEN_FOR) {
     nextToken();
-    Curr = currToken();
-    CHECK_EQ(TOKEN_LETTER, Curr.Type);
-    CHECK_EQ('(', Curr.Letter);
-    nextToken();
-    Curr = currToken();
-    CHECK_EQ(TOKEN_IDENTIFIER, Curr.Type);
-    std::string VarName = Curr.Identifier;
-    nextToken();
-    Curr = currToken();
-    CHECK_EQ(TOKEN_LETTER, Curr.Type);
-    CHECK_EQ('=', Curr.Letter);
-    nextToken();
+    consumeLetterToken('(');
     ExprAST* InitExpr = parseExpression();
-    CHECK(InitExpr != nullptr);
-    Curr = currToken();
-    CHECK_EQ(TOKEN_LETTER, Curr.Type);
-    CHECK_EQ(',', Curr.Letter);
     nextToken();
+    consumeLetterToken(';');
     ExprAST* CondExpr = parseExpression();
-    CHECK(CondExpr != nullptr);
-    Curr = currToken();
-    CHECK_EQ(TOKEN_LETTER, Curr.Type);
-    CHECK_EQ(',', Curr.Letter);
     nextToken();
-    ExprAST* StepExpr = parseExpression();
-    CHECK(StepExpr != nullptr);
-    Curr = currToken();
-    CHECK_EQ(TOKEN_LETTER, Curr.Type);
-    CHECK_EQ(')', Curr.Letter);
+    consumeLetterToken(';');
+    ExprAST* NextExpr = parseExpression();
     nextToken();
-    Curr = currToken();
-    CHECK_EQ(TOKEN_LETTER, Curr.Type);
-    CHECK_EQ('{', Curr.Letter);
+    consumeLetterToken(')');
+    CHECK(isLetterToken('{'));
     ExprAST* BlockExpr = parseStatement();
-    CHECK(BlockExpr != nullptr);
     ForExprAST* ForExpr =
-        new ForExprAST(VarName, InitExpr, CondExpr, StepExpr, BlockExpr);
+        new ForExprAST(InitExpr, CondExpr, NextExpr, BlockExpr);
     ExprStorage.push_back(std::unique_ptr<ExprAST>(ForExpr));
     return ForExpr;
   }
@@ -404,22 +385,18 @@ static PrototypeAST* parseFunctionPrototype() {
     FunctionName = "unary" + std::string(1, UnaryOpLetter);
     nextToken();
   }
-  Curr = currToken();
-  CHECK_EQ(TOKEN_LETTER, Curr.Type);
-  CHECK_EQ('(', Curr.Letter);
+  CHECK(isLetterToken('('));
   std::vector<std::string> Args;
   nextToken();
-  Curr = currToken();
-  if (Curr.Type != TOKEN_LETTER && Curr.Letter != ')') {
+  if (!isLetterToken(')')) {
     while (true) {
+      Curr = currToken();
       CHECK_EQ(TOKEN_IDENTIFIER, Curr.Type);
       Args.push_back(Curr.Identifier);
       nextToken();
-      Curr = currToken();
-      if (Curr.Type == TOKEN_LETTER && Curr.Letter == ',') {
+      if (isLetterToken(',')) {
         nextToken();
-        Curr = currToken();
-      } else if (Curr.Type == TOKEN_LETTER && Curr.Letter == ')') {
+      } else if (isLetterToken(')')) {
         break;
       } else {
         LOG(FATAL) << "Unexpected token " << Curr.toString();
@@ -447,9 +424,7 @@ static PrototypeAST* parseExtern() {
   CHECK_EQ(TOKEN_EXTERN, Curr.Type);
   nextToken();
   PrototypeAST* Prototype = parseFunctionPrototype();
-  Curr = currToken();
-  CHECK_EQ(TOKEN_LETTER, Curr.Type);
-  CHECK_EQ(';', Curr.Letter);
+  CHECK(isLetterToken(';'));
   return Prototype;
 }
 
@@ -471,13 +446,12 @@ void prepareParsePipeline() {
 ExprAST* parsePipeline() {
   nextToken();
   Token Curr = currToken();
-  if (Curr.Type == TOKEN_EOF ||
-      (Curr.Type == TOKEN_LETTER && Curr.Letter == ';')) {
+  if (Curr.Type == TOKEN_EOF || isLetterToken(';')) {
     return nullptr;
   }
   if (Curr.Type == TOKEN_IDENTIFIER || Curr.Type == TOKEN_NUMBER ||
-      Curr.Type == TOKEN_IF || Curr.Type == TOKEN_FOR ||
-      (Curr.Type == TOKEN_LETTER && (Curr.Letter == '(' || Curr.Letter == '{')) ||
+      Curr.Type == TOKEN_IF || Curr.Type == TOKEN_FOR || isLetterToken('(') ||
+      isLetterToken('{') ||
       (Curr.Type == TOKEN_OP &&
        UnaryOpSet.find(Curr.Op.desc) != UnaryOpSet.end())) {
     ExprAST* Expr = parseStatement();
