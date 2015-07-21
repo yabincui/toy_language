@@ -11,7 +11,6 @@
 #include "option.h"
 #include "string.h"
 
-static size_t CurrLine = 1;
 size_t ExprsInCurrLine = 0;  // Used to decide whether to show prompt.
 
 // Lexer
@@ -37,33 +36,34 @@ static std::vector<std::string> OpMap = {
 };
 
 Token::Token(TokenType Type, const std::string& Identifier, double Number,
-             OpType Op, char Letter)
+             OpType Op, char Letter, SourceLocation Loc)
     : Type(Type),
       Identifier(Identifier),
       Number(Number),
       Op(Op),
       Letter(Letter),
-      Line(CurrLine) {
+      Loc(Loc) {
 }
 
-Token Token::createNumberToken(double Number) {
-  return Token(TOKEN_NUMBER, "", Number, OpType(), 0);
+Token Token::createNumberToken(double Number, SourceLocation Loc) {
+  return Token(TOKEN_NUMBER, "", Number, OpType(), 0, Loc);
 }
 
-Token Token::createIdentifierToken(const std::string& Identifier) {
-  return Token(TOKEN_IDENTIFIER, Identifier, 0.0, OpType(), 0);
+Token Token::createIdentifierToken(const std::string& Identifier,
+                                   SourceLocation Loc) {
+  return Token(TOKEN_IDENTIFIER, Identifier, 0.0, OpType(), 0, Loc);
 }
 
-Token Token::createOpToken(OpType Op) {
-  return Token(TOKEN_OP, "", 0.0, Op, 0);
+Token Token::createOpToken(OpType Op, SourceLocation Loc) {
+  return Token(TOKEN_OP, "", 0.0, Op, 0, Loc);
 }
 
-Token Token::createLetterToken(char Letter) {
-  return Token(TOKEN_LETTER, "", 0.0, OpType(), Letter);
+Token Token::createLetterToken(char Letter, SourceLocation Loc) {
+  return Token(TOKEN_LETTER, "", 0.0, OpType(), Letter, Loc);
 }
 
-Token Token::createToken(TokenType Type) {
-  return Token(Type, "", 0.0, OpType(), 0);
+Token Token::createToken(TokenType Type, SourceLocation Loc) {
+  return Token(Type, "", 0.0, OpType(), 0, Loc);
 }
 
 std::string Token::toString() const {
@@ -85,130 +85,151 @@ std::string Token::toString() const {
   return s;
 }
 
-static std::stack<int> CharStack;
+struct CharWithLoc {
+  int Char;
+  SourceLocation Loc;
+};
 
-static int getChar() {
+static std::stack<CharWithLoc> CharStack;
+
+static CharWithLoc getChar() {
+  static size_t CurrLine = 1;
+  static size_t CurrColumn = 1;
+
   if (!CharStack.empty()) {
-    int Ret = CharStack.top();
+    CharWithLoc Ret = CharStack.top();
     CharStack.pop();
     return Ret;
   }
-  return fgetc(GlobalOption.InputFp);
+  int Char = fgetc(GlobalOption.InputFp);
+  CharWithLoc Ret;
+  Ret.Char = Char;
+  Ret.Loc.Line = CurrLine;
+  Ret.Loc.Column = CurrColumn++;
+  if (Char == '\n') {
+    CurrLine++;
+    CurrColumn = 1;
+  }
+  return Ret;
 }
 
-static void ungetChar(int Char) {
+static void ungetChar(CharWithLoc Char) {
   CharStack.push(Char);
 }
 
 static Token produceToken() {
-  int LastChar = getChar();
+  CharWithLoc LastChar = getChar();
 
 Repeat:
-  while (isspace(LastChar)) {
+  while (isspace(LastChar.Char)) {
     LastChar = getChar();
-    if (LastChar == '\n') {
-      CurrLine++;
+    if (LastChar.Char == '\n') {
       if (GlobalOption.Interactive && ExprsInCurrLine > 0) {
         ExprsInCurrLine = 0;
         printPrompt();
       }
     }
   }
-  if (LastChar == '#') {
-    while (LastChar != '\n' && LastChar != EOF) {
+  if (LastChar.Char == '#') {
+    while (LastChar.Char != '\n' && LastChar.Char != EOF) {
       LastChar = getChar();
     }
     goto Repeat;
   }
-  if (isalpha(LastChar) || LastChar == '_') {
-    std::string s(1, static_cast<char>(LastChar));
+  if (isalpha(LastChar.Char) || LastChar.Char == '_') {
+    CharWithLoc StartChar = LastChar;
+    std::string s(1, static_cast<char>(LastChar.Char));
     while (true) {
       LastChar = getChar();
-      if (isalnum(LastChar) || LastChar == '_') {
-        s.push_back(LastChar);
+      if (isalnum(LastChar.Char) || LastChar.Char == '_') {
+        s.push_back(LastChar.Char);
       } else {
         break;
       }
     }
     ungetChar(LastChar);
     if (s == "def") {
-      return Token::createToken(TOKEN_DEF);
+      return Token::createToken(TOKEN_DEF, StartChar.Loc);
     }
     if (s == "extern") {
-      return Token::createToken(TOKEN_EXTERN);
+      return Token::createToken(TOKEN_EXTERN, StartChar.Loc);
     }
     if (s == "if") {
-      return Token::createToken(TOKEN_IF);
+      return Token::createToken(TOKEN_IF, StartChar.Loc);
     }
     if (s == "elif") {
-      return Token::createToken(TOKEN_ELIF);
+      return Token::createToken(TOKEN_ELIF, StartChar.Loc);
     }
     if (s == "else") {
-      return Token::createToken(TOKEN_ELSE);
+      return Token::createToken(TOKEN_ELSE, StartChar.Loc);
     }
     if (s == "for") {
-      return Token::createToken(TOKEN_FOR);
+      return Token::createToken(TOKEN_FOR, StartChar.Loc);
     }
     if (s == "binary") {
-      return Token::createToken(TOKEN_BINARY);
+      return Token::createToken(TOKEN_BINARY, StartChar.Loc);
     }
     if (s == "unary") {
-      return Token::createToken(TOKEN_UNARY);
+      return Token::createToken(TOKEN_UNARY, StartChar.Loc);
     }
-    return Token::createIdentifierToken(s);
+    return Token::createIdentifierToken(s, StartChar.Loc);
   }
 
-  if (isdigit(LastChar)) {
-    std::string s(1, static_cast<char>(LastChar));
+  if (isdigit(LastChar.Char)) {
+    CharWithLoc StartChar = LastChar;
+    std::string s(1, static_cast<char>(LastChar.Char));
     while (true) {
       LastChar = getChar();
-      if (!isalnum(LastChar) && LastChar != '.') {
+      if (!isalnum(LastChar.Char) && LastChar.Char != '.') {
         break;
       }
-      s.push_back(LastChar);
+      s.push_back(LastChar.Char);
     }
     ungetChar(LastChar);
-    return Token::createNumberToken(strtod(s.c_str(), nullptr));
+    return Token::createNumberToken(strtod(s.c_str(), nullptr), StartChar.Loc);
   }
 
-  if (LastChar == EOF) {
-    return Token::createToken(TOKEN_EOF);
+  if (LastChar.Char == EOF) {
+    return Token::createToken(TOKEN_EOF, LastChar.Loc);
   }
 
   // Match Op.
   std::string MatchOp;
   for (auto& s : OpMap) {
-    if (s[0] != LastChar) {
+    if (s[0] != LastChar.Char) {
       continue;
     }
+    std::vector<CharWithLoc> Stack;
     size_t i;
     for (i = 1; i < s.size(); ++i) {
-      int Char = getChar();
-      if (Char != s[i]) {
+      CharWithLoc Char = getChar();
+      if (Char.Char != s[i]) {
         ungetChar(Char);
         break;
       }
+      Stack.push_back(Char);
     }
     if (i == s.size() && MatchOp.size() < s.size()) {
       MatchOp = s;
     }
-    for (i = i - 1; i > 0; --i) {
-      ungetChar(s[i]);
+    for (auto It = Stack.rbegin(); It != Stack.rend(); ++It) {
+      ungetChar(*It);
     }
   }
   if (!MatchOp.empty()) {
     for (size_t i = 1; i < MatchOp.size(); ++i) {
       getChar();
     }
-    return Token::createOpToken(OpType(MatchOp));
+    return Token::createOpToken(OpType(MatchOp), LastChar.Loc);
   }
 
-  return Token::createLetterToken(LastChar);
+  return Token::createLetterToken(LastChar.Char, LastChar.Loc);
 }
 
-static Token PrevToken(TOKEN_INVALID, "", 0.0, OpType(), 0);
-static Token CurToken(TOKEN_INVALID, "", 0.0, OpType(), 0);
-static Token BufferedToken(TOKEN_INVALID, "", 0.0, OpType(), 0);
+static Token PrevToken(TOKEN_INVALID, "", 0.0, OpType(), 0, SourceLocation());
+static Token CurToken(TOKEN_INVALID, "", 0.0, OpType(), 0, SourceLocation());
+static Token BufferedToken(TOKEN_INVALID, "", 0.0, OpType(), 0,
+                           SourceLocation());
 
 const Token& currToken() {
   CHECK_NE(TOKEN_INVALID, CurToken.Type);
@@ -219,7 +240,7 @@ const Token& getNextToken() {
   PrevToken = CurToken;
   if (BufferedToken.Type != TOKEN_INVALID) {
     CurToken = BufferedToken;
-    BufferedToken = Token::createToken(TOKEN_INVALID);
+    BufferedToken = Token::createToken(TOKEN_INVALID, SourceLocation());
   } else {
     CurToken = produceToken();
   }
@@ -234,7 +255,7 @@ void unreadCurrToken() {
   CHECK_EQ(TOKEN_INVALID, BufferedToken.Type);
   BufferedToken = CurToken;
   CurToken = PrevToken;
-  PrevToken = Token::createToken(TOKEN_INVALID);
+  PrevToken = Token::createToken(TOKEN_INVALID, SourceLocation());
   if (GlobalOption.DumpToken) {
     fprintf(stderr, "unread %s\n", BufferedToken.toString().c_str());
   }

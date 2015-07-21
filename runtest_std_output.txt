@@ -4,24 +4,24 @@ Token (TOKEN_NUMBER, 0.000000)
 Token (TOKEN_LETTER, ;)
 unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
-AssignmentExprAST name = a
-  NumberExprAST val = 0.000000
+AssignmentExprAST (Line 1, Column 1): name = a
+  NumberExprAST (Line 1, Column 5): val = 0.000000
 Token (TOKEN_IDENTIFIER, b)
 Token (TOKEN_LETTER, =)
 Token (TOKEN_NUMBER, 0.000000)
 Token (TOKEN_LETTER, ;)
 unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
-AssignmentExprAST name = b
-  NumberExprAST val = 0.000000
+AssignmentExprAST (Line 2, Column 1): name = b
+  NumberExprAST (Line 2, Column 5): val = 0.000000
 Token (TOKEN_IDENTIFIER, c)
 Token (TOKEN_LETTER, =)
 Token (TOKEN_NUMBER, 0.000000)
 Token (TOKEN_LETTER, ;)
 unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
-AssignmentExprAST name = c
-  NumberExprAST val = 0.000000
+AssignmentExprAST (Line 3, Column 1): name = c
+  NumberExprAST (Line 3, Column 5): val = 0.000000
 Token (TOKEN_NUMBER, 3.000000)
 Token (TOKEN_OP, +)
 Token (TOKEN_NUMBER, 4.000000)
@@ -34,11 +34,11 @@ unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
 unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
-BinaryExprAST op = +
-  NumberExprAST val = 3.000000
-  BinaryExprAST op = *
-    NumberExprAST val = 4.000000
-    NumberExprAST val = 2.000000
+BinaryExprAST (Line 5, Column 3): op = +
+  NumberExprAST (Line 5, Column 1): val = 3.000000
+  BinaryExprAST (Line 5, Column 7): op = *
+    NumberExprAST (Line 5, Column 5): val = 4.000000
+    NumberExprAST (Line 5, Column 9): val = 2.000000
 Token (TOKEN_IDENTIFIER, a)
 Token (TOKEN_OP, +)
 unread Token (TOKEN_OP, +)
@@ -59,11 +59,11 @@ unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
 unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
-BinaryExprAST op = +
-  VariableExprAST name = a
-  BinaryExprAST op = *
-    VariableExprAST name = b
-    VariableExprAST name = c
+BinaryExprAST (Line 6, Column 3): op = +
+  VariableExprAST (Line 6, Column 1): name = a
+  BinaryExprAST (Line 6, Column 7): op = *
+    VariableExprAST (Line 6, Column 5): name = b
+    VariableExprAST (Line 6, Column 9): name = c
 Token (TOKEN_EXTERN)
 Token (TOKEN_IDENTIFIER, extern_a)
 Token (TOKEN_LETTER, ()
@@ -72,7 +72,7 @@ Token (TOKEN_LETTER, ,)
 Token (TOKEN_IDENTIFIER, extern_c)
 Token (TOKEN_LETTER, ))
 Token (TOKEN_LETTER, ;)
-PrototypeAST extern_a (extern_b, extern_c)
+PrototypeAST (Line 8, Column 8): extern_a (extern_b, extern_c)
 Token (TOKEN_DEF)
 Token (TOKEN_IDENTIFIER, def_a)
 Token (TOKEN_LETTER, ()
@@ -102,15 +102,15 @@ unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
 unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
-FunctionAST
-  PrototypeAST def_a (def_b, def_c)
-  BinaryExprAST op = -
-    BinaryExprAST op = +
-      VariableExprAST name = def_b
-      BinaryExprAST op = *
-        NumberExprAST val = 2.000000
-        VariableExprAST name = def_c
-    NumberExprAST val = 6.000000
+FunctionAST (Line 10, Column 1):
+  PrototypeAST (Line 10, Column 5): def_a (def_b, def_c)
+  BinaryExprAST (Line 11, Column 21): op = -
+    BinaryExprAST (Line 11, Column 9): op = +
+      VariableExprAST (Line 11, Column 3): name = def_b
+      BinaryExprAST (Line 11, Column 13): op = *
+        NumberExprAST (Line 11, Column 11): val = 2.000000
+        VariableExprAST (Line 11, Column 15): name = def_c
+    NumberExprAST (Line 11, Column 23): val = 6.000000
 Token (TOKEN_IDENTIFIER, def_a)
 Token (TOKEN_LETTER, ()
 unread Token (TOKEN_LETTER, ()
@@ -126,11 +126,11 @@ Token (TOKEN_LETTER, ))
 Token (TOKEN_LETTER, ;)
 unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
-CallExprAST Callee = def_a
+CallExprAST (Line 13, Column 1): Callee = def_a
   Arg #0:
-    NumberExprAST val = 2.000000
+    NumberExprAST (Line 13, Column 7): val = 2.000000
   Arg #1:
-    NumberExprAST val = 4.000000
+    NumberExprAST (Line 13, Column 10): val = 4.000000
 Token (TOKEN_DEF)
 Token (TOKEN_IDENTIFIER, cse_test)
 Token (TOKEN_LETTER, ()
@@ -166,15 +166,15 @@ unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
 unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
-FunctionAST
-  PrototypeAST cse_test (x)
-  BinaryExprAST op = *
-    BinaryExprAST op = +
-      NumberExprAST val = 3.000000
-      VariableExprAST name = x
-    BinaryExprAST op = +
-      VariableExprAST name = x
-      NumberExprAST val = 3.000000
+FunctionAST (Line 17, Column 1):
+  PrototypeAST (Line 17, Column 5): cse_test (x)
+  BinaryExprAST (Line 17, Column 23): op = *
+    BinaryExprAST (Line 17, Column 19): op = +
+      NumberExprAST (Line 17, Column 18): val = 3.000000
+      VariableExprAST (Line 17, Column 20): name = x
+    BinaryExprAST (Line 17, Column 27): op = +
+      VariableExprAST (Line 17, Column 26): name = x
+      NumberExprAST (Line 17, Column 28): val = 3.000000
 Token (TOKEN_DEF)
 Token (TOKEN_IDENTIFIER, ta)
 Token (TOKEN_LETTER, ()
@@ -196,11 +196,11 @@ unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
 unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
-FunctionAST
-  PrototypeAST ta (b, c)
-  BinaryExprAST op = *
-    VariableExprAST name = b
-    VariableExprAST name = c
+FunctionAST (Line 19, Column 1):
+  PrototypeAST (Line 19, Column 5): ta (b, c)
+  BinaryExprAST (Line 19, Column 14): op = *
+    VariableExprAST (Line 19, Column 13): name = b
+    VariableExprAST (Line 19, Column 15): name = c
 Token (TOKEN_IDENTIFIER, ta)
 Token (TOKEN_LETTER, ()
 unread Token (TOKEN_LETTER, ()
@@ -216,11 +216,11 @@ Token (TOKEN_LETTER, ))
 Token (TOKEN_LETTER, ;)
 unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
-CallExprAST Callee = ta
+CallExprAST (Line 20, Column 1): Callee = ta
   Arg #0:
-    NumberExprAST val = 3.000000
+    NumberExprAST (Line 20, Column 4): val = 3.000000
   Arg #1:
-    NumberExprAST val = 4.000000
+    NumberExprAST (Line 20, Column 6): val = 4.000000
 Token (TOKEN_IF)
 Token (TOKEN_LETTER, ()
 Token (TOKEN_IDENTIFIER, a)
@@ -240,13 +240,13 @@ Token (TOKEN_NUMBER, 4.000000)
 Token (TOKEN_LETTER, ;)
 unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
-IfExprAST: have 1 CondThenExprs, have 1 ElseExpr
+IfExprAST (Line 22, Column 1): have 1 CondThenExprs, have 1 ElseExpr
   CondExpr #1
-    VariableExprAST name = a
+    VariableExprAST (Line 22, Column 5): name = a
   ThenExpr #1
-    NumberExprAST val = 3.000000
+    NumberExprAST (Line 22, Column 8): val = 3.000000
   ElseExpr
-    NumberExprAST val = 4.000000
+    NumberExprAST (Line 22, Column 16): val = 4.000000
 Token (TOKEN_LETTER, {)
 Token (TOKEN_NUMBER, 3.000000)
 Token (TOKEN_OP, +)
@@ -269,13 +269,13 @@ Token (TOKEN_LETTER, ;)
 unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, })
-BlockExprAST: have 2 exprs
-  BinaryExprAST op = +
-    NumberExprAST val = 3.000000
-    NumberExprAST val = 2.000000
-  BinaryExprAST op = -
-    VariableExprAST name = a
-    NumberExprAST val = 6.000000
+BlockExprAST (Line 24, Column 1): have 2 exprs
+  BinaryExprAST (Line 25, Column 2): op = +
+    NumberExprAST (Line 25, Column 1): val = 3.000000
+    NumberExprAST (Line 25, Column 3): val = 2.000000
+  BinaryExprAST (Line 26, Column 2): op = -
+    VariableExprAST (Line 26, Column 1): name = a
+    NumberExprAST (Line 26, Column 3): val = 6.000000
 Token (TOKEN_IF)
 Token (TOKEN_LETTER, ()
 Token (TOKEN_IDENTIFIER, a)
@@ -307,19 +307,19 @@ Token (TOKEN_LETTER, ;)
 unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, })
-IfExprAST: have 1 CondThenExprs, have 1 ElseExpr
+IfExprAST (Line 29, Column 1): have 1 CondThenExprs, have 1 ElseExpr
   CondExpr #1
-    VariableExprAST name = a
+    VariableExprAST (Line 29, Column 5): name = a
   ThenExpr #1
-    BlockExprAST: have 1 exprs
-      BinaryExprAST op = +
-        NumberExprAST val = 3.000000
-        NumberExprAST val = 2.000000
+    BlockExprAST (Line 29, Column 8): have 1 exprs
+      BinaryExprAST (Line 30, Column 4): op = +
+        NumberExprAST (Line 30, Column 3): val = 3.000000
+        NumberExprAST (Line 30, Column 5): val = 2.000000
   ElseExpr
-    BlockExprAST: have 1 exprs
-      BinaryExprAST op = -
-        NumberExprAST val = 7.000000
-        NumberExprAST val = 5.000000
+    BlockExprAST (Line 31, Column 8): have 1 exprs
+      BinaryExprAST (Line 32, Column 4): op = -
+        NumberExprAST (Line 32, Column 3): val = 7.000000
+        NumberExprAST (Line 32, Column 5): val = 5.000000
 Token (TOKEN_IF)
 Token (TOKEN_LETTER, ()
 Token (TOKEN_NUMBER, 1.000000)
@@ -347,19 +347,19 @@ Token (TOKEN_LETTER, ;)
 unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, })
-IfExprAST: have 1 CondThenExprs, have 1 ElseExpr
+IfExprAST (Line 35, Column 1): have 1 CondThenExprs, have 1 ElseExpr
   CondExpr #1
-    NumberExprAST val = 1.000000
+    NumberExprAST (Line 35, Column 5): val = 1.000000
   ThenExpr #1
-    BlockExprAST: have 1 exprs
-      BinaryExprAST op = +
-        NumberExprAST val = 4.000000
-        NumberExprAST val = 1.000000
+    BlockExprAST (Line 35, Column 8): have 1 exprs
+      BinaryExprAST (Line 36, Column 4): op = +
+        NumberExprAST (Line 36, Column 3): val = 4.000000
+        NumberExprAST (Line 36, Column 5): val = 1.000000
   ElseExpr
-    BlockExprAST: have 1 exprs
-      BinaryExprAST op = +
-        NumberExprAST val = 7.000000
-        NumberExprAST val = 4.000000
+    BlockExprAST (Line 37, Column 8): have 1 exprs
+      BinaryExprAST (Line 38, Column 4): op = +
+        NumberExprAST (Line 38, Column 3): val = 7.000000
+        NumberExprAST (Line 38, Column 5): val = 4.000000
 Token (TOKEN_IF)
 Token (TOKEN_LETTER, ()
 Token (TOKEN_NUMBER, 0.000000)
@@ -386,17 +386,17 @@ Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, })
 Token (TOKEN_IF)
 unread Token (TOKEN_IF)
-IfExprAST: have 2 CondThenExprs, have 0 ElseExpr
+IfExprAST (Line 41, Column 1): have 2 CondThenExprs, have 0 ElseExpr
   CondExpr #1
-    NumberExprAST val = 0.000000
+    NumberExprAST (Line 41, Column 5): val = 0.000000
   ThenExpr #1
-    BlockExprAST: have 1 exprs
-      NumberExprAST val = 0.000000
+    BlockExprAST (Line 41, Column 8): have 1 exprs
+      NumberExprAST (Line 42, Column 3): val = 0.000000
   CondExpr #2
-    NumberExprAST val = 1.000000
+    NumberExprAST (Line 43, Column 9): val = 1.000000
   ThenExpr #2
-    BlockExprAST: have 1 exprs
-      NumberExprAST val = 1.000000
+    BlockExprAST (Line 43, Column 12): have 1 exprs
+      NumberExprAST (Line 44, Column 3): val = 1.000000
 Token (TOKEN_IF)
 Token (TOKEN_LETTER, ()
 Token (TOKEN_NUMBER, 0.000000)
@@ -440,25 +440,25 @@ Token (TOKEN_LETTER, ;)
 unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, })
-IfExprAST: have 3 CondThenExprs, have 1 ElseExpr
+IfExprAST (Line 47, Column 1): have 3 CondThenExprs, have 1 ElseExpr
   CondExpr #1
-    NumberExprAST val = 0.000000
+    NumberExprAST (Line 47, Column 5): val = 0.000000
   ThenExpr #1
-    BlockExprAST: have 1 exprs
-      NumberExprAST val = 0.000000
+    BlockExprAST (Line 47, Column 8): have 1 exprs
+      NumberExprAST (Line 48, Column 3): val = 0.000000
   CondExpr #2
-    NumberExprAST val = 1.000000
+    NumberExprAST (Line 49, Column 9): val = 1.000000
   ThenExpr #2
-    BlockExprAST: have 1 exprs
-      NumberExprAST val = 1.000000
+    BlockExprAST (Line 49, Column 12): have 1 exprs
+      NumberExprAST (Line 50, Column 3): val = 1.000000
   CondExpr #3
-    NumberExprAST val = 2.000000
+    NumberExprAST (Line 51, Column 9): val = 2.000000
   ThenExpr #3
-    BlockExprAST: have 1 exprs
-      NumberExprAST val = 2.000000
+    BlockExprAST (Line 51, Column 12): have 1 exprs
+      NumberExprAST (Line 52, Column 3): val = 2.000000
   ElseExpr
-    BlockExprAST: have 1 exprs
-      NumberExprAST val = 3.000000
+    BlockExprAST (Line 53, Column 8): have 1 exprs
+      NumberExprAST (Line 54, Column 3): val = 3.000000
 Token (TOKEN_IF)
 Token (TOKEN_LETTER, ()
 Token (TOKEN_NUMBER, 0.000000)
@@ -497,30 +497,30 @@ unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, })
 Token (TOKEN_LETTER, })
-IfExprAST: have 1 CondThenExprs, have 1 ElseExpr
+IfExprAST (Line 57, Column 1): have 1 CondThenExprs, have 1 ElseExpr
   CondExpr #1
-    NumberExprAST val = 0.000000
+    NumberExprAST (Line 57, Column 5): val = 0.000000
   ThenExpr #1
-    BlockExprAST: have 1 exprs
-      NumberExprAST val = 0.000000
+    BlockExprAST (Line 57, Column 8): have 1 exprs
+      NumberExprAST (Line 58, Column 3): val = 0.000000
   ElseExpr
-    BlockExprAST: have 1 exprs
-      IfExprAST: have 1 CondThenExprs, have 1 ElseExpr
+    BlockExprAST (Line 59, Column 8): have 1 exprs
+      IfExprAST (Line 60, Column 3): have 1 CondThenExprs, have 1 ElseExpr
         CondExpr #1
-          VariableExprAST name = a
+          VariableExprAST (Line 60, Column 7): name = a
         ThenExpr #1
-          BlockExprAST: have 1 exprs
-            NumberExprAST val = 1.000000
+          BlockExprAST (Line 60, Column 10): have 1 exprs
+            NumberExprAST (Line 61, Column 5): val = 1.000000
         ElseExpr
-          BlockExprAST: have 1 exprs
-            NumberExprAST val = 2.000000
+          BlockExprAST (Line 62, Column 10): have 1 exprs
+            NumberExprAST (Line 63, Column 5): val = 2.000000
 Token (TOKEN_EXTERN)
 Token (TOKEN_IDENTIFIER, printc)
 Token (TOKEN_LETTER, ()
 Token (TOKEN_IDENTIFIER, x)
 Token (TOKEN_LETTER, ))
 Token (TOKEN_LETTER, ;)
-PrototypeAST printc (x)
+PrototypeAST (Line 67, Column 8): printc (x)
 Token (TOKEN_IDENTIFIER, printc)
 Token (TOKEN_LETTER, ()
 unread Token (TOKEN_LETTER, ()
@@ -532,9 +532,9 @@ Token (TOKEN_LETTER, ))
 Token (TOKEN_LETTER, ;)
 unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
-CallExprAST Callee = printc
+CallExprAST (Line 68, Column 1): Callee = printc
   Arg #0:
-    NumberExprAST val = 42.000000
+    NumberExprAST (Line 68, Column 8): val = 42.000000
 Token (TOKEN_IDENTIFIER, printc)
 Token (TOKEN_LETTER, ()
 unread Token (TOKEN_LETTER, ()
@@ -546,9 +546,9 @@ Token (TOKEN_LETTER, ))
 Token (TOKEN_LETTER, ;)
 unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
-CallExprAST Callee = printc
+CallExprAST (Line 69, Column 1): Callee = printc
   Arg #0:
-    NumberExprAST val = 10.000000
+    NumberExprAST (Line 69, Column 8): val = 10.000000
 Token (TOKEN_NUMBER, 1.000000)
 Token (TOKEN_OP, <)
 Token (TOKEN_NUMBER, 2.000000)
@@ -557,9 +557,9 @@ unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
 unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
-BinaryExprAST op = <
-  NumberExprAST val = 1.000000
-  NumberExprAST val = 2.000000
+BinaryExprAST (Line 70, Column 3): op = <
+  NumberExprAST (Line 70, Column 1): val = 1.000000
+  NumberExprAST (Line 70, Column 5): val = 2.000000
 Token (TOKEN_NUMBER, 1.000000)
 Token (TOKEN_OP, <)
 Token (TOKEN_NUMBER, 0.000000)
@@ -568,9 +568,9 @@ unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
 unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
-BinaryExprAST op = <
-  NumberExprAST val = 1.000000
-  NumberExprAST val = 0.000000
+BinaryExprAST (Line 71, Column 3): op = <
+  NumberExprAST (Line 71, Column 1): val = 1.000000
+  NumberExprAST (Line 71, Column 5): val = 0.000000
 Token (TOKEN_NUMBER, 1.000000)
 Token (TOKEN_OP, <=)
 Token (TOKEN_NUMBER, 1.000000)
@@ -579,9 +579,9 @@ unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
 unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
-BinaryExprAST op = <=
-  NumberExprAST val = 1.000000
-  NumberExprAST val = 1.000000
+BinaryExprAST (Line 72, Column 3): op = <=
+  NumberExprAST (Line 72, Column 1): val = 1.000000
+  NumberExprAST (Line 72, Column 6): val = 1.000000
 Token (TOKEN_NUMBER, 1.000000)
 Token (TOKEN_OP, <=)
 Token (TOKEN_NUMBER, 0.000000)
@@ -590,9 +590,9 @@ unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
 unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
-BinaryExprAST op = <=
-  NumberExprAST val = 1.000000
-  NumberExprAST val = 0.000000
+BinaryExprAST (Line 73, Column 3): op = <=
+  NumberExprAST (Line 73, Column 1): val = 1.000000
+  NumberExprAST (Line 73, Column 6): val = 0.000000
 Token (TOKEN_NUMBER, 1.000000)
 Token (TOKEN_OP, ==)
 Token (TOKEN_NUMBER, 1.000000)
@@ -601,9 +601,9 @@ unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
 unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
-BinaryExprAST op = ==
-  NumberExprAST val = 1.000000
-  NumberExprAST val = 1.000000
+BinaryExprAST (Line 74, Column 3): op = ==
+  NumberExprAST (Line 74, Column 1): val = 1.000000
+  NumberExprAST (Line 74, Column 6): val = 1.000000
 Token (TOKEN_NUMBER, 1.000000)
 Token (TOKEN_OP, !=)
 Token (TOKEN_NUMBER, 2.000000)
@@ -612,9 +612,9 @@ unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
 unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
-BinaryExprAST op = !=
-  NumberExprAST val = 1.000000
-  NumberExprAST val = 2.000000
+BinaryExprAST (Line 75, Column 3): op = !=
+  NumberExprAST (Line 75, Column 1): val = 1.000000
+  NumberExprAST (Line 75, Column 6): val = 2.000000
 Token (TOKEN_NUMBER, 1.000000)
 Token (TOKEN_OP, >)
 Token (TOKEN_NUMBER, 0.000000)
@@ -623,9 +623,9 @@ unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
 unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
-BinaryExprAST op = >
-  NumberExprAST val = 1.000000
-  NumberExprAST val = 0.000000
+BinaryExprAST (Line 76, Column 3): op = >
+  NumberExprAST (Line 76, Column 1): val = 1.000000
+  NumberExprAST (Line 76, Column 5): val = 0.000000
 Token (TOKEN_NUMBER, 1.000000)
 Token (TOKEN_OP, >=)
 Token (TOKEN_NUMBER, 5.000000)
@@ -634,9 +634,9 @@ unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
 unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
-BinaryExprAST op = >=
-  NumberExprAST val = 1.000000
-  NumberExprAST val = 5.000000
+BinaryExprAST (Line 77, Column 3): op = >=
+  NumberExprAST (Line 77, Column 1): val = 1.000000
+  NumberExprAST (Line 77, Column 6): val = 5.000000
 Token (TOKEN_FOR)
 Token (TOKEN_LETTER, ()
 Token (TOKEN_IDENTIFIER, a)
@@ -684,24 +684,24 @@ Token (TOKEN_LETTER, ;)
 unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, })
-ForExprAST
+ForExprAST (Line 79, Column 1):
   InitExpr:
-    AssignmentExprAST name = a
-      NumberExprAST val = 1.000000
+    AssignmentExprAST (Line 79, Column 6): name = a
+      NumberExprAST (Line 79, Column 10): val = 1.000000
   CondExpr:
-    BinaryExprAST op = <=
-      VariableExprAST name = a
-      NumberExprAST val = 20.000000
+    BinaryExprAST (Line 79, Column 15): op = <=
+      VariableExprAST (Line 79, Column 13): name = a
+      NumberExprAST (Line 79, Column 18): val = 20.000000
   NextExpr:
-    AssignmentExprAST name = a
-      BinaryExprAST op = +
-        VariableExprAST name = a
-        NumberExprAST val = 1.000000
+    AssignmentExprAST (Line 79, Column 22): name = a
+      BinaryExprAST (Line 79, Column 28): op = +
+        VariableExprAST (Line 79, Column 26): name = a
+        NumberExprAST (Line 79, Column 30): val = 1.000000
   BlockExpr:
-    BlockExprAST: have 1 exprs
-      CallExprAST Callee = printc
+    BlockExprAST (Line 79, Column 33): have 1 exprs
+      CallExprAST (Line 80, Column 3): Callee = printc
         Arg #0:
-          NumberExprAST val = 42.000000
+          NumberExprAST (Line 80, Column 10): val = 42.000000
 Token (TOKEN_IDENTIFIER, printc)
 Token (TOKEN_LETTER, ()
 unread Token (TOKEN_LETTER, ()
@@ -713,9 +713,9 @@ Token (TOKEN_LETTER, ))
 Token (TOKEN_LETTER, ;)
 unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
-CallExprAST Callee = printc
+CallExprAST (Line 82, Column 1): Callee = printc
   Arg #0:
-    NumberExprAST val = 10.000000
+    NumberExprAST (Line 82, Column 8): val = 10.000000
 Token (TOKEN_DEF)
 Token (TOKEN_BINARY)
 Token (TOKEN_LETTER, :)
@@ -742,11 +742,11 @@ Token (TOKEN_LETTER, ;)
 unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, })
-FunctionAST
-  PrototypeAST binary: (LHS, RHS)
-  BlockExprAST: have 2 exprs
-    VariableExprAST name = LHS
-    VariableExprAST name = RHS
+FunctionAST (Line 84, Column 1):
+  PrototypeAST (Line 84, Column 5): binary: (LHS, RHS)
+  BlockExprAST (Line 84, Column 24): have 2 exprs
+    VariableExprAST (Line 85, Column 2): name = LHS
+    VariableExprAST (Line 86, Column 2): name = RHS
 Token (TOKEN_IDENTIFIER, printc)
 Token (TOKEN_LETTER, ()
 unread Token (TOKEN_LETTER, ()
@@ -767,13 +767,13 @@ unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
 unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
-BinaryExprAST op = :
-  CallExprAST Callee = printc
+BinaryExprAST (Line 89, Column 12): op = :
+  CallExprAST (Line 89, Column 1): Callee = printc
     Arg #0:
-      NumberExprAST val = 42.000000
-  CallExprAST Callee = printc
+      NumberExprAST (Line 89, Column 8): val = 42.000000
+  CallExprAST (Line 89, Column 14): Callee = printc
     Arg #0:
-      NumberExprAST val = 10.000000
+      NumberExprAST (Line 89, Column 21): val = 10.000000
 Token (TOKEN_DEF)
 Token (TOKEN_UNARY)
 Token (TOKEN_LETTER, !)
@@ -801,38 +801,38 @@ Token (TOKEN_LETTER, ;)
 unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, })
-FunctionAST
-  PrototypeAST unary! (RHS)
-  BlockExprAST: have 1 exprs
-    IfExprAST: have 1 CondThenExprs, have 1 ElseExpr
+FunctionAST (Line 91, Column 1):
+  PrototypeAST (Line 91, Column 5): unary! (RHS)
+  BlockExprAST (Line 91, Column 18): have 1 exprs
+    IfExprAST (Line 92, Column 3): have 1 CondThenExprs, have 1 ElseExpr
       CondExpr #1
-        VariableExprAST name = RHS
+        VariableExprAST (Line 92, Column 7): name = RHS
       ThenExpr #1
-        NumberExprAST val = 0.000000
+        NumberExprAST (Line 92, Column 12): val = 0.000000
       ElseExpr
-        NumberExprAST val = 1.000000
+        NumberExprAST (Line 92, Column 20): val = 1.000000
 Token (TOKEN_OP, !)
 Token (TOKEN_NUMBER, 3.000000)
 Token (TOKEN_LETTER, ;)
 unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
-UnaryExprAST op = !
-  NumberExprAST val = 3.000000
+UnaryExprAST (Line 95, Column 1): op = !
+  NumberExprAST (Line 95, Column 2): val = 3.000000
 Token (TOKEN_OP, !)
 Token (TOKEN_NUMBER, 0.000000)
 Token (TOKEN_LETTER, ;)
 unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
-UnaryExprAST op = !
-  NumberExprAST val = 0.000000
+UnaryExprAST (Line 96, Column 1): op = !
+  NumberExprAST (Line 96, Column 2): val = 0.000000
 Token (TOKEN_IDENTIFIER, a)
 Token (TOKEN_LETTER, =)
 Token (TOKEN_NUMBER, 42.000000)
 Token (TOKEN_LETTER, ;)
 unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
-AssignmentExprAST name = a
-  NumberExprAST val = 42.000000
+AssignmentExprAST (Line 98, Column 1): name = a
+  NumberExprAST (Line 98, Column 5): val = 42.000000
 Token (TOKEN_DEF)
 Token (TOKEN_IDENTIFIER, a_function)
 Token (TOKEN_LETTER, ()
@@ -878,20 +878,20 @@ Token (TOKEN_LETTER, ;)
 unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, })
-FunctionAST
-  PrototypeAST a_function (a)
-  BlockExprAST: have 2 exprs
-    AssignmentExprAST name = a
-      NumberExprAST val = 42.000000
-    BinaryExprAST op = :
-      CallExprAST Callee = printc
+FunctionAST (Line 99, Column 1):
+  PrototypeAST (Line 99, Column 5): a_function (a)
+  BlockExprAST (Line 99, Column 19): have 2 exprs
+    AssignmentExprAST (Line 100, Column 3): name = a
+      NumberExprAST (Line 100, Column 7): val = 42.000000
+    BinaryExprAST (Line 101, Column 13): op = :
+      CallExprAST (Line 101, Column 3): Callee = printc
         Arg #0:
-          VariableExprAST name = a
-      CallExprAST Callee = printc
+          VariableExprAST (Line 101, Column 10): name = a
+      CallExprAST (Line 101, Column 15): Callee = printc
         Arg #0:
-          BinaryExprAST op = -
-            VariableExprAST name = a
-            NumberExprAST val = 32.000000
+          BinaryExprAST (Line 101, Column 24): op = -
+            VariableExprAST (Line 101, Column 22): name = a
+            NumberExprAST (Line 101, Column 26): val = 32.000000
 Token (TOKEN_IDENTIFIER, a_function)
 Token (TOKEN_LETTER, ()
 unread Token (TOKEN_LETTER, ()
@@ -903,9 +903,9 @@ Token (TOKEN_LETTER, ))
 Token (TOKEN_LETTER, ;)
 unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
-CallExprAST Callee = a_function
+CallExprAST (Line 104, Column 1): Callee = a_function
   Arg #0:
-    NumberExprAST val = 42.000000
+    NumberExprAST (Line 104, Column 12): val = 42.000000
 Token (TOKEN_IDENTIFIER, printc)
 Token (TOKEN_LETTER, ()
 unread Token (TOKEN_LETTER, ()
@@ -951,19 +951,19 @@ unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
 unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
-BinaryExprAST op = :
-  BinaryExprAST op = :
-    CallExprAST Callee = printc
+BinaryExprAST (Line 105, Column 23): op = :
+  BinaryExprAST (Line 105, Column 11): op = :
+    CallExprAST (Line 105, Column 1): Callee = printc
       Arg #0:
-        VariableExprAST name = a
-    CallExprAST Callee = printc
+        VariableExprAST (Line 105, Column 8): name = a
+    CallExprAST (Line 105, Column 13): Callee = printc
       Arg #0:
-        VariableExprAST name = a
-  CallExprAST Callee = printc
+        VariableExprAST (Line 105, Column 20): name = a
+  CallExprAST (Line 105, Column 25): Callee = printc
     Arg #0:
-      BinaryExprAST op = -
-        VariableExprAST name = a
-        NumberExprAST val = 32.000000
+      BinaryExprAST (Line 105, Column 34): op = -
+        VariableExprAST (Line 105, Column 32): name = a
+        NumberExprAST (Line 105, Column 36): val = 32.000000
 Token (TOKEN_IDENTIFIER, a)
 Token (TOKEN_OP, *)
 unread Token (TOKEN_OP, *)
@@ -976,9 +976,9 @@ unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
 unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
-BinaryExprAST op = *
-  VariableExprAST name = a
-  NumberExprAST val = 5.000000
+BinaryExprAST (Line 106, Column 3): op = *
+  VariableExprAST (Line 106, Column 1): name = a
+  NumberExprAST (Line 106, Column 5): val = 5.000000
 Token (TOKEN_EOF)
 ; ModuleID = 'tmpmodule.1'
 
@@ -1229,8 +1229,8 @@ Token (TOKEN_NUMBER, 0.000000)
 Token (TOKEN_LETTER, ;)
 unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
-AssignmentExprAST name = a
-  NumberExprAST val = 0.000000
+AssignmentExprAST (Line 1, Column 1): name = a
+  NumberExprAST (Line 1, Column 5): val = 0.000000
 ; ModuleID = 'tmpmodule.1'
 
 @a = internal global double 0.000000e+00
@@ -1246,8 +1246,8 @@ Token (TOKEN_NUMBER, 0.000000)
 Token (TOKEN_LETTER, ;)
 unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
-AssignmentExprAST name = b
-  NumberExprAST val = 0.000000
+AssignmentExprAST (Line 2, Column 1): name = b
+  NumberExprAST (Line 2, Column 5): val = 0.000000
 ; ModuleID = 'tmpmodule.2'
 
 @a = external global double
@@ -1264,8 +1264,8 @@ Token (TOKEN_NUMBER, 0.000000)
 Token (TOKEN_LETTER, ;)
 unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
-AssignmentExprAST name = c
-  NumberExprAST val = 0.000000
+AssignmentExprAST (Line 3, Column 1): name = c
+  NumberExprAST (Line 3, Column 5): val = 0.000000
 ; ModuleID = 'tmpmodule.3'
 
 @a = external global double
@@ -1289,11 +1289,11 @@ unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
 unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
-BinaryExprAST op = +
-  NumberExprAST val = 3.000000
-  BinaryExprAST op = *
-    NumberExprAST val = 4.000000
-    NumberExprAST val = 2.000000
+BinaryExprAST (Line 5, Column 3): op = +
+  NumberExprAST (Line 5, Column 1): val = 3.000000
+  BinaryExprAST (Line 5, Column 7): op = *
+    NumberExprAST (Line 5, Column 5): val = 4.000000
+    NumberExprAST (Line 5, Column 9): val = 2.000000
 ; ModuleID = 'tmpmodule.4'
 
 @a = external global double
@@ -1324,11 +1324,11 @@ unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
 unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
-BinaryExprAST op = +
-  VariableExprAST name = a
-  BinaryExprAST op = *
-    VariableExprAST name = b
-    VariableExprAST name = c
+BinaryExprAST (Line 6, Column 3): op = +
+  VariableExprAST (Line 6, Column 1): name = a
+  BinaryExprAST (Line 6, Column 7): op = *
+    VariableExprAST (Line 6, Column 5): name = b
+    VariableExprAST (Line 6, Column 9): name = c
 ; ModuleID = 'tmpmodule.5'
 
 @a = external global double
@@ -1352,7 +1352,7 @@ Token (TOKEN_LETTER, ,)
 Token (TOKEN_IDENTIFIER, extern_c)
 Token (TOKEN_LETTER, ))
 Token (TOKEN_LETTER, ;)
-PrototypeAST extern_a (extern_b, extern_c)
+PrototypeAST (Line 8, Column 8): extern_a (extern_b, extern_c)
 ; ModuleID = 'tmpmodule.6'
 
 @a = external global double
@@ -1394,15 +1394,15 @@ unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
 unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
-FunctionAST
-  PrototypeAST def_a (def_b, def_c)
-  BinaryExprAST op = -
-    BinaryExprAST op = +
-      VariableExprAST name = def_b
-      BinaryExprAST op = *
-        NumberExprAST val = 2.000000
-        VariableExprAST name = def_c
-    NumberExprAST val = 6.000000
+FunctionAST (Line 10, Column 1):
+  PrototypeAST (Line 10, Column 5): def_a (def_b, def_c)
+  BinaryExprAST (Line 11, Column 21): op = -
+    BinaryExprAST (Line 11, Column 9): op = +
+      VariableExprAST (Line 11, Column 3): name = def_b
+      BinaryExprAST (Line 11, Column 13): op = *
+        NumberExprAST (Line 11, Column 11): val = 2.000000
+        VariableExprAST (Line 11, Column 15): name = def_c
+    NumberExprAST (Line 11, Column 23): val = 6.000000
 ; ModuleID = 'tmpmodule.7'
 
 @a = external global double
@@ -1444,11 +1444,11 @@ Token (TOKEN_LETTER, ))
 Token (TOKEN_LETTER, ;)
 unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
-CallExprAST Callee = def_a
+CallExprAST (Line 13, Column 1): Callee = def_a
   Arg #0:
-    NumberExprAST val = 2.000000
+    NumberExprAST (Line 13, Column 7): val = 2.000000
   Arg #1:
-    NumberExprAST val = 4.000000
+    NumberExprAST (Line 13, Column 10): val = 4.000000
 ; ModuleID = 'tmpmodule.8'
 
 @a = external global double
@@ -1499,15 +1499,15 @@ unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
 unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
-FunctionAST
-  PrototypeAST cse_test (x)
-  BinaryExprAST op = *
-    BinaryExprAST op = +
-      NumberExprAST val = 3.000000
-      VariableExprAST name = x
-    BinaryExprAST op = +
-      VariableExprAST name = x
-      NumberExprAST val = 3.000000
+FunctionAST (Line 17, Column 1):
+  PrototypeAST (Line 17, Column 5): cse_test (x)
+  BinaryExprAST (Line 17, Column 23): op = *
+    BinaryExprAST (Line 17, Column 19): op = +
+      NumberExprAST (Line 17, Column 18): val = 3.000000
+      VariableExprAST (Line 17, Column 20): name = x
+    BinaryExprAST (Line 17, Column 27): op = +
+      VariableExprAST (Line 17, Column 26): name = x
+      NumberExprAST (Line 17, Column 28): val = 3.000000
 ; ModuleID = 'tmpmodule.9'
 
 @a = external global double
@@ -1555,11 +1555,11 @@ unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
 unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
-FunctionAST
-  PrototypeAST ta (b, c)
-  BinaryExprAST op = *
-    VariableExprAST name = b
-    VariableExprAST name = c
+FunctionAST (Line 19, Column 1):
+  PrototypeAST (Line 19, Column 5): ta (b, c)
+  BinaryExprAST (Line 19, Column 14): op = *
+    VariableExprAST (Line 19, Column 13): name = b
+    VariableExprAST (Line 19, Column 15): name = c
 ; ModuleID = 'tmpmodule.10'
 
 @a = external global double
@@ -1601,11 +1601,11 @@ Token (TOKEN_LETTER, ))
 Token (TOKEN_LETTER, ;)
 unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
-CallExprAST Callee = ta
+CallExprAST (Line 20, Column 1): Callee = ta
   Arg #0:
-    NumberExprAST val = 3.000000
+    NumberExprAST (Line 20, Column 4): val = 3.000000
   Arg #1:
-    NumberExprAST val = 4.000000
+    NumberExprAST (Line 20, Column 6): val = 4.000000
 ; ModuleID = 'tmpmodule.11'
 
 @a = external global double
@@ -1644,13 +1644,13 @@ Token (TOKEN_NUMBER, 4.000000)
 Token (TOKEN_LETTER, ;)
 unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
-IfExprAST: have 1 CondThenExprs, have 1 ElseExpr
+IfExprAST (Line 22, Column 1): have 1 CondThenExprs, have 1 ElseExpr
   CondExpr #1
-    VariableExprAST name = a
+    VariableExprAST (Line 22, Column 5): name = a
   ThenExpr #1
-    NumberExprAST val = 3.000000
+    NumberExprAST (Line 22, Column 8): val = 3.000000
   ElseExpr
-    NumberExprAST val = 4.000000
+    NumberExprAST (Line 22, Column 16): val = 4.000000
 ; ModuleID = 'tmpmodule.12'
 
 @a = external global double
@@ -1703,13 +1703,13 @@ Token (TOKEN_LETTER, ;)
 unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, })
-BlockExprAST: have 2 exprs
-  BinaryExprAST op = +
-    NumberExprAST val = 3.000000
-    NumberExprAST val = 2.000000
-  BinaryExprAST op = -
-    VariableExprAST name = a
-    NumberExprAST val = 6.000000
+BlockExprAST (Line 24, Column 1): have 2 exprs
+  BinaryExprAST (Line 25, Column 2): op = +
+    NumberExprAST (Line 25, Column 1): val = 3.000000
+    NumberExprAST (Line 25, Column 3): val = 2.000000
+  BinaryExprAST (Line 26, Column 2): op = -
+    VariableExprAST (Line 26, Column 1): name = a
+    NumberExprAST (Line 26, Column 3): val = 6.000000
 ; ModuleID = 'tmpmodule.13'
 
 @a = external global double
@@ -1761,19 +1761,19 @@ Token (TOKEN_LETTER, ;)
 unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, })
-IfExprAST: have 1 CondThenExprs, have 1 ElseExpr
+IfExprAST (Line 29, Column 1): have 1 CondThenExprs, have 1 ElseExpr
   CondExpr #1
-    VariableExprAST name = a
+    VariableExprAST (Line 29, Column 5): name = a
   ThenExpr #1
-    BlockExprAST: have 1 exprs
-      BinaryExprAST op = +
-        NumberExprAST val = 3.000000
-        NumberExprAST val = 2.000000
+    BlockExprAST (Line 29, Column 8): have 1 exprs
+      BinaryExprAST (Line 30, Column 4): op = +
+        NumberExprAST (Line 30, Column 3): val = 3.000000
+        NumberExprAST (Line 30, Column 5): val = 2.000000
   ElseExpr
-    BlockExprAST: have 1 exprs
-      BinaryExprAST op = -
-        NumberExprAST val = 7.000000
-        NumberExprAST val = 5.000000
+    BlockExprAST (Line 31, Column 8): have 1 exprs
+      BinaryExprAST (Line 32, Column 4): op = -
+        NumberExprAST (Line 32, Column 3): val = 7.000000
+        NumberExprAST (Line 32, Column 5): val = 5.000000
 ; ModuleID = 'tmpmodule.14'
 
 @a = external global double
@@ -1831,19 +1831,19 @@ Token (TOKEN_LETTER, ;)
 unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, })
-IfExprAST: have 1 CondThenExprs, have 1 ElseExpr
+IfExprAST (Line 35, Column 1): have 1 CondThenExprs, have 1 ElseExpr
   CondExpr #1
-    NumberExprAST val = 1.000000
+    NumberExprAST (Line 35, Column 5): val = 1.000000
   ThenExpr #1
-    BlockExprAST: have 1 exprs
-      BinaryExprAST op = +
-        NumberExprAST val = 4.000000
-        NumberExprAST val = 1.000000
+    BlockExprAST (Line 35, Column 8): have 1 exprs
+      BinaryExprAST (Line 36, Column 4): op = +
+        NumberExprAST (Line 36, Column 3): val = 4.000000
+        NumberExprAST (Line 36, Column 5): val = 1.000000
   ElseExpr
-    BlockExprAST: have 1 exprs
-      BinaryExprAST op = +
-        NumberExprAST val = 7.000000
-        NumberExprAST val = 4.000000
+    BlockExprAST (Line 37, Column 8): have 1 exprs
+      BinaryExprAST (Line 38, Column 4): op = +
+        NumberExprAST (Line 38, Column 3): val = 7.000000
+        NumberExprAST (Line 38, Column 5): val = 4.000000
 ; ModuleID = 'tmpmodule.15'
 
 @a = external global double
@@ -1898,17 +1898,17 @@ Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, })
 Token (TOKEN_IF)
 unread Token (TOKEN_IF)
-IfExprAST: have 2 CondThenExprs, have 0 ElseExpr
+IfExprAST (Line 41, Column 1): have 2 CondThenExprs, have 0 ElseExpr
   CondExpr #1
-    NumberExprAST val = 0.000000
+    NumberExprAST (Line 41, Column 5): val = 0.000000
   ThenExpr #1
-    BlockExprAST: have 1 exprs
-      NumberExprAST val = 0.000000
+    BlockExprAST (Line 41, Column 8): have 1 exprs
+      NumberExprAST (Line 42, Column 3): val = 0.000000
   CondExpr #2
-    NumberExprAST val = 1.000000
+    NumberExprAST (Line 43, Column 9): val = 1.000000
   ThenExpr #2
-    BlockExprAST: have 1 exprs
-      NumberExprAST val = 1.000000
+    BlockExprAST (Line 43, Column 12): have 1 exprs
+      NumberExprAST (Line 44, Column 3): val = 1.000000
 ; ModuleID = 'tmpmodule.16'
 
 @a = external global double
@@ -1986,25 +1986,25 @@ Token (TOKEN_LETTER, ;)
 unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, })
-IfExprAST: have 3 CondThenExprs, have 1 ElseExpr
+IfExprAST (Line 47, Column 1): have 3 CondThenExprs, have 1 ElseExpr
   CondExpr #1
-    NumberExprAST val = 0.000000
+    NumberExprAST (Line 47, Column 5): val = 0.000000
   ThenExpr #1
-    BlockExprAST: have 1 exprs
-      NumberExprAST val = 0.000000
+    BlockExprAST (Line 47, Column 8): have 1 exprs
+      NumberExprAST (Line 48, Column 3): val = 0.000000
   CondExpr #2
-    NumberExprAST val = 1.000000
+    NumberExprAST (Line 49, Column 9): val = 1.000000
   ThenExpr #2
-    BlockExprAST: have 1 exprs
-      NumberExprAST val = 1.000000
+    BlockExprAST (Line 49, Column 12): have 1 exprs
+      NumberExprAST (Line 50, Column 3): val = 1.000000
   CondExpr #3
-    NumberExprAST val = 2.000000
+    NumberExprAST (Line 51, Column 9): val = 2.000000
   ThenExpr #3
-    BlockExprAST: have 1 exprs
-      NumberExprAST val = 2.000000
+    BlockExprAST (Line 51, Column 12): have 1 exprs
+      NumberExprAST (Line 52, Column 3): val = 2.000000
   ElseExpr
-    BlockExprAST: have 1 exprs
-      NumberExprAST val = 3.000000
+    BlockExprAST (Line 53, Column 8): have 1 exprs
+      NumberExprAST (Line 54, Column 3): val = 3.000000
 ; ModuleID = 'tmpmodule.17'
 
 @a = external global double
@@ -2083,23 +2083,23 @@ unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, })
 Token (TOKEN_LETTER, })
-IfExprAST: have 1 CondThenExprs, have 1 ElseExpr
+IfExprAST (Line 57, Column 1): have 1 CondThenExprs, have 1 ElseExpr
   CondExpr #1
-    NumberExprAST val = 0.000000
+    NumberExprAST (Line 57, Column 5): val = 0.000000
   ThenExpr #1
-    BlockExprAST: have 1 exprs
-      NumberExprAST val = 0.000000
+    BlockExprAST (Line 57, Column 8): have 1 exprs
+      NumberExprAST (Line 58, Column 3): val = 0.000000
   ElseExpr
-    BlockExprAST: have 1 exprs
-      IfExprAST: have 1 CondThenExprs, have 1 ElseExpr
+    BlockExprAST (Line 59, Column 8): have 1 exprs
+      IfExprAST (Line 60, Column 3): have 1 CondThenExprs, have 1 ElseExpr
         CondExpr #1
-          VariableExprAST name = a
+          VariableExprAST (Line 60, Column 7): name = a
         ThenExpr #1
-          BlockExprAST: have 1 exprs
-            NumberExprAST val = 1.000000
+          BlockExprAST (Line 60, Column 10): have 1 exprs
+            NumberExprAST (Line 61, Column 5): val = 1.000000
         ElseExpr
-          BlockExprAST: have 1 exprs
-            NumberExprAST val = 2.000000
+          BlockExprAST (Line 62, Column 10): have 1 exprs
+            NumberExprAST (Line 63, Column 5): val = 2.000000
 ; ModuleID = 'tmpmodule.18'
 
 @a = external global double
@@ -2146,7 +2146,7 @@ Token (TOKEN_LETTER, ()
 Token (TOKEN_IDENTIFIER, x)
 Token (TOKEN_LETTER, ))
 Token (TOKEN_LETTER, ;)
-PrototypeAST printc (x)
+PrototypeAST (Line 67, Column 8): printc (x)
 ; ModuleID = 'tmpmodule.19'
 
 @a = external global double
@@ -2178,9 +2178,9 @@ Token (TOKEN_LETTER, ))
 Token (TOKEN_LETTER, ;)
 unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
-CallExprAST Callee = printc
+CallExprAST (Line 68, Column 1): Callee = printc
   Arg #0:
-    NumberExprAST val = 42.000000
+    NumberExprAST (Line 68, Column 8): val = 42.000000
 ; ModuleID = 'tmpmodule.20'
 
 @a = external global double
@@ -2213,9 +2213,9 @@ Token (TOKEN_LETTER, ))
 Token (TOKEN_LETTER, ;)
 unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
-CallExprAST Callee = printc
+CallExprAST (Line 69, Column 1): Callee = printc
   Arg #0:
-    NumberExprAST val = 10.000000
+    NumberExprAST (Line 69, Column 8): val = 10.000000
 ; ModuleID = 'tmpmodule.21'
 
 @a = external global double
@@ -2246,9 +2246,9 @@ unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
 unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
-BinaryExprAST op = <
-  NumberExprAST val = 1.000000
-  NumberExprAST val = 2.000000
+BinaryExprAST (Line 70, Column 3): op = <
+  NumberExprAST (Line 70, Column 1): val = 1.000000
+  NumberExprAST (Line 70, Column 5): val = 2.000000
 ; ModuleID = 'tmpmodule.22'
 
 @a = external global double
@@ -2277,9 +2277,9 @@ unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
 unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
-BinaryExprAST op = <
-  NumberExprAST val = 1.000000
-  NumberExprAST val = 0.000000
+BinaryExprAST (Line 71, Column 3): op = <
+  NumberExprAST (Line 71, Column 1): val = 1.000000
+  NumberExprAST (Line 71, Column 5): val = 0.000000
 ; ModuleID = 'tmpmodule.23'
 
 @a = external global double
@@ -2308,9 +2308,9 @@ unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
 unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
-BinaryExprAST op = <=
-  NumberExprAST val = 1.000000
-  NumberExprAST val = 1.000000
+BinaryExprAST (Line 72, Column 3): op = <=
+  NumberExprAST (Line 72, Column 1): val = 1.000000
+  NumberExprAST (Line 72, Column 6): val = 1.000000
 ; ModuleID = 'tmpmodule.24'
 
 @a = external global double
@@ -2339,9 +2339,9 @@ unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
 unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
-BinaryExprAST op = <=
-  NumberExprAST val = 1.000000
-  NumberExprAST val = 0.000000
+BinaryExprAST (Line 73, Column 3): op = <=
+  NumberExprAST (Line 73, Column 1): val = 1.000000
+  NumberExprAST (Line 73, Column 6): val = 0.000000
 ; ModuleID = 'tmpmodule.25'
 
 @a = external global double
@@ -2370,9 +2370,9 @@ unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
 unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
-BinaryExprAST op = ==
-  NumberExprAST val = 1.000000
-  NumberExprAST val = 1.000000
+BinaryExprAST (Line 74, Column 3): op = ==
+  NumberExprAST (Line 74, Column 1): val = 1.000000
+  NumberExprAST (Line 74, Column 6): val = 1.000000
 ; ModuleID = 'tmpmodule.26'
 
 @a = external global double
@@ -2401,9 +2401,9 @@ unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
 unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
-BinaryExprAST op = !=
-  NumberExprAST val = 1.000000
-  NumberExprAST val = 2.000000
+BinaryExprAST (Line 75, Column 3): op = !=
+  NumberExprAST (Line 75, Column 1): val = 1.000000
+  NumberExprAST (Line 75, Column 6): val = 2.000000
 ; ModuleID = 'tmpmodule.27'
 
 @a = external global double
@@ -2432,9 +2432,9 @@ unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
 unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
-BinaryExprAST op = >
-  NumberExprAST val = 1.000000
-  NumberExprAST val = 0.000000
+BinaryExprAST (Line 76, Column 3): op = >
+  NumberExprAST (Line 76, Column 1): val = 1.000000
+  NumberExprAST (Line 76, Column 5): val = 0.000000
 ; ModuleID = 'tmpmodule.28'
 
 @a = external global double
@@ -2463,9 +2463,9 @@ unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
 unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
-BinaryExprAST op = >=
-  NumberExprAST val = 1.000000
-  NumberExprAST val = 5.000000
+BinaryExprAST (Line 77, Column 3): op = >=
+  NumberExprAST (Line 77, Column 1): val = 1.000000
+  NumberExprAST (Line 77, Column 6): val = 5.000000
 ; ModuleID = 'tmpmodule.29'
 
 @a = external global double
@@ -2533,24 +2533,24 @@ Token (TOKEN_LETTER, ;)
 unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, })
-ForExprAST
+ForExprAST (Line 79, Column 1):
   InitExpr:
-    AssignmentExprAST name = a
-      NumberExprAST val = 1.000000
+    AssignmentExprAST (Line 79, Column 6): name = a
+      NumberExprAST (Line 79, Column 10): val = 1.000000
   CondExpr:
-    BinaryExprAST op = <=
-      VariableExprAST name = a
-      NumberExprAST val = 20.000000
+    BinaryExprAST (Line 79, Column 15): op = <=
+      VariableExprAST (Line 79, Column 13): name = a
+      NumberExprAST (Line 79, Column 18): val = 20.000000
   NextExpr:
-    AssignmentExprAST name = a
-      BinaryExprAST op = +
-        VariableExprAST name = a
-        NumberExprAST val = 1.000000
+    AssignmentExprAST (Line 79, Column 22): name = a
+      BinaryExprAST (Line 79, Column 28): op = +
+        VariableExprAST (Line 79, Column 26): name = a
+        NumberExprAST (Line 79, Column 30): val = 1.000000
   BlockExpr:
-    BlockExprAST: have 1 exprs
-      CallExprAST Callee = printc
+    BlockExprAST (Line 79, Column 33): have 1 exprs
+      CallExprAST (Line 80, Column 3): Callee = printc
         Arg #0:
-          NumberExprAST val = 42.000000
+          NumberExprAST (Line 80, Column 10): val = 42.000000
 ; ModuleID = 'tmpmodule.30'
 
 @a = external global double
@@ -2600,9 +2600,9 @@ Token (TOKEN_LETTER, ))
 Token (TOKEN_LETTER, ;)
 unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
-CallExprAST Callee = printc
+CallExprAST (Line 82, Column 1): Callee = printc
   Arg #0:
-    NumberExprAST val = 10.000000
+    NumberExprAST (Line 82, Column 8): val = 10.000000
 ; ModuleID = 'tmpmodule.31'
 
 @a = external global double
@@ -2651,11 +2651,11 @@ Token (TOKEN_LETTER, ;)
 unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, })
-FunctionAST
-  PrototypeAST binary: (LHS, RHS)
-  BlockExprAST: have 2 exprs
-    VariableExprAST name = LHS
-    VariableExprAST name = RHS
+FunctionAST (Line 84, Column 1):
+  PrototypeAST (Line 84, Column 5): binary: (LHS, RHS)
+  BlockExprAST (Line 84, Column 24): have 2 exprs
+    VariableExprAST (Line 85, Column 2): name = LHS
+    VariableExprAST (Line 86, Column 2): name = RHS
 ; ModuleID = 'tmpmodule.32'
 
 @a = external global double
@@ -2707,13 +2707,13 @@ unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
 unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
-BinaryExprAST op = :
-  CallExprAST Callee = printc
+BinaryExprAST (Line 89, Column 12): op = :
+  CallExprAST (Line 89, Column 1): Callee = printc
     Arg #0:
-      NumberExprAST val = 42.000000
-  CallExprAST Callee = printc
+      NumberExprAST (Line 89, Column 8): val = 42.000000
+  CallExprAST (Line 89, Column 14): Callee = printc
     Arg #0:
-      NumberExprAST val = 10.000000
+      NumberExprAST (Line 89, Column 21): val = 10.000000
 ; ModuleID = 'tmpmodule.33'
 
 @a = external global double
@@ -2767,16 +2767,16 @@ Token (TOKEN_LETTER, ;)
 unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, })
-FunctionAST
-  PrototypeAST unary! (RHS)
-  BlockExprAST: have 1 exprs
-    IfExprAST: have 1 CondThenExprs, have 1 ElseExpr
+FunctionAST (Line 91, Column 1):
+  PrototypeAST (Line 91, Column 5): unary! (RHS)
+  BlockExprAST (Line 91, Column 18): have 1 exprs
+    IfExprAST (Line 92, Column 3): have 1 CondThenExprs, have 1 ElseExpr
       CondExpr #1
-        VariableExprAST name = RHS
+        VariableExprAST (Line 92, Column 7): name = RHS
       ThenExpr #1
-        NumberExprAST val = 0.000000
+        NumberExprAST (Line 92, Column 12): val = 0.000000
       ElseExpr
-        NumberExprAST val = 1.000000
+        NumberExprAST (Line 92, Column 20): val = 1.000000
 ; ModuleID = 'tmpmodule.34'
 
 @a = external global double
@@ -2823,8 +2823,8 @@ Token (TOKEN_NUMBER, 3.000000)
 Token (TOKEN_LETTER, ;)
 unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
-UnaryExprAST op = !
-  NumberExprAST val = 3.000000
+UnaryExprAST (Line 95, Column 1): op = !
+  NumberExprAST (Line 95, Column 2): val = 3.000000
 ; ModuleID = 'tmpmodule.35'
 
 @a = external global double
@@ -2855,8 +2855,8 @@ Token (TOKEN_NUMBER, 0.000000)
 Token (TOKEN_LETTER, ;)
 unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
-UnaryExprAST op = !
-  NumberExprAST val = 0.000000
+UnaryExprAST (Line 96, Column 1): op = !
+  NumberExprAST (Line 96, Column 2): val = 0.000000
 ; ModuleID = 'tmpmodule.36'
 
 @a = external global double
@@ -2888,8 +2888,8 @@ Token (TOKEN_NUMBER, 42.000000)
 Token (TOKEN_LETTER, ;)
 unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
-AssignmentExprAST name = a
-  NumberExprAST val = 42.000000
+AssignmentExprAST (Line 98, Column 1): name = a
+  NumberExprAST (Line 98, Column 5): val = 42.000000
 ; ModuleID = 'tmpmodule.37'
 
 @a = external global double
@@ -2960,20 +2960,20 @@ Token (TOKEN_LETTER, ;)
 unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, })
-FunctionAST
-  PrototypeAST a_function (a)
-  BlockExprAST: have 2 exprs
-    AssignmentExprAST name = a
-      NumberExprAST val = 42.000000
-    BinaryExprAST op = :
-      CallExprAST Callee = printc
+FunctionAST (Line 99, Column 1):
+  PrototypeAST (Line 99, Column 5): a_function (a)
+  BlockExprAST (Line 99, Column 19): have 2 exprs
+    AssignmentExprAST (Line 100, Column 3): name = a
+      NumberExprAST (Line 100, Column 7): val = 42.000000
+    BinaryExprAST (Line 101, Column 13): op = :
+      CallExprAST (Line 101, Column 3): Callee = printc
         Arg #0:
-          VariableExprAST name = a
-      CallExprAST Callee = printc
+          VariableExprAST (Line 101, Column 10): name = a
+      CallExprAST (Line 101, Column 15): Callee = printc
         Arg #0:
-          BinaryExprAST op = -
-            VariableExprAST name = a
-            NumberExprAST val = 32.000000
+          BinaryExprAST (Line 101, Column 24): op = -
+            VariableExprAST (Line 101, Column 22): name = a
+            NumberExprAST (Line 101, Column 26): val = 32.000000
 ; ModuleID = 'tmpmodule.38'
 
 @a = external global double
@@ -3022,9 +3022,9 @@ Token (TOKEN_LETTER, ))
 Token (TOKEN_LETTER, ;)
 unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
-CallExprAST Callee = a_function
+CallExprAST (Line 104, Column 1): Callee = a_function
   Arg #0:
-    NumberExprAST val = 42.000000
+    NumberExprAST (Line 104, Column 12): val = 42.000000
 ; ModuleID = 'tmpmodule.39'
 
 @a = external global double
@@ -3098,19 +3098,19 @@ unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
 unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
-BinaryExprAST op = :
-  BinaryExprAST op = :
-    CallExprAST Callee = printc
+BinaryExprAST (Line 105, Column 23): op = :
+  BinaryExprAST (Line 105, Column 11): op = :
+    CallExprAST (Line 105, Column 1): Callee = printc
       Arg #0:
-        VariableExprAST name = a
-    CallExprAST Callee = printc
+        VariableExprAST (Line 105, Column 8): name = a
+    CallExprAST (Line 105, Column 13): Callee = printc
       Arg #0:
-        VariableExprAST name = a
-  CallExprAST Callee = printc
+        VariableExprAST (Line 105, Column 20): name = a
+  CallExprAST (Line 105, Column 25): Callee = printc
     Arg #0:
-      BinaryExprAST op = -
-        VariableExprAST name = a
-        NumberExprAST val = 32.000000
+      BinaryExprAST (Line 105, Column 34): op = -
+        VariableExprAST (Line 105, Column 32): name = a
+        NumberExprAST (Line 105, Column 36): val = 32.000000
 ; ModuleID = 'tmpmodule.40'
 
 @a = external global double
@@ -3159,9 +3159,9 @@ unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
 unread Token (TOKEN_LETTER, ;)
 Token (TOKEN_LETTER, ;)
-BinaryExprAST op = *
-  VariableExprAST name = a
-  NumberExprAST val = 5.000000
+BinaryExprAST (Line 106, Column 3): op = *
+  VariableExprAST (Line 106, Column 1): name = a
+  NumberExprAST (Line 106, Column 5): val = 5.000000
 ; ModuleID = 'tmpmodule.41'
 
 @a = external global double

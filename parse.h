@@ -1,6 +1,7 @@
 #ifndef TOY_AST_H_
 #define TOY_AST_H_
 
+#include <string>
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Value.h>
 
@@ -22,7 +23,7 @@ enum ASTType {
 
 class ExprAST {
  public:
-  ExprAST(ASTType Type) : Type_(Type) {
+  ExprAST(ASTType Type, SourceLocation Loc) : Type_(Type), Loc_(Loc) {
   }
 
   virtual ~ExprAST() {
@@ -35,13 +36,18 @@ class ExprAST {
   virtual void dump(int Indent = 0) const = 0;
   virtual llvm::Value* codegen() = 0;
 
+ protected:
+  std::string dumpHeader() const;
+
  private:
   ASTType Type_;
+  SourceLocation Loc_;
 };
 
 class NumberExprAST : public ExprAST {
  public:
-  NumberExprAST(double Val) : ExprAST(NUMBER_EXPR_AST), Val_(Val) {
+  NumberExprAST(double Val, SourceLocation Loc)
+      : ExprAST(NUMBER_EXPR_AST, Loc), Val_(Val) {
   }
 
   void dump(int Indent = 0) const override;
@@ -53,8 +59,8 @@ class NumberExprAST : public ExprAST {
 
 class VariableExprAST : public ExprAST {
  public:
-  VariableExprAST(const std::string& Name)
-      : ExprAST(VARIABLE_EXPR_AST), Name_(Name) {
+  VariableExprAST(const std::string& Name, SourceLocation Loc)
+      : ExprAST(VARIABLE_EXPR_AST, Loc), Name_(Name) {
   }
 
   void dump(int Indent = 0) const override;
@@ -70,8 +76,8 @@ class VariableExprAST : public ExprAST {
 
 class UnaryExprAST : public ExprAST {
  public:
-  UnaryExprAST(OpType Op, ExprAST* Right)
-      : ExprAST(UNARY_EXPR_AST), Op_(Op), Right_(Right) {
+  UnaryExprAST(OpType Op, ExprAST* Right, SourceLocation Loc)
+      : ExprAST(UNARY_EXPR_AST, Loc), Op_(Op), Right_(Right) {
   }
 
   void dump(int Indent = 0) const override;
@@ -84,8 +90,8 @@ class UnaryExprAST : public ExprAST {
 
 class BinaryExprAST : public ExprAST {
  public:
-  BinaryExprAST(OpType Op, ExprAST* Left, ExprAST* Right)
-      : ExprAST(BINARY_EXPR_AST), Op_(Op), Left_(Left), Right_(Right) {
+  BinaryExprAST(OpType Op, ExprAST* Left, ExprAST* Right, SourceLocation Loc)
+      : ExprAST(BINARY_EXPR_AST, Loc), Op_(Op), Left_(Left), Right_(Right) {
   }
 
   void dump(int Indent = 0) const override;
@@ -99,8 +105,9 @@ class BinaryExprAST : public ExprAST {
 
 class AssignmentExprAST : public ExprAST {
  public:
-  AssignmentExprAST(const std::string& VarName, ExprAST* Right)
-      : ExprAST(ASSIGNMENT_EXPR_AST), VarName_(VarName), Right_(Right) {
+  AssignmentExprAST(const std::string& VarName, ExprAST* Right,
+                    SourceLocation Loc)
+      : ExprAST(ASSIGNMENT_EXPR_AST, Loc), VarName_(VarName), Right_(Right) {
   }
 
   void dump(int Indent = 0) const override;
@@ -113,8 +120,9 @@ class AssignmentExprAST : public ExprAST {
 
 class PrototypeAST : public ExprAST {
  public:
-  PrototypeAST(const std::string& Name, const std::vector<std::string>& Args)
-      : ExprAST(PROTOTYPE_AST), Name_(Name), Args_(Args) {
+  PrototypeAST(const std::string& Name, const std::vector<std::string>& Args,
+               SourceLocation Loc)
+      : ExprAST(PROTOTYPE_AST, Loc), Name_(Name), Args_(Args) {
   }
 
   void dump(int Indent = 0) const override;
@@ -127,8 +135,8 @@ class PrototypeAST : public ExprAST {
 
 class FunctionAST : public ExprAST {
  public:
-  FunctionAST(PrototypeAST* Prototype, ExprAST* Body)
-      : ExprAST(FUNCTION_AST), Prototype_(Prototype), Body_(Body) {
+  FunctionAST(PrototypeAST* Prototype, ExprAST* Body, SourceLocation Loc)
+      : ExprAST(FUNCTION_AST, Loc), Prototype_(Prototype), Body_(Body) {
   }
 
   void dump(int Indent = 0) const override;
@@ -145,8 +153,9 @@ class FunctionAST : public ExprAST {
 
 class CallExprAST : public ExprAST {
  public:
-  CallExprAST(const std::string& Callee, const std::vector<ExprAST*>& Args)
-      : ExprAST(CALL_EXPR_AST), Callee_(Callee), Args_(Args) {
+  CallExprAST(const std::string& Callee, const std::vector<ExprAST*>& Args,
+              SourceLocation Loc)
+      : ExprAST(CALL_EXPR_AST, Loc), Callee_(Callee), Args_(Args) {
   }
 
   void dump(int Indent = 0) const override;
@@ -160,8 +169,8 @@ class CallExprAST : public ExprAST {
 class IfExprAST : public ExprAST {
  public:
   IfExprAST(const std::vector<std::pair<ExprAST*, ExprAST*>>& CondThenExprs,
-            ExprAST* ElseExpr)
-      : ExprAST(IF_EXPR_AST),
+            ExprAST* ElseExpr, SourceLocation Loc)
+      : ExprAST(IF_EXPR_AST, Loc),
         CondThenExprs_(CondThenExprs),
         ElseExpr_(ElseExpr) {
   }
@@ -176,8 +185,8 @@ class IfExprAST : public ExprAST {
 
 class BlockExprAST : public ExprAST {
  public:
-  BlockExprAST(const std::vector<ExprAST*>& Exprs)
-      : ExprAST(BLOCK_EXPR_AST), Exprs_(Exprs) {
+  BlockExprAST(const std::vector<ExprAST*>& Exprs, SourceLocation Loc)
+      : ExprAST(BLOCK_EXPR_AST, Loc), Exprs_(Exprs) {
   }
 
   void dump(int Indent = 0) const override;
@@ -190,8 +199,8 @@ class BlockExprAST : public ExprAST {
 class ForExprAST : public ExprAST {
  public:
   ForExprAST(ExprAST* InitExpr, ExprAST* CondExpr, ExprAST* NextExpr,
-             ExprAST* BlockExpr)
-      : ExprAST(FOR_EXPR_AST),
+             ExprAST* BlockExpr, SourceLocation Loc)
+      : ExprAST(FOR_EXPR_AST, Loc),
         InitExpr_(InitExpr),
         CondExpr_(CondExpr),
         NextExpr_(NextExpr),

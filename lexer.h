@@ -27,22 +27,28 @@ struct OpType {
   std::string desc;
 };
 
+struct SourceLocation {
+  size_t Line;
+  size_t Column;
+};
+
 struct Token {
   TokenType Type;
   std::string Identifier;
   double Number;
   OpType Op;
   char Letter;
-  size_t Line;
+  SourceLocation Loc;
 
   Token(TokenType Type, const std::string& Identifier, double Number, OpType Op,
-        char Letter);
+        char Letter, SourceLocation Loc);
 
-  static Token createNumberToken(double Number);
-  static Token createIdentifierToken(const std::string& Identifier);
-  static Token createOpToken(OpType Op);
-  static Token createLetterToken(char Letter);
-  static Token createToken(TokenType Type);
+  static Token createNumberToken(double Number, SourceLocation Loc);
+  static Token createIdentifierToken(const std::string& Identifier,
+                                     SourceLocation Loc);
+  static Token createOpToken(OpType Op, SourceLocation Loc);
+  static Token createLetterToken(char Letter, SourceLocation Loc);
+  static Token createToken(TokenType Type, SourceLocation Loc);
 
   std::string toString() const;
 };
