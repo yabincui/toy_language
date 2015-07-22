@@ -2,6 +2,7 @@
 #define TOY_AST_H_
 
 #include <string>
+#include <llvm/IR/DebugInfoMetadata.h>
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Value.h>
 
@@ -31,6 +32,10 @@ class ExprAST {
 
   ASTType type() const {
     return Type_;
+  }
+
+  SourceLocation getLoc() const {
+    return Loc_;
   }
 
   virtual void dump(int Indent = 0) const = 0;
@@ -127,6 +132,7 @@ class PrototypeAST : public ExprAST {
 
   void dump(int Indent = 0) const override;
   llvm::Function* codegen() override;
+  llvm::DISubprogram* genDebugInfo(llvm::Function* Function) const;
 
  private:
   const std::string Name_;

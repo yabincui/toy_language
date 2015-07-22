@@ -4,6 +4,7 @@
 #include <llvm/ADT/APFloat.h>
 #include <llvm/IR/BasicBlock.h>
 #include <llvm/IR/Constants.h>
+#include <llvm/IR/DIBuilder.h>
 #include <llvm/IR/InstrTypes.h>
 #include <llvm/IR/Instruction.h>
 #include <llvm/IR/Instructions.h>
@@ -12,6 +13,7 @@
 #include <llvm/IR/Module.h>
 #include <llvm/IR/Value.h>
 #include <llvm/IR/ValueSymbolTable.h>
+#include <llvm/Support/Dwarf.h>
 
 #include "lexer.h"
 #include "logging.h"
@@ -25,6 +27,7 @@ static llvm::Module* CurrModule;
 static llvm::Function* GlobalFunction;
 static llvm::Function* CurrFunction;
 static std::unique_ptr<llvm::IRBuilder<>> CurrBuilder;
+static std::unique_ptr<llvm::DIBuilder> DIBuilder;
 static std::vector<PrototypeAST*> ExternFunctions;
 static std::vector<std::string> ExternVariables;
 
@@ -89,7 +92,96 @@ class CurrFunctionGuard {
   ScopeGuard ScopeGuard_;
 };
 
+struct DebugInfo {
+  llvm::DICompileUnit* DICompileUnit;
+  llvm::DIFile* DIFile;
+  llvm::DIBasicType* DIDoubleType;
+  std::vector<llvm::DIScope*> DIScopeStack;
+
+  llvm::DITypeRefArray getDoubleArrayType(size_t Count);
+  llvm::DISubroutineType* createSubroutineType(size_t ArgCount);
+  llvm::DISubprogram* createFunction(const std::string& Name,
+                                     llvm::Function* Function, size_t ArgCount,
+                                     size_t Line, size_t ScopeLine);
+  llvm::DIGlobalVariable* createGlobalVariable(const std::string& Name,
+                                               size_t Line,
+                                               llvm::Constant* Value);
+  llvm::DILocalVariable* createLocalVariable(const std::string& Name,
+                                             size_t Line, size_t ArgIndex,
+                                             llvm::Value* Storage);
+  void emitLocation(ExprAST* Expr);
+  void pushDIScope(llvm::DIScope* DIScope);
+  void popDIScope();
+};
+
+DebugInfo GlobalDebugInfo;
+
+llvm::DITypeRefArray DebugInfo::getDoubleArrayType(size_t Count) {
+  std::vector<llvm::Metadata*> Elements(Count, DIDoubleType);
+  return DIBuilder->getOrCreateTypeArray(Elements);
+}
+
+llvm::DISubroutineType* DebugInfo::createSubroutineType(size_t ArgCount) {
+  llvm::DITypeRefArray Array = getDoubleArrayType(ArgCount + 1);
+  return DIBuilder->createSubroutineType(DIFile, Array, 0);
+}
+
+llvm::DISubprogram* DebugInfo::createFunction(const std::string& Name,
+                                              llvm::Function* Function,
+                                              size_t ArgCount, size_t Line,
+                                              size_t ScopeLine) {
+  llvm::DISubroutineType* SubroutineType = createSubroutineType(ArgCount);
+  return DIBuilder->createFunction(DIFile, Name, "", DIFile, Line,
+                                   SubroutineType, true, true, ScopeLine, 0,
+                                   false, Function);
+}
+
+llvm::DIGlobalVariable* DebugInfo::createGlobalVariable(
+    const std::string& Name, size_t Line, llvm::Constant* Constant) {
+  llvm::DIGlobalVariable* DIGlobalVariable = DIBuilder->createGlobalVariable(
+      DIFile, Name, "", DIFile, Line, DIDoubleType, true, Constant);
+  return DIGlobalVariable;
+}
+
+// ArgIndex = 0 when it is not an argument.
+llvm::DILocalVariable* DebugInfo::createLocalVariable(const std::string& Name,
+                                                      size_t Line,
+                                                      size_t ArgIndex,
+                                                      llvm::Value* Storage) {
+  LOG(DEBUG) << "DebugInfo::createLocalVariable, Name " << Name
+             << ", DIScopeStack.size() = " << DIScopeStack.size();
+  unsigned Tag = (ArgIndex != 0 ? llvm::dwarf::DW_TAG_arg_variable
+                                : llvm::dwarf::DW_TAG_auto_variable);
+  llvm::DILocalVariable* DILocalVariable =
+      DIBuilder->createLocalVariable(Tag, DIScopeStack.back(), Name, DIFile,
+                                     Line, DIDoubleType, false, 0, ArgIndex);
+  DIBuilder->insertDeclare(Storage, DILocalVariable,
+                           DIBuilder->createExpression(),
+                           llvm::DebugLoc::get(Line, 0, DIScopeStack.back()),
+                           CurrBuilder->GetInsertBlock());
+  return DILocalVariable;
+}
+
+void DebugInfo::emitLocation(ExprAST* Expr) {
+  if (Expr == nullptr) {
+    CurrBuilder->SetCurrentDebugLocation(llvm::DebugLoc());
+  } else {
+    CurrBuilder->SetCurrentDebugLocation(llvm::DebugLoc::get(
+        Expr->getLoc().Line, Expr->getLoc().Column, DIScopeStack.back()));
+  }
+}
+
+void DebugInfo::pushDIScope(llvm::DIScope* DIScope) {
+  DIScopeStack.push_back(DIScope);
+}
+
+void DebugInfo::popDIScope() {
+  CHECK(!DIScopeStack.empty());
+  DIScopeStack.pop_back();
+}
+
 llvm::Value* NumberExprAST::codegen() {
+  GlobalDebugInfo.emitLocation(this);
   return llvm::ConstantFP::get(*Context, llvm::APFloat(Val_));
 }
 
@@ -113,27 +205,32 @@ static llvm::Value* getVariable(const std::string& Name) {
   return Variable;
 }
 
-static llvm::Value* getOrCreateVariable(const std::string& Name) {
-  llvm::Value* Variable = getVariable(Name);
-  if (Variable == nullptr) {
-    if (CurrScope == GlobalScope.get()) {
-      Variable = new llvm::GlobalVariable(
-          *CurrModule, llvm::Type::getDoubleTy(*Context), false,
-          llvm::GlobalVariable::InternalLinkage,
-          llvm::ConstantFP::get(*Context, llvm::APFloat(0.0)), Name);
-      ExternVariables.push_back(Name);
-      LOG(DEBUG) << "create global variable " << Name;
-    } else {
-      Variable = CurrBuilder->CreateAlloca(llvm::Type::getDoubleTy(*Context),
-                                           nullptr, Name);
-      LOG(DEBUG) << "create local variable " << Name;
-    }
-    CurrScope->insertVariable(Name, Variable);
+// ArgIndex = 0 when it is not an argument.
+static llvm::Value* createVariable(const std::string& Name, size_t Line,
+                                   size_t ArgIndex) {
+  LOG(DEBUG) << "createVariable, Name " << Name;
+  llvm::Value* Variable;
+  if (CurrScope == GlobalScope.get()) {
+    llvm::Constant* Constant =
+        llvm::ConstantFP::get(*Context, llvm::APFloat(0.0));
+    Variable = new llvm::GlobalVariable(
+        *CurrModule, llvm::Type::getDoubleTy(*Context), false,
+        llvm::GlobalVariable::InternalLinkage, Constant, Name);
+    ExternVariables.push_back(Name);
+    GlobalDebugInfo.createGlobalVariable(Name, Line, Constant);
+    LOG(DEBUG) << "create global variable " << Name;
+  } else {
+    Variable = CurrBuilder->CreateAlloca(llvm::Type::getDoubleTy(*Context),
+                                         nullptr, Name);
+    GlobalDebugInfo.createLocalVariable(Name, Line, ArgIndex, Variable);
+    LOG(DEBUG) << "create local variable " << Name;
   }
+  CurrScope->insertVariable(Name, Variable);
   return Variable;
 }
 
 llvm::Value* VariableExprAST::codegen() {
+  GlobalDebugInfo.emitLocation(this);
   llvm::Value* Variable = getVariable(Name_);
   if (Variable == nullptr) {
     LOG(FATAL) << "Using unassigned variable: " << Name_;
@@ -157,6 +254,7 @@ llvm::Value* UnaryExprAST::codegen() {
 }
 
 llvm::Value* BinaryExprAST::codegen() {
+  GlobalDebugInfo.emitLocation(this);
   llvm::Value* LeftValue = Left_->codegen();
   CHECK(LeftValue != nullptr);
   llvm::Value* RightValue = Right_->codegen();
@@ -199,7 +297,11 @@ llvm::Value* BinaryExprAST::codegen() {
 }
 
 llvm::Value* AssignmentExprAST::codegen() {
-  llvm::Value* Variable = getOrCreateVariable(VarName_);
+  GlobalDebugInfo.emitLocation(this);
+  llvm::Value* Variable = getVariable(VarName_);
+  if (Variable == nullptr) {
+    Variable = createVariable(VarName_, getLoc().Line, 0);
+  }
   CHECK(Variable != nullptr);
   llvm::Value* Value = Right_->codegen();
   CurrBuilder->CreateStore(Value, Variable);
@@ -207,6 +309,7 @@ llvm::Value* AssignmentExprAST::codegen() {
 }
 
 llvm::Function* PrototypeAST::codegen() {
+  GlobalDebugInfo.emitLocation(this);
   std::vector<llvm::Type*> Doubles(Args_.size(),
                                    llvm::Type::getDoubleTy(*Context));
   llvm::FunctionType* FunctionType = llvm::FunctionType::get(
@@ -220,29 +323,44 @@ llvm::Function* PrototypeAST::codegen() {
   return Function;
 }
 
+llvm::DISubprogram* PrototypeAST::genDebugInfo(llvm::Function* Function) const {
+  return GlobalDebugInfo.createFunction(Name_, Function, Args_.size(),
+                                        getLoc().Line, getLoc().Line);
+}
+
 llvm::Function* FunctionAST::codegen() {
   llvm::Function* Function = Prototype_->codegen();
   CHECK(Function != nullptr);
   CurrFunctionGuard Guard(Function);
+  llvm::DISubprogram* DISubprogram = Prototype_->genDebugInfo(Function);
+  GlobalDebugInfo.pushDIScope(DISubprogram);
   std::string BodyLabel = stringPrintf("%s.entry", Function->getName().data());
   llvm::BasicBlock* BasicBlock =
       llvm::BasicBlock::Create(*Context, BodyLabel, Function);
   llvm::IRBuilder<>::InsertPointGuard InsertPointGuard(*CurrBuilder);
   CurrBuilder->SetInsertPoint(BasicBlock);
 
+  // Don't allow to break on argument initialization.
+  GlobalDebugInfo.emitLocation(nullptr);
+
   auto ArgIt = Function->arg_begin();
   for (size_t i = 0; i < Function->arg_size(); ++i, ++ArgIt) {
-    llvm::Value* Variable = getOrCreateVariable(ArgIt->getName());
+    llvm::Value* Variable =
+        createVariable(ArgIt->getName(), getLoc().Line, i + 1);
     CurrBuilder->CreateStore(&*ArgIt, Variable);
   }
+
+  GlobalDebugInfo.emitLocation(nullptr);
 
   llvm::Value* RetVal = Body_->codegen();
   CHECK(RetVal != nullptr);
   CurrBuilder->CreateRet(RetVal);
+  GlobalDebugInfo.popDIScope();
   return Function;
 }
 
 llvm::Value* CallExprAST::codegen() {
+  GlobalDebugInfo.emitLocation(this);
   llvm::Function* Function = CurrModule->getFunction(Callee_);
   CHECK(Function != nullptr);
   CHECK_EQ(Function->arg_size(), Args_.size());
@@ -255,6 +373,7 @@ llvm::Value* CallExprAST::codegen() {
 }
 
 llvm::Value* IfExprAST::codegen() {
+  GlobalDebugInfo.emitLocation(this);
   std::vector<llvm::BasicBlock*> CondBeginBlocks;
   std::vector<llvm::BasicBlock*> CondEndBlocks;
   std::vector<llvm::BasicBlock*> ThenBeginBlocks;
@@ -327,6 +446,7 @@ llvm::Value* IfExprAST::codegen() {
 }
 
 llvm::Value* BlockExprAST::codegen() {
+  GlobalDebugInfo.emitLocation(this);
   llvm::Value* LastValue = llvm::ConstantFP::get(*Context, llvm::APFloat(0.0));
   for (auto& Expr : Exprs_) {
     LastValue = Expr->codegen();
@@ -335,6 +455,7 @@ llvm::Value* BlockExprAST::codegen() {
 }
 
 llvm::Value* ForExprAST::codegen() {
+  GlobalDebugInfo.emitLocation(this);
   // Init block.
   ScopeGuard ScopeGuardInst;
   InitExpr_->codegen();
@@ -403,6 +524,19 @@ static std::unique_ptr<llvm::Module> codePipeline(
   CurrModule = TheModule.get();
   GlobalFunction = createTmpFunction(ToyMainFunctionName);
   CurrBuilder->SetInsertPoint(&GlobalFunction->back());
+  DIBuilder.reset(new llvm::DIBuilder(*TheModule));
+  GlobalDebugInfo.DICompileUnit = DIBuilder->createCompileUnit(
+      llvm::dwarf::DW_LANG_C, GlobalOption.InputFile, ".", "toy", false, "", 0,
+      "", llvm::DIBuilder::FullDebug, 0, true);
+  GlobalDebugInfo.DIFile =
+      DIBuilder->createFile(GlobalDebugInfo.DICompileUnit->getFilename(),
+                            GlobalDebugInfo.DICompileUnit->getDirectory());
+  GlobalDebugInfo.DIDoubleType =
+      DIBuilder->createBasicType("double", 64, 64, llvm::dwarf::DW_ATE_float);
+  llvm::DISubprogram* GlobalDISubprogram = GlobalDebugInfo.createFunction(
+      ToyMainFunctionName, GlobalFunction, 0, 1, 1);
+  GlobalDebugInfo.pushDIScope(GlobalDISubprogram);
+
   CurrFunction = GlobalFunction;
   llvm::Value* RetValue = llvm::ConstantFP::get(*Context, llvm::APFloat(0.0));
 
@@ -449,7 +583,9 @@ static std::unique_ptr<llvm::Module> codePipeline(
     }
   }
   CurrBuilder->CreateRet(RetValue);
+  GlobalDebugInfo.popDIScope();
   if (GlobalOption.DumpCode) {
+    DIBuilder->finalize();
     TheModule->dump();
   }
   CurrFunction = nullptr;

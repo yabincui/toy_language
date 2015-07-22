@@ -987,152 +987,152 @@ Token (TOKEN_EOF)
 @c = internal global double 0.000000e+00
 
 define internal double @__toy_main() {
-  store double 0.000000e+00, double* @a
-  store double 0.000000e+00, double* @b
-  store double 0.000000e+00, double* @c
-  %tmp.3 = load double, double* @a
-  %tmp.4 = load double, double* @b
-  %tmp.5 = load double, double* @c
-  %tmp.6 = fmul double %tmp.4, %tmp.5
-  %tmp.7 = fadd double %tmp.3, %tmp.6
-  %tmp.13 = call double @def_a(double 2.000000e+00, double 4.000000e+00)
-  %tmp.22 = call double @ta(double 3.000000e+00, double 4.000000e+00)
-  %tmp.23 = load double, double* @a
-  %1 = fcmp one double %tmp.23, 0.000000e+00
-  br i1 %1, label %if_then, label %if_else
+  store double 0.000000e+00, double* @a, !dbg !22
+  store double 0.000000e+00, double* @b, !dbg !23
+  store double 0.000000e+00, double* @c, !dbg !24
+  %tmp.3 = load double, double* @a, !dbg !25
+  %tmp.4 = load double, double* @b, !dbg !26
+  %tmp.5 = load double, double* @c, !dbg !27
+  %tmp.6 = fmul double %tmp.4, %tmp.5, !dbg !27
+  %tmp.7 = fadd double %tmp.3, %tmp.6, !dbg !27
+  %tmp.13 = call double @def_a(double 2.000000e+00, double 4.000000e+00), !dbg !28
+  %tmp.22 = call double @ta(double 3.000000e+00, double 4.000000e+00), !dbg !29
+  %tmp.23 = load double, double* @a, !dbg !30
+  %1 = fcmp one double %tmp.23, 0.000000e+00, !dbg !31
+  br i1 %1, label %if_then, label %if_else, !dbg !31
 
 if_then:                                          ; preds = %0
-  br label %if_endif
+  br label %if_endif, !dbg !31
 
 if_else:                                          ; preds = %0
-  br label %if_endif
+  br label %if_endif, !dbg !31
 
 if_endif:                                         ; preds = %if_else, %if_then
-  %iftmp = phi double [ 3.000000e+00, %if_then ], [ 4.000000e+00, %if_else ]
-  %tmp.25 = load double, double* @a
-  %tmp.26 = fsub double %tmp.25, 6.000000e+00
-  %tmp.27 = load double, double* @a
-  %2 = fcmp one double %tmp.27, 0.000000e+00
-  br i1 %2, label %if_then1, label %if_else2
+  %iftmp = phi double [ 3.000000e+00, %if_then ], [ 4.000000e+00, %if_else ], !dbg !31
+  %tmp.25 = load double, double* @a, !dbg !32
+  %tmp.26 = fsub double %tmp.25, 6.000000e+00, !dbg !33
+  %tmp.27 = load double, double* @a, !dbg !34
+  %2 = fcmp one double %tmp.27, 0.000000e+00, !dbg !35
+  br i1 %2, label %if_then1, label %if_else2, !dbg !35
 
 if_then1:                                         ; preds = %if_endif
-  br label %if_endif3
+  br label %if_endif3, !dbg !35
 
 if_else2:                                         ; preds = %if_endif
-  br label %if_endif3
+  br label %if_endif3, !dbg !35
 
 if_endif3:                                        ; preds = %if_else2, %if_then1
-  %iftmp4 = phi double [ 5.000000e+00, %if_then1 ], [ 2.000000e+00, %if_else2 ]
-  br i1 true, label %if_then5, label %if_else6
+  %iftmp4 = phi double [ 5.000000e+00, %if_then1 ], [ 2.000000e+00, %if_else2 ], !dbg !35
+  br i1 true, label %if_then5, label %if_else6, !dbg !36
 
 if_then5:                                         ; preds = %if_endif3
-  br label %if_endif7
+  br label %if_endif7, !dbg !36
 
 if_else6:                                         ; preds = %if_endif3
-  br label %if_endif7
+  br label %if_endif7, !dbg !36
 
 if_endif7:                                        ; preds = %if_else6, %if_then5
-  %iftmp8 = phi double [ 5.000000e+00, %if_then5 ], [ 1.100000e+01, %if_else6 ]
-  br i1 false, label %if_then9, label %if_cond
+  %iftmp8 = phi double [ 5.000000e+00, %if_then5 ], [ 1.100000e+01, %if_else6 ], !dbg !36
+  br i1 false, label %if_then9, label %if_cond, !dbg !37
 
 if_then9:                                         ; preds = %if_endif7
-  br label %if_endif12
+  br label %if_endif12, !dbg !37
 
 if_cond:                                          ; preds = %if_endif7
-  br i1 true, label %if_then10, label %if_else11
+  br i1 true, label %if_then10, label %if_else11, !dbg !37
 
 if_then10:                                        ; preds = %if_cond
-  br label %if_endif12
+  br label %if_endif12, !dbg !37
 
 if_else11:                                        ; preds = %if_cond
-  br label %if_endif12
+  br label %if_endif12, !dbg !37
 
 if_endif12:                                       ; preds = %if_else11, %if_then10, %if_then9
-  %iftmp13 = phi double [ 0.000000e+00, %if_then9 ], [ 1.000000e+00, %if_then10 ], [ 0.000000e+00, %if_else11 ]
-  br i1 false, label %if_then14, label %if_cond15
+  %iftmp13 = phi double [ 0.000000e+00, %if_then9 ], [ 1.000000e+00, %if_then10 ], [ 0.000000e+00, %if_else11 ], !dbg !37
+  br i1 false, label %if_then14, label %if_cond15, !dbg !38
 
 if_then14:                                        ; preds = %if_endif12
-  br label %if_endif20
+  br label %if_endif20, !dbg !38
 
 if_cond15:                                        ; preds = %if_endif12
-  br i1 true, label %if_then16, label %if_cond17
+  br i1 true, label %if_then16, label %if_cond17, !dbg !38
 
 if_then16:                                        ; preds = %if_cond15
-  br label %if_endif20
+  br label %if_endif20, !dbg !38
 
 if_cond17:                                        ; preds = %if_cond15
-  br i1 true, label %if_then18, label %if_else19
+  br i1 true, label %if_then18, label %if_else19, !dbg !38
 
 if_then18:                                        ; preds = %if_cond17
-  br label %if_endif20
+  br label %if_endif20, !dbg !38
 
 if_else19:                                        ; preds = %if_cond17
-  br label %if_endif20
+  br label %if_endif20, !dbg !38
 
 if_endif20:                                       ; preds = %if_else19, %if_then18, %if_then16, %if_then14
-  %iftmp21 = phi double [ 0.000000e+00, %if_then14 ], [ 1.000000e+00, %if_then16 ], [ 2.000000e+00, %if_then18 ], [ 3.000000e+00, %if_else19 ]
-  br i1 false, label %if_then22, label %if_else23
+  %iftmp21 = phi double [ 0.000000e+00, %if_then14 ], [ 1.000000e+00, %if_then16 ], [ 2.000000e+00, %if_then18 ], [ 3.000000e+00, %if_else19 ], !dbg !38
+  br i1 false, label %if_then22, label %if_else23, !dbg !39
 
 if_then22:                                        ; preds = %if_endif20
-  br label %if_endif28
+  br label %if_endif28, !dbg !39
 
 if_else23:                                        ; preds = %if_endif20
-  %tmp.32 = load double, double* @a
-  %3 = fcmp one double %tmp.32, 0.000000e+00
-  br i1 %3, label %if_then24, label %if_else25
+  %tmp.32 = load double, double* @a, !dbg !40
+  %3 = fcmp one double %tmp.32, 0.000000e+00, !dbg !39
+  br i1 %3, label %if_then24, label %if_else25, !dbg !39
 
 if_then24:                                        ; preds = %if_else23
-  br label %if_endif26
+  br label %if_endif26, !dbg !39
 
 if_else25:                                        ; preds = %if_else23
-  br label %if_endif26
+  br label %if_endif26, !dbg !39
 
 if_endif26:                                       ; preds = %if_else25, %if_then24
-  %iftmp27 = phi double [ 1.000000e+00, %if_then24 ], [ 2.000000e+00, %if_else25 ]
-  br label %if_endif28
+  %iftmp27 = phi double [ 1.000000e+00, %if_then24 ], [ 2.000000e+00, %if_else25 ], !dbg !39
+  br label %if_endif28, !dbg !39
 
 if_endif28:                                       ; preds = %if_endif26, %if_then22
-  %iftmp29 = phi double [ 0.000000e+00, %if_then22 ], [ %iftmp27, %if_endif26 ]
-  %tmp.33 = call double @printc(double 4.200000e+01)
-  %tmp.34 = call double @printc(double 1.000000e+01)
-  store double 1.000000e+00, double* @a
-  br label %for_cmp
+  %iftmp29 = phi double [ 0.000000e+00, %if_then22 ], [ %iftmp27, %if_endif26 ], !dbg !39
+  %tmp.33 = call double @printc(double 4.200000e+01), !dbg !41
+  %tmp.34 = call double @printc(double 1.000000e+01), !dbg !42
+  store double 1.000000e+00, double* @a, !dbg !43
+  br label %for_cmp, !dbg !44
 
 for_cmp:                                          ; preds = %for_loop, %if_endif28
-  %tmp.43 = load double, double* @a
-  %tmp.44 = fcmp ole double %tmp.43, 2.000000e+01
-  %4 = uitofp i1 %tmp.44 to double
-  %5 = fcmp one double %4, 0.000000e+00
-  br i1 %5, label %for_loop, label %for_after_loop
+  %tmp.43 = load double, double* @a, !dbg !45
+  %tmp.44 = fcmp ole double %tmp.43, 2.000000e+01, !dbg !46
+  %4 = uitofp i1 %tmp.44 to double, !dbg !46
+  %5 = fcmp one double %4, 0.000000e+00, !dbg !44
+  br i1 %5, label %for_loop, label %for_after_loop, !dbg !44
 
 for_loop:                                         ; preds = %for_cmp
-  %tmp.45 = call double @printc(double 4.200000e+01)
-  %tmp.46 = load double, double* @a
-  %tmp.47 = fadd double %tmp.46, 1.000000e+00
-  store double %tmp.47, double* @a
-  br label %for_cmp
+  %tmp.45 = call double @printc(double 4.200000e+01), !dbg !47
+  %tmp.46 = load double, double* @a, !dbg !48
+  %tmp.47 = fadd double %tmp.46, 1.000000e+00, !dbg !44
+  store double %tmp.47, double* @a, !dbg !44
+  br label %for_cmp, !dbg !44
 
 for_after_loop:                                   ; preds = %for_cmp
-  %tmp.48 = call double @printc(double 1.000000e+01)
-  %tmp.51 = call double @printc(double 4.200000e+01)
-  %tmp.52 = call double @printc(double 1.000000e+01)
-  %tmp.53 = call double @"binary:"(double %tmp.51, double %tmp.52)
-  %tmp.55 = call double @"unary!"(double 3.000000e+00)
-  %tmp.56 = call double @"unary!"(double 0.000000e+00)
-  store double 4.200000e+01, double* @a
-  %tmp.63 = call double @a_function(double 4.200000e+01)
-  %tmp.64 = load double, double* @a
-  %tmp.65 = call double @printc(double %tmp.64)
-  %tmp.66 = load double, double* @a
-  %tmp.67 = call double @printc(double %tmp.66)
-  %tmp.68 = call double @"binary:"(double %tmp.65, double %tmp.67)
-  %tmp.69 = load double, double* @a
-  %tmp.70 = fsub double %tmp.69, 3.200000e+01
-  %tmp.71 = call double @printc(double %tmp.70)
-  %tmp.72 = call double @"binary:"(double %tmp.68, double %tmp.71)
-  %tmp.73 = load double, double* @a
-  %tmp.74 = fmul double %tmp.73, 5.000000e+00
-  ret double %tmp.74
+  %tmp.48 = call double @printc(double 1.000000e+01), !dbg !49
+  %tmp.51 = call double @printc(double 4.200000e+01), !dbg !50
+  %tmp.52 = call double @printc(double 1.000000e+01), !dbg !51
+  %tmp.53 = call double @"binary:"(double %tmp.51, double %tmp.52), !dbg !51
+  %tmp.55 = call double @"unary!"(double 3.000000e+00), !dbg !52
+  %tmp.56 = call double @"unary!"(double 0.000000e+00), !dbg !53
+  store double 4.200000e+01, double* @a, !dbg !54
+  %tmp.63 = call double @a_function(double 4.200000e+01), !dbg !55
+  %tmp.64 = load double, double* @a, !dbg !56
+  %tmp.65 = call double @printc(double %tmp.64), !dbg !56
+  %tmp.66 = load double, double* @a, !dbg !57
+  %tmp.67 = call double @printc(double %tmp.66), !dbg !57
+  %tmp.68 = call double @"binary:"(double %tmp.65, double %tmp.67), !dbg !57
+  %tmp.69 = load double, double* @a, !dbg !58
+  %tmp.70 = fsub double %tmp.69, 3.200000e+01, !dbg !59
+  %tmp.71 = call double @printc(double %tmp.70), !dbg !59
+  %tmp.72 = call double @"binary:"(double %tmp.68, double %tmp.71), !dbg !59
+  %tmp.73 = load double, double* @a, !dbg !60
+  %tmp.74 = fmul double %tmp.73, 5.000000e+00, !dbg !61
+  ret double %tmp.74, !dbg !61
 }
 
 declare double @extern_a(double, double)
@@ -1140,37 +1140,47 @@ declare double @extern_a(double, double)
 define double @def_a(double %def_b, double %def_c) {
 def_a.entry:
   %def_b1 = alloca double
+  call void @llvm.dbg.declare(metadata double* %def_b1, metadata !62, metadata !63), !dbg !64
   store double %def_b, double* %def_b1
   %def_c2 = alloca double
+  call void @llvm.dbg.declare(metadata double* %def_c2, metadata !65, metadata !63), !dbg !64
   store double %def_c, double* %def_c2
-  %tmp.8 = load double, double* %def_b1
-  %tmp.9 = load double, double* %def_c2
-  %tmp.10 = fmul double 2.000000e+00, %tmp.9
-  %tmp.11 = fadd double %tmp.8, %tmp.10
-  %tmp.12 = fsub double %tmp.11, 6.000000e+00
-  ret double %tmp.12
+  %tmp.8 = load double, double* %def_b1, !dbg !66
+  %tmp.9 = load double, double* %def_c2, !dbg !67
+  %tmp.10 = fmul double 2.000000e+00, %tmp.9, !dbg !67
+  %tmp.11 = fadd double %tmp.8, %tmp.10, !dbg !67
+  %tmp.12 = fsub double %tmp.11, 6.000000e+00, !dbg !68
+  ret double %tmp.12, !dbg !68
 }
+
+; Function Attrs: nounwind readnone
+declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
 
 define double @cse_test(double %x) {
 cse_test.entry:
   %x1 = alloca double
+  call void @llvm.dbg.declare(metadata double* %x1, metadata !69, metadata !63), !dbg !70
   store double %x, double* %x1
-  %tmp.14 = load double, double* %x1
-  %tmp.15 = fadd double 3.000000e+00, %tmp.14
-  %tmp.16 = load double, double* %x1
-  %tmp.17 = fadd double %tmp.16, 3.000000e+00
-  %tmp.18 = fmul double %tmp.15, %tmp.17
-  ret double %tmp.18
+  %tmp.14 = load double, double* %x1, !dbg !71
+  %tmp.15 = fadd double 3.000000e+00, %tmp.14, !dbg !71
+  %tmp.16 = load double, double* %x1, !dbg !72
+  %tmp.17 = fadd double %tmp.16, 3.000000e+00, !dbg !73
+  %tmp.18 = fmul double %tmp.15, %tmp.17, !dbg !73
+  ret double %tmp.18, !dbg !73
 }
 
 define double @ta(double %b, double %c) {
 ta.entry:
-  store double %b, double* @b
-  store double %c, double* @c
-  %tmp.19 = load double, double* @b
-  %tmp.20 = load double, double* @c
-  %tmp.21 = fmul double %tmp.19, %tmp.20
-  ret double %tmp.21
+  %b1 = alloca double
+  call void @llvm.dbg.declare(metadata double* %b1, metadata !74, metadata !63), !dbg !75
+  store double %b, double* %b1
+  %c2 = alloca double
+  call void @llvm.dbg.declare(metadata double* %c2, metadata !76, metadata !63), !dbg !75
+  store double %c, double* %c2
+  %tmp.19 = load double, double* %b1, !dbg !77
+  %tmp.20 = load double, double* %c2, !dbg !78
+  %tmp.21 = fmul double %tmp.19, %tmp.20, !dbg !78
+  ret double %tmp.21, !dbg !78
 }
 
 declare double @printc(double)
@@ -1178,45 +1188,149 @@ declare double @printc(double)
 define double @"binary:"(double %LHS, double %RHS) {
 "binary:.entry":
   %LHS1 = alloca double
+  call void @llvm.dbg.declare(metadata double* %LHS1, metadata !79, metadata !63), !dbg !80
   store double %LHS, double* %LHS1
   %RHS2 = alloca double
+  call void @llvm.dbg.declare(metadata double* %RHS2, metadata !81, metadata !63), !dbg !80
   store double %RHS, double* %RHS2
-  %tmp.49 = load double, double* %LHS1
-  %tmp.50 = load double, double* %RHS2
-  ret double %tmp.50
+  %tmp.49 = load double, double* %LHS1, !dbg !82
+  %tmp.50 = load double, double* %RHS2, !dbg !83
+  ret double %tmp.50, !dbg !83
 }
 
 define double @"unary!"(double %RHS) {
 "unary!.entry":
   %RHS1 = alloca double
+  call void @llvm.dbg.declare(metadata double* %RHS1, metadata !84, metadata !63), !dbg !85
   store double %RHS, double* %RHS1
-  %tmp.54 = load double, double* %RHS1
-  %0 = fcmp one double %tmp.54, 0.000000e+00
-  br i1 %0, label %if_then, label %if_else
+  %tmp.54 = load double, double* %RHS1, !dbg !86
+  %0 = fcmp one double %tmp.54, 0.000000e+00, !dbg !87
+  br i1 %0, label %if_then, label %if_else, !dbg !87
 
 if_then:                                          ; preds = %"unary!.entry"
-  br label %if_endif
+  br label %if_endif, !dbg !87
 
 if_else:                                          ; preds = %"unary!.entry"
-  br label %if_endif
+  br label %if_endif, !dbg !87
 
 if_endif:                                         ; preds = %if_else, %if_then
-  %iftmp = phi double [ 0.000000e+00, %if_then ], [ 1.000000e+00, %if_else ]
-  ret double %iftmp
+  %iftmp = phi double [ 0.000000e+00, %if_then ], [ 1.000000e+00, %if_else ], !dbg !87
+  ret double %iftmp, !dbg !87
 }
 
 define double @a_function(double %a) {
 a_function.entry:
-  store double %a, double* @a
-  store double 4.200000e+01, double* @a
-  %tmp.57 = load double, double* @a
-  %tmp.58 = call double @printc(double %tmp.57)
-  %tmp.59 = load double, double* @a
-  %tmp.60 = fsub double %tmp.59, 3.200000e+01
-  %tmp.61 = call double @printc(double %tmp.60)
-  %tmp.62 = call double @"binary:"(double %tmp.58, double %tmp.61)
-  ret double %tmp.62
+  %a1 = alloca double
+  call void @llvm.dbg.declare(metadata double* %a1, metadata !88, metadata !63), !dbg !89
+  store double %a, double* %a1
+  store double 4.200000e+01, double* %a1, !dbg !90
+  %tmp.57 = load double, double* %a1, !dbg !91
+  %tmp.58 = call double @printc(double %tmp.57), !dbg !91
+  %tmp.59 = load double, double* %a1, !dbg !92
+  %tmp.60 = fsub double %tmp.59, 3.200000e+01, !dbg !93
+  %tmp.61 = call double @printc(double %tmp.60), !dbg !93
+  %tmp.62 = call double @"binary:"(double %tmp.58, double %tmp.61), !dbg !93
+  ret double %tmp.62, !dbg !93
 }
+
+attributes #0 = { nounwind readnone }
+
+!llvm.dbg.cu = !{!0}
+
+!0 = !DICompileUnit(language: DW_LANG_C, file: !1, producer: "toy", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, retainedTypes: !2, subprograms: !3, globals: !18, imports: !2)
+!1 = !DIFile(filename: "runtest_input.txt", directory: ".")
+!2 = !{}
+!3 = !{!4, !8, !11, !14, !15, !16, !17}
+!4 = !DISubprogram(name: "__toy_main", scope: !1, file: !1, line: 1, type: !5, isLocal: true, isDefinition: true, scopeLine: 1, isOptimized: false, function: double ()* @__toy_main, variables: !2)
+!5 = !DISubroutineType(types: !6)
+!6 = !{!7}
+!7 = !DIBasicType(name: "double", size: 64, align: 64, encoding: DW_ATE_float)
+!8 = !DISubprogram(name: "def_a", scope: !1, file: !1, line: 10, type: !9, isLocal: true, isDefinition: true, scopeLine: 10, isOptimized: false, function: double (double, double)* @def_a, variables: !2)
+!9 = !DISubroutineType(types: !10)
+!10 = !{!7, !7, !7}
+!11 = !DISubprogram(name: "cse_test", scope: !1, file: !1, line: 17, type: !12, isLocal: true, isDefinition: true, scopeLine: 17, isOptimized: false, function: double (double)* @cse_test, variables: !2)
+!12 = !DISubroutineType(types: !13)
+!13 = !{!7, !7}
+!14 = !DISubprogram(name: "ta", scope: !1, file: !1, line: 19, type: !9, isLocal: true, isDefinition: true, scopeLine: 19, isOptimized: false, function: double (double, double)* @ta, variables: !2)
+!15 = !DISubprogram(name: "binary:", scope: !1, file: !1, line: 84, type: !9, isLocal: true, isDefinition: true, scopeLine: 84, isOptimized: false, function: double (double, double)* @"binary:", variables: !2)
+!16 = !DISubprogram(name: "unary!", scope: !1, file: !1, line: 91, type: !12, isLocal: true, isDefinition: true, scopeLine: 91, isOptimized: false, function: double (double)* @"unary!", variables: !2)
+!17 = !DISubprogram(name: "a_function", scope: !1, file: !1, line: 99, type: !12, isLocal: true, isDefinition: true, scopeLine: 99, isOptimized: false, function: double (double)* @a_function, variables: !2)
+!18 = !{!19, !20, !21}
+!19 = !DIGlobalVariable(name: "a", scope: !1, file: !1, line: 1, type: !7, isLocal: true, isDefinition: true, variable: double 0.000000e+00)
+!20 = !DIGlobalVariable(name: "b", scope: !1, file: !1, line: 2, type: !7, isLocal: true, isDefinition: true, variable: double 0.000000e+00)
+!21 = !DIGlobalVariable(name: "c", scope: !1, file: !1, line: 3, type: !7, isLocal: true, isDefinition: true, variable: double 0.000000e+00)
+!22 = !DILocation(line: 1, column: 5, scope: !4)
+!23 = !DILocation(line: 2, column: 5, scope: !4)
+!24 = !DILocation(line: 3, column: 5, scope: !4)
+!25 = !DILocation(line: 6, column: 1, scope: !4)
+!26 = !DILocation(line: 6, column: 5, scope: !4)
+!27 = !DILocation(line: 6, column: 9, scope: !4)
+!28 = !DILocation(line: 13, column: 10, scope: !4)
+!29 = !DILocation(line: 20, column: 6, scope: !4)
+!30 = !DILocation(line: 22, column: 5, scope: !4)
+!31 = !DILocation(line: 22, column: 16, scope: !4)
+!32 = !DILocation(line: 26, column: 1, scope: !4)
+!33 = !DILocation(line: 26, column: 3, scope: !4)
+!34 = !DILocation(line: 29, column: 5, scope: !4)
+!35 = !DILocation(line: 32, column: 5, scope: !4)
+!36 = !DILocation(line: 38, column: 5, scope: !4)
+!37 = !DILocation(line: 44, column: 3, scope: !4)
+!38 = !DILocation(line: 54, column: 3, scope: !4)
+!39 = !DILocation(line: 63, column: 5, scope: !4)
+!40 = !DILocation(line: 60, column: 7, scope: !4)
+!41 = !DILocation(line: 68, column: 8, scope: !4)
+!42 = !DILocation(line: 69, column: 8, scope: !4)
+!43 = !DILocation(line: 79, column: 10, scope: !4)
+!44 = !DILocation(line: 79, column: 30, scope: !4)
+!45 = !DILocation(line: 79, column: 13, scope: !4)
+!46 = !DILocation(line: 79, column: 18, scope: !4)
+!47 = !DILocation(line: 80, column: 10, scope: !4)
+!48 = !DILocation(line: 79, column: 26, scope: !4)
+!49 = !DILocation(line: 82, column: 8, scope: !4)
+!50 = !DILocation(line: 89, column: 8, scope: !4)
+!51 = !DILocation(line: 89, column: 21, scope: !4)
+!52 = !DILocation(line: 95, column: 2, scope: !4)
+!53 = !DILocation(line: 96, column: 2, scope: !4)
+!54 = !DILocation(line: 98, column: 5, scope: !4)
+!55 = !DILocation(line: 104, column: 12, scope: !4)
+!56 = !DILocation(line: 105, column: 8, scope: !4)
+!57 = !DILocation(line: 105, column: 20, scope: !4)
+!58 = !DILocation(line: 105, column: 32, scope: !4)
+!59 = !DILocation(line: 105, column: 36, scope: !4)
+!60 = !DILocation(line: 106, column: 1, scope: !4)
+!61 = !DILocation(line: 106, column: 5, scope: !4)
+!62 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "def_b", arg: 1, scope: !8, file: !1, line: 10, type: !7)
+!63 = !DIExpression()
+!64 = !DILocation(line: 10, scope: !8)
+!65 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "def_c", arg: 2, scope: !8, file: !1, line: 10, type: !7)
+!66 = !DILocation(line: 11, column: 3, scope: !8)
+!67 = !DILocation(line: 11, column: 15, scope: !8)
+!68 = !DILocation(line: 11, column: 23, scope: !8)
+!69 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "x", arg: 1, scope: !11, file: !1, line: 17, type: !7)
+!70 = !DILocation(line: 17, scope: !11)
+!71 = !DILocation(line: 17, column: 20, scope: !11)
+!72 = !DILocation(line: 17, column: 26, scope: !11)
+!73 = !DILocation(line: 17, column: 28, scope: !11)
+!74 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "b", arg: 1, scope: !14, file: !1, line: 19, type: !7)
+!75 = !DILocation(line: 19, scope: !14)
+!76 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "c", arg: 2, scope: !14, file: !1, line: 19, type: !7)
+!77 = !DILocation(line: 19, column: 13, scope: !14)
+!78 = !DILocation(line: 19, column: 15, scope: !14)
+!79 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "LHS", arg: 1, scope: !15, file: !1, line: 84, type: !7)
+!80 = !DILocation(line: 84, scope: !15)
+!81 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "RHS", arg: 2, scope: !15, file: !1, line: 84, type: !7)
+!82 = !DILocation(line: 85, column: 2, scope: !15)
+!83 = !DILocation(line: 86, column: 2, scope: !15)
+!84 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "RHS", arg: 1, scope: !16, file: !1, line: 91, type: !7)
+!85 = !DILocation(line: 91, scope: !16)
+!86 = !DILocation(line: 92, column: 7, scope: !16)
+!87 = !DILocation(line: 92, column: 20, scope: !16)
+!88 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "a", arg: 1, scope: !17, file: !1, line: 99, type: !7)
+!89 = !DILocation(line: 99, scope: !17)
+!90 = !DILocation(line: 100, column: 7, scope: !17)
+!91 = !DILocation(line: 101, column: 10, scope: !17)
+!92 = !DILocation(line: 101, column: 22, scope: !17)
+!93 = !DILocation(line: 101, column: 26, scope: !17)
 *
 ********************
 *
@@ -1236,9 +1350,23 @@ AssignmentExprAST (Line 1, Column 1): name = a
 @a = internal global double 0.000000e+00
 
 define internal double @__toy_main() {
-  store double 0.000000e+00, double* @a
-  ret double 0.000000e+00
+  store double 0.000000e+00, double* @a, !dbg !10
+  ret double 0.000000e+00, !dbg !10
 }
+
+!llvm.dbg.cu = !{!0}
+
+!0 = !DICompileUnit(language: DW_LANG_C, file: !1, producer: "toy", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, retainedTypes: !2, subprograms: !3, globals: !8, imports: !2)
+!1 = !DIFile(filename: "<stdin>", directory: ".")
+!2 = !{}
+!3 = !{!4}
+!4 = !DISubprogram(name: "__toy_main", scope: !1, file: !1, line: 1, type: !5, isLocal: true, isDefinition: true, scopeLine: 1, isOptimized: false, function: double ()* @__toy_main, variables: !2)
+!5 = !DISubroutineType(types: !6)
+!6 = !{!7}
+!7 = !DIBasicType(name: "double", size: 64, align: 64, encoding: DW_ATE_float)
+!8 = !{!9}
+!9 = !DIGlobalVariable(name: "a", scope: !1, file: !1, line: 1, type: !7, isLocal: true, isDefinition: true, variable: double 0.000000e+00)
+!10 = !DILocation(line: 1, column: 5, scope: !4)
 0.000000
 Token (TOKEN_IDENTIFIER, b)
 Token (TOKEN_LETTER, =)
@@ -1254,9 +1382,23 @@ AssignmentExprAST (Line 2, Column 1): name = b
 @b = internal global double 0.000000e+00
 
 define internal double @__toy_main() {
-  store double 0.000000e+00, double* @b
-  ret double 0.000000e+00
+  store double 0.000000e+00, double* @b, !dbg !10
+  ret double 0.000000e+00, !dbg !10
 }
+
+!llvm.dbg.cu = !{!0}
+
+!0 = !DICompileUnit(language: DW_LANG_C, file: !1, producer: "toy", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, retainedTypes: !2, subprograms: !3, globals: !8, imports: !2)
+!1 = !DIFile(filename: "<stdin>", directory: ".")
+!2 = !{}
+!3 = !{!4}
+!4 = !DISubprogram(name: "__toy_main", scope: !1, file: !1, line: 1, type: !5, isLocal: true, isDefinition: true, scopeLine: 1, isOptimized: false, function: double ()* @__toy_main, variables: !2)
+!5 = !DISubroutineType(types: !6)
+!6 = !{!7}
+!7 = !DIBasicType(name: "double", size: 64, align: 64, encoding: DW_ATE_float)
+!8 = !{!9}
+!9 = !DIGlobalVariable(name: "b", scope: !1, file: !1, line: 2, type: !7, isLocal: true, isDefinition: true, variable: double 0.000000e+00)
+!10 = !DILocation(line: 2, column: 5, scope: !4)
 0.000000
 Token (TOKEN_IDENTIFIER, c)
 Token (TOKEN_LETTER, =)
@@ -1273,9 +1415,23 @@ AssignmentExprAST (Line 3, Column 1): name = c
 @c = internal global double 0.000000e+00
 
 define internal double @__toy_main() {
-  store double 0.000000e+00, double* @c
-  ret double 0.000000e+00
+  store double 0.000000e+00, double* @c, !dbg !10
+  ret double 0.000000e+00, !dbg !10
 }
+
+!llvm.dbg.cu = !{!0}
+
+!0 = !DICompileUnit(language: DW_LANG_C, file: !1, producer: "toy", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, retainedTypes: !2, subprograms: !3, globals: !8, imports: !2)
+!1 = !DIFile(filename: "<stdin>", directory: ".")
+!2 = !{}
+!3 = !{!4}
+!4 = !DISubprogram(name: "__toy_main", scope: !1, file: !1, line: 1, type: !5, isLocal: true, isDefinition: true, scopeLine: 1, isOptimized: false, function: double ()* @__toy_main, variables: !2)
+!5 = !DISubroutineType(types: !6)
+!6 = !{!7}
+!7 = !DIBasicType(name: "double", size: 64, align: 64, encoding: DW_ATE_float)
+!8 = !{!9}
+!9 = !DIGlobalVariable(name: "c", scope: !1, file: !1, line: 3, type: !7, isLocal: true, isDefinition: true, variable: double 0.000000e+00)
+!10 = !DILocation(line: 3, column: 5, scope: !4)
 0.000000
 >Token (TOKEN_NUMBER, 3.000000)
 Token (TOKEN_OP, +)
@@ -1301,8 +1457,20 @@ BinaryExprAST (Line 5, Column 3): op = +
 @c = external global double
 
 define internal double @__toy_main() {
-  ret double 1.100000e+01
+  ret double 1.100000e+01, !dbg !8
 }
+
+!llvm.dbg.cu = !{!0}
+
+!0 = !DICompileUnit(language: DW_LANG_C, file: !1, producer: "toy", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, retainedTypes: !2, subprograms: !3, globals: !2, imports: !2)
+!1 = !DIFile(filename: "<stdin>", directory: ".")
+!2 = !{}
+!3 = !{!4}
+!4 = !DISubprogram(name: "__toy_main", scope: !1, file: !1, line: 1, type: !5, isLocal: true, isDefinition: true, scopeLine: 1, isOptimized: false, function: double ()* @__toy_main, variables: !2)
+!5 = !DISubroutineType(types: !6)
+!6 = !{!7}
+!7 = !DIBasicType(name: "double", size: 64, align: 64, encoding: DW_ATE_float)
+!8 = !DILocation(line: 5, column: 9, scope: !4)
 11.000000
 Token (TOKEN_IDENTIFIER, a)
 Token (TOKEN_OP, +)
@@ -1336,13 +1504,27 @@ BinaryExprAST (Line 6, Column 3): op = +
 @c = external global double
 
 define internal double @__toy_main() {
-  %tmp.3 = load double, double* @a
-  %tmp.4 = load double, double* @b
-  %tmp.5 = load double, double* @c
-  %tmp.6 = fmul double %tmp.4, %tmp.5
-  %tmp.7 = fadd double %tmp.3, %tmp.6
-  ret double %tmp.7
+  %tmp.3 = load double, double* @a, !dbg !8
+  %tmp.4 = load double, double* @b, !dbg !9
+  %tmp.5 = load double, double* @c, !dbg !10
+  %tmp.6 = fmul double %tmp.4, %tmp.5, !dbg !10
+  %tmp.7 = fadd double %tmp.3, %tmp.6, !dbg !10
+  ret double %tmp.7, !dbg !10
 }
+
+!llvm.dbg.cu = !{!0}
+
+!0 = !DICompileUnit(language: DW_LANG_C, file: !1, producer: "toy", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, retainedTypes: !2, subprograms: !3, globals: !2, imports: !2)
+!1 = !DIFile(filename: "<stdin>", directory: ".")
+!2 = !{}
+!3 = !{!4}
+!4 = !DISubprogram(name: "__toy_main", scope: !1, file: !1, line: 1, type: !5, isLocal: true, isDefinition: true, scopeLine: 1, isOptimized: false, function: double ()* @__toy_main, variables: !2)
+!5 = !DISubroutineType(types: !6)
+!6 = !{!7}
+!7 = !DIBasicType(name: "double", size: 64, align: 64, encoding: DW_ATE_float)
+!8 = !DILocation(line: 6, column: 1, scope: !4)
+!9 = !DILocation(line: 6, column: 5, scope: !4)
+!10 = !DILocation(line: 6, column: 9, scope: !4)
 0.000000
 >Token (TOKEN_EXTERN)
 Token (TOKEN_IDENTIFIER, extern_a)
@@ -1360,10 +1542,22 @@ PrototypeAST (Line 8, Column 8): extern_a (extern_b, extern_c)
 @c = external global double
 
 define internal double @__toy_main() {
-  ret double 0.000000e+00
+  ret double 0.000000e+00, !dbg !8
 }
 
 declare double @extern_a(double, double)
+
+!llvm.dbg.cu = !{!0}
+
+!0 = !DICompileUnit(language: DW_LANG_C, file: !1, producer: "toy", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, retainedTypes: !2, subprograms: !3, globals: !2, imports: !2)
+!1 = !DIFile(filename: "<stdin>", directory: ".")
+!2 = !{}
+!3 = !{!4}
+!4 = !DISubprogram(name: "__toy_main", scope: !1, file: !1, line: 1, type: !5, isLocal: true, isDefinition: true, scopeLine: 1, isOptimized: false, function: double ()* @__toy_main, variables: !2)
+!5 = !DISubroutineType(types: !6)
+!6 = !{!7}
+!7 = !DIBasicType(name: "double", size: 64, align: 64, encoding: DW_ATE_float)
+!8 = !DILocation(line: 8, column: 8, scope: !4)
 0.000000
 >Token (TOKEN_DEF)
 Token (TOKEN_IDENTIFIER, def_a)
@@ -1410,7 +1604,7 @@ FunctionAST (Line 10, Column 1):
 @c = external global double
 
 define internal double @__toy_main() {
-  ret double 0.000000e+00
+  ret double 0.000000e+00, !dbg !11
 }
 
 declare double @extern_a(double, double)
@@ -1418,16 +1612,45 @@ declare double @extern_a(double, double)
 define double @def_a(double %def_b, double %def_c) {
 def_a.entry:
   %def_b1 = alloca double
+  call void @llvm.dbg.declare(metadata double* %def_b1, metadata !12, metadata !13), !dbg !14
   store double %def_b, double* %def_b1
   %def_c2 = alloca double
+  call void @llvm.dbg.declare(metadata double* %def_c2, metadata !15, metadata !13), !dbg !14
   store double %def_c, double* %def_c2
-  %tmp.8 = load double, double* %def_b1
-  %tmp.9 = load double, double* %def_c2
-  %tmp.10 = fmul double 2.000000e+00, %tmp.9
-  %tmp.11 = fadd double %tmp.8, %tmp.10
-  %tmp.12 = fsub double %tmp.11, 6.000000e+00
-  ret double %tmp.12
+  %tmp.8 = load double, double* %def_b1, !dbg !16
+  %tmp.9 = load double, double* %def_c2, !dbg !17
+  %tmp.10 = fmul double 2.000000e+00, %tmp.9, !dbg !17
+  %tmp.11 = fadd double %tmp.8, %tmp.10, !dbg !17
+  %tmp.12 = fsub double %tmp.11, 6.000000e+00, !dbg !18
+  ret double %tmp.12, !dbg !18
 }
+
+; Function Attrs: nounwind readnone
+declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
+
+attributes #0 = { nounwind readnone }
+
+!llvm.dbg.cu = !{!0}
+
+!0 = !DICompileUnit(language: DW_LANG_C, file: !1, producer: "toy", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, retainedTypes: !2, subprograms: !3, globals: !2, imports: !2)
+!1 = !DIFile(filename: "<stdin>", directory: ".")
+!2 = !{}
+!3 = !{!4, !8}
+!4 = !DISubprogram(name: "__toy_main", scope: !1, file: !1, line: 1, type: !5, isLocal: true, isDefinition: true, scopeLine: 1, isOptimized: false, function: double ()* @__toy_main, variables: !2)
+!5 = !DISubroutineType(types: !6)
+!6 = !{!7}
+!7 = !DIBasicType(name: "double", size: 64, align: 64, encoding: DW_ATE_float)
+!8 = !DISubprogram(name: "def_a", scope: !1, file: !1, line: 10, type: !9, isLocal: true, isDefinition: true, scopeLine: 10, isOptimized: false, function: double (double, double)* @def_a, variables: !2)
+!9 = !DISubroutineType(types: !10)
+!10 = !{!7, !7, !7}
+!11 = !DILocation(line: 10, column: 5, scope: !4)
+!12 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "def_b", arg: 1, scope: !8, file: !1, line: 10, type: !7)
+!13 = !DIExpression()
+!14 = !DILocation(line: 10, scope: !8)
+!15 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "def_c", arg: 2, scope: !8, file: !1, line: 10, type: !7)
+!16 = !DILocation(line: 11, column: 3, scope: !8)
+!17 = !DILocation(line: 11, column: 15, scope: !8)
+!18 = !DILocation(line: 11, column: 23, scope: !8)
 0.000000
 >Token (TOKEN_IDENTIFIER, def_a)
 Token (TOKEN_LETTER, ()
@@ -1456,13 +1679,25 @@ CallExprAST (Line 13, Column 1): Callee = def_a
 @c = external global double
 
 define internal double @__toy_main() {
-  %tmp.13 = call double @def_a(double 2.000000e+00, double 4.000000e+00)
-  ret double %tmp.13
+  %tmp.13 = call double @def_a(double 2.000000e+00, double 4.000000e+00), !dbg !8
+  ret double %tmp.13, !dbg !8
 }
 
 declare double @extern_a(double, double)
 
 declare double @def_a(double, double)
+
+!llvm.dbg.cu = !{!0}
+
+!0 = !DICompileUnit(language: DW_LANG_C, file: !1, producer: "toy", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, retainedTypes: !2, subprograms: !3, globals: !2, imports: !2)
+!1 = !DIFile(filename: "<stdin>", directory: ".")
+!2 = !{}
+!3 = !{!4}
+!4 = !DISubprogram(name: "__toy_main", scope: !1, file: !1, line: 1, type: !5, isLocal: true, isDefinition: true, scopeLine: 1, isOptimized: false, function: double ()* @__toy_main, variables: !2)
+!5 = !DISubroutineType(types: !6)
+!6 = !{!7}
+!7 = !DIBasicType(name: "double", size: 64, align: 64, encoding: DW_ATE_float)
+!8 = !DILocation(line: 13, column: 10, scope: !4)
 4.000000
 >Token (TOKEN_DEF)
 Token (TOKEN_IDENTIFIER, cse_test)
@@ -1515,7 +1750,7 @@ FunctionAST (Line 17, Column 1):
 @c = external global double
 
 define internal double @__toy_main() {
-  ret double 0.000000e+00
+  ret double 0.000000e+00, !dbg !11
 }
 
 declare double @extern_a(double, double)
@@ -1525,14 +1760,41 @@ declare double @def_a(double, double)
 define double @cse_test(double %x) {
 cse_test.entry:
   %x1 = alloca double
+  call void @llvm.dbg.declare(metadata double* %x1, metadata !12, metadata !13), !dbg !14
   store double %x, double* %x1
-  %tmp.14 = load double, double* %x1
-  %tmp.15 = fadd double 3.000000e+00, %tmp.14
-  %tmp.16 = load double, double* %x1
-  %tmp.17 = fadd double %tmp.16, 3.000000e+00
-  %tmp.18 = fmul double %tmp.15, %tmp.17
-  ret double %tmp.18
+  %tmp.14 = load double, double* %x1, !dbg !15
+  %tmp.15 = fadd double 3.000000e+00, %tmp.14, !dbg !15
+  %tmp.16 = load double, double* %x1, !dbg !16
+  %tmp.17 = fadd double %tmp.16, 3.000000e+00, !dbg !17
+  %tmp.18 = fmul double %tmp.15, %tmp.17, !dbg !17
+  ret double %tmp.18, !dbg !17
 }
+
+; Function Attrs: nounwind readnone
+declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
+
+attributes #0 = { nounwind readnone }
+
+!llvm.dbg.cu = !{!0}
+
+!0 = !DICompileUnit(language: DW_LANG_C, file: !1, producer: "toy", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, retainedTypes: !2, subprograms: !3, globals: !2, imports: !2)
+!1 = !DIFile(filename: "<stdin>", directory: ".")
+!2 = !{}
+!3 = !{!4, !8}
+!4 = !DISubprogram(name: "__toy_main", scope: !1, file: !1, line: 1, type: !5, isLocal: true, isDefinition: true, scopeLine: 1, isOptimized: false, function: double ()* @__toy_main, variables: !2)
+!5 = !DISubroutineType(types: !6)
+!6 = !{!7}
+!7 = !DIBasicType(name: "double", size: 64, align: 64, encoding: DW_ATE_float)
+!8 = !DISubprogram(name: "cse_test", scope: !1, file: !1, line: 17, type: !9, isLocal: true, isDefinition: true, scopeLine: 17, isOptimized: false, function: double (double)* @cse_test, variables: !2)
+!9 = !DISubroutineType(types: !10)
+!10 = !{!7, !7}
+!11 = !DILocation(line: 17, column: 5, scope: !4)
+!12 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "x", arg: 1, scope: !8, file: !1, line: 17, type: !7)
+!13 = !DIExpression()
+!14 = !DILocation(line: 17, scope: !8)
+!15 = !DILocation(line: 17, column: 20, scope: !8)
+!16 = !DILocation(line: 17, column: 26, scope: !8)
+!17 = !DILocation(line: 17, column: 28, scope: !8)
 0.000000
 >Token (TOKEN_DEF)
 Token (TOKEN_IDENTIFIER, ta)
@@ -1567,7 +1829,7 @@ FunctionAST (Line 19, Column 1):
 @c = external global double
 
 define internal double @__toy_main() {
-  ret double 0.000000e+00
+  ret double 0.000000e+00, !dbg !11
 }
 
 declare double @extern_a(double, double)
@@ -1578,13 +1840,43 @@ declare double @cse_test(double)
 
 define double @ta(double %b, double %c) {
 ta.entry:
-  store double %b, double* @b
-  store double %c, double* @c
-  %tmp.19 = load double, double* @b
-  %tmp.20 = load double, double* @c
-  %tmp.21 = fmul double %tmp.19, %tmp.20
-  ret double %tmp.21
+  %b1 = alloca double
+  call void @llvm.dbg.declare(metadata double* %b1, metadata !12, metadata !13), !dbg !14
+  store double %b, double* %b1
+  %c2 = alloca double
+  call void @llvm.dbg.declare(metadata double* %c2, metadata !15, metadata !13), !dbg !14
+  store double %c, double* %c2
+  %tmp.19 = load double, double* %b1, !dbg !16
+  %tmp.20 = load double, double* %c2, !dbg !17
+  %tmp.21 = fmul double %tmp.19, %tmp.20, !dbg !17
+  ret double %tmp.21, !dbg !17
 }
+
+; Function Attrs: nounwind readnone
+declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
+
+attributes #0 = { nounwind readnone }
+
+!llvm.dbg.cu = !{!0}
+
+!0 = !DICompileUnit(language: DW_LANG_C, file: !1, producer: "toy", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, retainedTypes: !2, subprograms: !3, globals: !2, imports: !2)
+!1 = !DIFile(filename: "<stdin>", directory: ".")
+!2 = !{}
+!3 = !{!4, !8}
+!4 = !DISubprogram(name: "__toy_main", scope: !1, file: !1, line: 1, type: !5, isLocal: true, isDefinition: true, scopeLine: 1, isOptimized: false, function: double ()* @__toy_main, variables: !2)
+!5 = !DISubroutineType(types: !6)
+!6 = !{!7}
+!7 = !DIBasicType(name: "double", size: 64, align: 64, encoding: DW_ATE_float)
+!8 = !DISubprogram(name: "ta", scope: !1, file: !1, line: 19, type: !9, isLocal: true, isDefinition: true, scopeLine: 19, isOptimized: false, function: double (double, double)* @ta, variables: !2)
+!9 = !DISubroutineType(types: !10)
+!10 = !{!7, !7, !7}
+!11 = !DILocation(line: 19, column: 5, scope: !4)
+!12 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "b", arg: 1, scope: !8, file: !1, line: 19, type: !7)
+!13 = !DIExpression()
+!14 = !DILocation(line: 19, scope: !8)
+!15 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "c", arg: 2, scope: !8, file: !1, line: 19, type: !7)
+!16 = !DILocation(line: 19, column: 13, scope: !8)
+!17 = !DILocation(line: 19, column: 15, scope: !8)
 0.000000
 Token (TOKEN_IDENTIFIER, ta)
 Token (TOKEN_LETTER, ()
@@ -1613,8 +1905,8 @@ CallExprAST (Line 20, Column 1): Callee = ta
 @c = external global double
 
 define internal double @__toy_main() {
-  %tmp.22 = call double @ta(double 3.000000e+00, double 4.000000e+00)
-  ret double %tmp.22
+  %tmp.22 = call double @ta(double 3.000000e+00, double 4.000000e+00), !dbg !8
+  ret double %tmp.22, !dbg !8
 }
 
 declare double @extern_a(double, double)
@@ -1624,6 +1916,18 @@ declare double @def_a(double, double)
 declare double @cse_test(double)
 
 declare double @ta(double, double)
+
+!llvm.dbg.cu = !{!0}
+
+!0 = !DICompileUnit(language: DW_LANG_C, file: !1, producer: "toy", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, retainedTypes: !2, subprograms: !3, globals: !2, imports: !2)
+!1 = !DIFile(filename: "<stdin>", directory: ".")
+!2 = !{}
+!3 = !{!4}
+!4 = !DISubprogram(name: "__toy_main", scope: !1, file: !1, line: 1, type: !5, isLocal: true, isDefinition: true, scopeLine: 1, isOptimized: false, function: double ()* @__toy_main, variables: !2)
+!5 = !DISubroutineType(types: !6)
+!6 = !{!7}
+!7 = !DIBasicType(name: "double", size: 64, align: 64, encoding: DW_ATE_float)
+!8 = !DILocation(line: 20, column: 6, scope: !4)
 12.000000
 >Token (TOKEN_IF)
 Token (TOKEN_LETTER, ()
@@ -1658,19 +1962,19 @@ IfExprAST (Line 22, Column 1): have 1 CondThenExprs, have 1 ElseExpr
 @c = external global double
 
 define internal double @__toy_main() {
-  %tmp.23 = load double, double* @a
-  %1 = fcmp one double %tmp.23, 0.000000e+00
-  br i1 %1, label %if_then, label %if_else
+  %tmp.23 = load double, double* @a, !dbg !8
+  %1 = fcmp one double %tmp.23, 0.000000e+00, !dbg !9
+  br i1 %1, label %if_then, label %if_else, !dbg !9
 
 if_then:                                          ; preds = %0
-  br label %if_endif
+  br label %if_endif, !dbg !9
 
 if_else:                                          ; preds = %0
-  br label %if_endif
+  br label %if_endif, !dbg !9
 
 if_endif:                                         ; preds = %if_else, %if_then
-  %iftmp = phi double [ 3.000000e+00, %if_then ], [ 4.000000e+00, %if_else ]
-  ret double %iftmp
+  %iftmp = phi double [ 3.000000e+00, %if_then ], [ 4.000000e+00, %if_else ], !dbg !9
+  ret double %iftmp, !dbg !9
 }
 
 declare double @extern_a(double, double)
@@ -1680,6 +1984,19 @@ declare double @def_a(double, double)
 declare double @cse_test(double)
 
 declare double @ta(double, double)
+
+!llvm.dbg.cu = !{!0}
+
+!0 = !DICompileUnit(language: DW_LANG_C, file: !1, producer: "toy", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, retainedTypes: !2, subprograms: !3, globals: !2, imports: !2)
+!1 = !DIFile(filename: "<stdin>", directory: ".")
+!2 = !{}
+!3 = !{!4}
+!4 = !DISubprogram(name: "__toy_main", scope: !1, file: !1, line: 1, type: !5, isLocal: true, isDefinition: true, scopeLine: 1, isOptimized: false, function: double ()* @__toy_main, variables: !2)
+!5 = !DISubroutineType(types: !6)
+!6 = !{!7}
+!7 = !DIBasicType(name: "double", size: 64, align: 64, encoding: DW_ATE_float)
+!8 = !DILocation(line: 22, column: 5, scope: !4)
+!9 = !DILocation(line: 22, column: 16, scope: !4)
 4.000000
 >Token (TOKEN_LETTER, {)
 Token (TOKEN_NUMBER, 3.000000)
@@ -1717,9 +2034,9 @@ BlockExprAST (Line 24, Column 1): have 2 exprs
 @c = external global double
 
 define internal double @__toy_main() {
-  %tmp.25 = load double, double* @a
-  %tmp.26 = fsub double %tmp.25, 6.000000e+00
-  ret double %tmp.26
+  %tmp.25 = load double, double* @a, !dbg !8
+  %tmp.26 = fsub double %tmp.25, 6.000000e+00, !dbg !9
+  ret double %tmp.26, !dbg !9
 }
 
 declare double @extern_a(double, double)
@@ -1729,6 +2046,19 @@ declare double @def_a(double, double)
 declare double @cse_test(double)
 
 declare double @ta(double, double)
+
+!llvm.dbg.cu = !{!0}
+
+!0 = !DICompileUnit(language: DW_LANG_C, file: !1, producer: "toy", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, retainedTypes: !2, subprograms: !3, globals: !2, imports: !2)
+!1 = !DIFile(filename: "<stdin>", directory: ".")
+!2 = !{}
+!3 = !{!4}
+!4 = !DISubprogram(name: "__toy_main", scope: !1, file: !1, line: 1, type: !5, isLocal: true, isDefinition: true, scopeLine: 1, isOptimized: false, function: double ()* @__toy_main, variables: !2)
+!5 = !DISubroutineType(types: !6)
+!6 = !{!7}
+!7 = !DIBasicType(name: "double", size: 64, align: 64, encoding: DW_ATE_float)
+!8 = !DILocation(line: 26, column: 1, scope: !4)
+!9 = !DILocation(line: 26, column: 3, scope: !4)
 -6.000000
 >Token (TOKEN_IF)
 Token (TOKEN_LETTER, ()
@@ -1781,19 +2111,19 @@ IfExprAST (Line 29, Column 1): have 1 CondThenExprs, have 1 ElseExpr
 @c = external global double
 
 define internal double @__toy_main() {
-  %tmp.27 = load double, double* @a
-  %1 = fcmp one double %tmp.27, 0.000000e+00
-  br i1 %1, label %if_then, label %if_else
+  %tmp.27 = load double, double* @a, !dbg !8
+  %1 = fcmp one double %tmp.27, 0.000000e+00, !dbg !9
+  br i1 %1, label %if_then, label %if_else, !dbg !9
 
 if_then:                                          ; preds = %0
-  br label %if_endif
+  br label %if_endif, !dbg !9
 
 if_else:                                          ; preds = %0
-  br label %if_endif
+  br label %if_endif, !dbg !9
 
 if_endif:                                         ; preds = %if_else, %if_then
-  %iftmp = phi double [ 5.000000e+00, %if_then ], [ 2.000000e+00, %if_else ]
-  ret double %iftmp
+  %iftmp = phi double [ 5.000000e+00, %if_then ], [ 2.000000e+00, %if_else ], !dbg !9
+  ret double %iftmp, !dbg !9
 }
 
 declare double @extern_a(double, double)
@@ -1803,6 +2133,19 @@ declare double @def_a(double, double)
 declare double @cse_test(double)
 
 declare double @ta(double, double)
+
+!llvm.dbg.cu = !{!0}
+
+!0 = !DICompileUnit(language: DW_LANG_C, file: !1, producer: "toy", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, retainedTypes: !2, subprograms: !3, globals: !2, imports: !2)
+!1 = !DIFile(filename: "<stdin>", directory: ".")
+!2 = !{}
+!3 = !{!4}
+!4 = !DISubprogram(name: "__toy_main", scope: !1, file: !1, line: 1, type: !5, isLocal: true, isDefinition: true, scopeLine: 1, isOptimized: false, function: double ()* @__toy_main, variables: !2)
+!5 = !DISubroutineType(types: !6)
+!6 = !{!7}
+!7 = !DIBasicType(name: "double", size: 64, align: 64, encoding: DW_ATE_float)
+!8 = !DILocation(line: 29, column: 5, scope: !4)
+!9 = !DILocation(line: 32, column: 5, scope: !4)
 2.000000
 >Token (TOKEN_IF)
 Token (TOKEN_LETTER, ()
@@ -1851,17 +2194,17 @@ IfExprAST (Line 35, Column 1): have 1 CondThenExprs, have 1 ElseExpr
 @c = external global double
 
 define internal double @__toy_main() {
-  br i1 true, label %if_then, label %if_else
+  br i1 true, label %if_then, label %if_else, !dbg !8
 
 if_then:                                          ; preds = %0
-  br label %if_endif
+  br label %if_endif, !dbg !8
 
 if_else:                                          ; preds = %0
-  br label %if_endif
+  br label %if_endif, !dbg !8
 
 if_endif:                                         ; preds = %if_else, %if_then
-  %iftmp = phi double [ 5.000000e+00, %if_then ], [ 1.100000e+01, %if_else ]
-  ret double %iftmp
+  %iftmp = phi double [ 5.000000e+00, %if_then ], [ 1.100000e+01, %if_else ], !dbg !8
+  ret double %iftmp, !dbg !8
 }
 
 declare double @extern_a(double, double)
@@ -1871,6 +2214,18 @@ declare double @def_a(double, double)
 declare double @cse_test(double)
 
 declare double @ta(double, double)
+
+!llvm.dbg.cu = !{!0}
+
+!0 = !DICompileUnit(language: DW_LANG_C, file: !1, producer: "toy", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, retainedTypes: !2, subprograms: !3, globals: !2, imports: !2)
+!1 = !DIFile(filename: "<stdin>", directory: ".")
+!2 = !{}
+!3 = !{!4}
+!4 = !DISubprogram(name: "__toy_main", scope: !1, file: !1, line: 1, type: !5, isLocal: true, isDefinition: true, scopeLine: 1, isOptimized: false, function: double ()* @__toy_main, variables: !2)
+!5 = !DISubroutineType(types: !6)
+!6 = !{!7}
+!7 = !DIBasicType(name: "double", size: 64, align: 64, encoding: DW_ATE_float)
+!8 = !DILocation(line: 38, column: 5, scope: !4)
 5.000000
 >Token (TOKEN_IF)
 Token (TOKEN_LETTER, ()
@@ -1916,23 +2271,23 @@ IfExprAST (Line 41, Column 1): have 2 CondThenExprs, have 0 ElseExpr
 @c = external global double
 
 define internal double @__toy_main() {
-  br i1 false, label %if_then, label %if_cond
+  br i1 false, label %if_then, label %if_cond, !dbg !8
 
 if_then:                                          ; preds = %0
-  br label %if_endif
+  br label %if_endif, !dbg !8
 
 if_cond:                                          ; preds = %0
-  br i1 true, label %if_then1, label %if_else
+  br i1 true, label %if_then1, label %if_else, !dbg !8
 
 if_then1:                                         ; preds = %if_cond
-  br label %if_endif
+  br label %if_endif, !dbg !8
 
 if_else:                                          ; preds = %if_cond
-  br label %if_endif
+  br label %if_endif, !dbg !8
 
 if_endif:                                         ; preds = %if_else, %if_then1, %if_then
-  %iftmp = phi double [ 0.000000e+00, %if_then ], [ 1.000000e+00, %if_then1 ], [ 0.000000e+00, %if_else ]
-  ret double %iftmp
+  %iftmp = phi double [ 0.000000e+00, %if_then ], [ 1.000000e+00, %if_then1 ], [ 0.000000e+00, %if_else ], !dbg !8
+  ret double %iftmp, !dbg !8
 }
 
 declare double @extern_a(double, double)
@@ -1942,6 +2297,18 @@ declare double @def_a(double, double)
 declare double @cse_test(double)
 
 declare double @ta(double, double)
+
+!llvm.dbg.cu = !{!0}
+
+!0 = !DICompileUnit(language: DW_LANG_C, file: !1, producer: "toy", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, retainedTypes: !2, subprograms: !3, globals: !2, imports: !2)
+!1 = !DIFile(filename: "<stdin>", directory: ".")
+!2 = !{}
+!3 = !{!4}
+!4 = !DISubprogram(name: "__toy_main", scope: !1, file: !1, line: 1, type: !5, isLocal: true, isDefinition: true, scopeLine: 1, isOptimized: false, function: double ()* @__toy_main, variables: !2)
+!5 = !DISubroutineType(types: !6)
+!6 = !{!7}
+!7 = !DIBasicType(name: "double", size: 64, align: 64, encoding: DW_ATE_float)
+!8 = !DILocation(line: 44, column: 3, scope: !4)
 1.000000
 Token (TOKEN_IF)
 Token (TOKEN_LETTER, ()
@@ -2012,29 +2379,29 @@ IfExprAST (Line 47, Column 1): have 3 CondThenExprs, have 1 ElseExpr
 @c = external global double
 
 define internal double @__toy_main() {
-  br i1 false, label %if_then, label %if_cond
+  br i1 false, label %if_then, label %if_cond, !dbg !8
 
 if_then:                                          ; preds = %0
-  br label %if_endif
+  br label %if_endif, !dbg !8
 
 if_cond:                                          ; preds = %0
-  br i1 true, label %if_then1, label %if_cond2
+  br i1 true, label %if_then1, label %if_cond2, !dbg !8
 
 if_then1:                                         ; preds = %if_cond
-  br label %if_endif
+  br label %if_endif, !dbg !8
 
 if_cond2:                                         ; preds = %if_cond
-  br i1 true, label %if_then3, label %if_else
+  br i1 true, label %if_then3, label %if_else, !dbg !8
 
 if_then3:                                         ; preds = %if_cond2
-  br label %if_endif
+  br label %if_endif, !dbg !8
 
 if_else:                                          ; preds = %if_cond2
-  br label %if_endif
+  br label %if_endif, !dbg !8
 
 if_endif:                                         ; preds = %if_else, %if_then3, %if_then1, %if_then
-  %iftmp = phi double [ 0.000000e+00, %if_then ], [ 1.000000e+00, %if_then1 ], [ 2.000000e+00, %if_then3 ], [ 3.000000e+00, %if_else ]
-  ret double %iftmp
+  %iftmp = phi double [ 0.000000e+00, %if_then ], [ 1.000000e+00, %if_then1 ], [ 2.000000e+00, %if_then3 ], [ 3.000000e+00, %if_else ], !dbg !8
+  ret double %iftmp, !dbg !8
 }
 
 declare double @extern_a(double, double)
@@ -2044,6 +2411,18 @@ declare double @def_a(double, double)
 declare double @cse_test(double)
 
 declare double @ta(double, double)
+
+!llvm.dbg.cu = !{!0}
+
+!0 = !DICompileUnit(language: DW_LANG_C, file: !1, producer: "toy", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, retainedTypes: !2, subprograms: !3, globals: !2, imports: !2)
+!1 = !DIFile(filename: "<stdin>", directory: ".")
+!2 = !{}
+!3 = !{!4}
+!4 = !DISubprogram(name: "__toy_main", scope: !1, file: !1, line: 1, type: !5, isLocal: true, isDefinition: true, scopeLine: 1, isOptimized: false, function: double ()* @__toy_main, variables: !2)
+!5 = !DISubroutineType(types: !6)
+!6 = !{!7}
+!7 = !DIBasicType(name: "double", size: 64, align: 64, encoding: DW_ATE_float)
+!8 = !DILocation(line: 54, column: 3, scope: !4)
 1.000000
 >Token (TOKEN_IF)
 Token (TOKEN_LETTER, ()
@@ -2107,29 +2486,29 @@ IfExprAST (Line 57, Column 1): have 1 CondThenExprs, have 1 ElseExpr
 @c = external global double
 
 define internal double @__toy_main() {
-  br i1 false, label %if_then, label %if_else
+  br i1 false, label %if_then, label %if_else, !dbg !8
 
 if_then:                                          ; preds = %0
-  br label %if_endif3
+  br label %if_endif3, !dbg !8
 
 if_else:                                          ; preds = %0
-  %tmp.32 = load double, double* @a
-  %1 = fcmp one double %tmp.32, 0.000000e+00
-  br i1 %1, label %if_then1, label %if_else2
+  %tmp.32 = load double, double* @a, !dbg !9
+  %1 = fcmp one double %tmp.32, 0.000000e+00, !dbg !8
+  br i1 %1, label %if_then1, label %if_else2, !dbg !8
 
 if_then1:                                         ; preds = %if_else
-  br label %if_endif
+  br label %if_endif, !dbg !8
 
 if_else2:                                         ; preds = %if_else
-  br label %if_endif
+  br label %if_endif, !dbg !8
 
 if_endif:                                         ; preds = %if_else2, %if_then1
-  %iftmp = phi double [ 1.000000e+00, %if_then1 ], [ 2.000000e+00, %if_else2 ]
-  br label %if_endif3
+  %iftmp = phi double [ 1.000000e+00, %if_then1 ], [ 2.000000e+00, %if_else2 ], !dbg !8
+  br label %if_endif3, !dbg !8
 
 if_endif3:                                        ; preds = %if_endif, %if_then
-  %iftmp4 = phi double [ 0.000000e+00, %if_then ], [ %iftmp, %if_endif ]
-  ret double %iftmp4
+  %iftmp4 = phi double [ 0.000000e+00, %if_then ], [ %iftmp, %if_endif ], !dbg !8
+  ret double %iftmp4, !dbg !8
 }
 
 declare double @extern_a(double, double)
@@ -2139,6 +2518,19 @@ declare double @def_a(double, double)
 declare double @cse_test(double)
 
 declare double @ta(double, double)
+
+!llvm.dbg.cu = !{!0}
+
+!0 = !DICompileUnit(language: DW_LANG_C, file: !1, producer: "toy", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, retainedTypes: !2, subprograms: !3, globals: !2, imports: !2)
+!1 = !DIFile(filename: "<stdin>", directory: ".")
+!2 = !{}
+!3 = !{!4}
+!4 = !DISubprogram(name: "__toy_main", scope: !1, file: !1, line: 1, type: !5, isLocal: true, isDefinition: true, scopeLine: 1, isOptimized: false, function: double ()* @__toy_main, variables: !2)
+!5 = !DISubroutineType(types: !6)
+!6 = !{!7}
+!7 = !DIBasicType(name: "double", size: 64, align: 64, encoding: DW_ATE_float)
+!8 = !DILocation(line: 63, column: 5, scope: !4)
+!9 = !DILocation(line: 60, column: 7, scope: !4)
 2.000000
 >Token (TOKEN_EXTERN)
 Token (TOKEN_IDENTIFIER, printc)
@@ -2154,7 +2546,7 @@ PrototypeAST (Line 67, Column 8): printc (x)
 @c = external global double
 
 define internal double @__toy_main() {
-  ret double 0.000000e+00
+  ret double 0.000000e+00, !dbg !8
 }
 
 declare double @extern_a(double, double)
@@ -2166,6 +2558,18 @@ declare double @cse_test(double)
 declare double @ta(double, double)
 
 declare double @printc(double)
+
+!llvm.dbg.cu = !{!0}
+
+!0 = !DICompileUnit(language: DW_LANG_C, file: !1, producer: "toy", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, retainedTypes: !2, subprograms: !3, globals: !2, imports: !2)
+!1 = !DIFile(filename: "<stdin>", directory: ".")
+!2 = !{}
+!3 = !{!4}
+!4 = !DISubprogram(name: "__toy_main", scope: !1, file: !1, line: 1, type: !5, isLocal: true, isDefinition: true, scopeLine: 1, isOptimized: false, function: double ()* @__toy_main, variables: !2)
+!5 = !DISubroutineType(types: !6)
+!6 = !{!7}
+!7 = !DIBasicType(name: "double", size: 64, align: 64, encoding: DW_ATE_float)
+!8 = !DILocation(line: 67, column: 8, scope: !4)
 0.000000
 Token (TOKEN_IDENTIFIER, printc)
 Token (TOKEN_LETTER, ()
@@ -2188,8 +2592,8 @@ CallExprAST (Line 68, Column 1): Callee = printc
 @c = external global double
 
 define internal double @__toy_main() {
-  %tmp.33 = call double @printc(double 4.200000e+01)
-  ret double %tmp.33
+  %tmp.33 = call double @printc(double 4.200000e+01), !dbg !8
+  ret double %tmp.33, !dbg !8
 }
 
 declare double @extern_a(double, double)
@@ -2201,6 +2605,18 @@ declare double @cse_test(double)
 declare double @ta(double, double)
 
 declare double @printc(double)
+
+!llvm.dbg.cu = !{!0}
+
+!0 = !DICompileUnit(language: DW_LANG_C, file: !1, producer: "toy", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, retainedTypes: !2, subprograms: !3, globals: !2, imports: !2)
+!1 = !DIFile(filename: "<stdin>", directory: ".")
+!2 = !{}
+!3 = !{!4}
+!4 = !DISubprogram(name: "__toy_main", scope: !1, file: !1, line: 1, type: !5, isLocal: true, isDefinition: true, scopeLine: 1, isOptimized: false, function: double ()* @__toy_main, variables: !2)
+!5 = !DISubroutineType(types: !6)
+!6 = !{!7}
+!7 = !DIBasicType(name: "double", size: 64, align: 64, encoding: DW_ATE_float)
+!8 = !DILocation(line: 68, column: 8, scope: !4)
 *0.000000
 Token (TOKEN_IDENTIFIER, printc)
 Token (TOKEN_LETTER, ()
@@ -2223,8 +2639,8 @@ CallExprAST (Line 69, Column 1): Callee = printc
 @c = external global double
 
 define internal double @__toy_main() {
-  %tmp.34 = call double @printc(double 1.000000e+01)
-  ret double %tmp.34
+  %tmp.34 = call double @printc(double 1.000000e+01), !dbg !8
+  ret double %tmp.34, !dbg !8
 }
 
 declare double @extern_a(double, double)
@@ -2236,6 +2652,18 @@ declare double @cse_test(double)
 declare double @ta(double, double)
 
 declare double @printc(double)
+
+!llvm.dbg.cu = !{!0}
+
+!0 = !DICompileUnit(language: DW_LANG_C, file: !1, producer: "toy", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, retainedTypes: !2, subprograms: !3, globals: !2, imports: !2)
+!1 = !DIFile(filename: "<stdin>", directory: ".")
+!2 = !{}
+!3 = !{!4}
+!4 = !DISubprogram(name: "__toy_main", scope: !1, file: !1, line: 1, type: !5, isLocal: true, isDefinition: true, scopeLine: 1, isOptimized: false, function: double ()* @__toy_main, variables: !2)
+!5 = !DISubroutineType(types: !6)
+!6 = !{!7}
+!7 = !DIBasicType(name: "double", size: 64, align: 64, encoding: DW_ATE_float)
+!8 = !DILocation(line: 69, column: 8, scope: !4)
 
 0.000000
 Token (TOKEN_NUMBER, 1.000000)
@@ -2256,7 +2684,7 @@ BinaryExprAST (Line 70, Column 3): op = <
 @c = external global double
 
 define internal double @__toy_main() {
-  ret double 1.000000e+00
+  ret double 1.000000e+00, !dbg !8
 }
 
 declare double @extern_a(double, double)
@@ -2268,6 +2696,18 @@ declare double @cse_test(double)
 declare double @ta(double, double)
 
 declare double @printc(double)
+
+!llvm.dbg.cu = !{!0}
+
+!0 = !DICompileUnit(language: DW_LANG_C, file: !1, producer: "toy", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, retainedTypes: !2, subprograms: !3, globals: !2, imports: !2)
+!1 = !DIFile(filename: "<stdin>", directory: ".")
+!2 = !{}
+!3 = !{!4}
+!4 = !DISubprogram(name: "__toy_main", scope: !1, file: !1, line: 1, type: !5, isLocal: true, isDefinition: true, scopeLine: 1, isOptimized: false, function: double ()* @__toy_main, variables: !2)
+!5 = !DISubroutineType(types: !6)
+!6 = !{!7}
+!7 = !DIBasicType(name: "double", size: 64, align: 64, encoding: DW_ATE_float)
+!8 = !DILocation(line: 70, column: 5, scope: !4)
 1.000000
 Token (TOKEN_NUMBER, 1.000000)
 Token (TOKEN_OP, <)
@@ -2287,7 +2727,7 @@ BinaryExprAST (Line 71, Column 3): op = <
 @c = external global double
 
 define internal double @__toy_main() {
-  ret double 0.000000e+00
+  ret double 0.000000e+00, !dbg !8
 }
 
 declare double @extern_a(double, double)
@@ -2299,6 +2739,18 @@ declare double @cse_test(double)
 declare double @ta(double, double)
 
 declare double @printc(double)
+
+!llvm.dbg.cu = !{!0}
+
+!0 = !DICompileUnit(language: DW_LANG_C, file: !1, producer: "toy", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, retainedTypes: !2, subprograms: !3, globals: !2, imports: !2)
+!1 = !DIFile(filename: "<stdin>", directory: ".")
+!2 = !{}
+!3 = !{!4}
+!4 = !DISubprogram(name: "__toy_main", scope: !1, file: !1, line: 1, type: !5, isLocal: true, isDefinition: true, scopeLine: 1, isOptimized: false, function: double ()* @__toy_main, variables: !2)
+!5 = !DISubroutineType(types: !6)
+!6 = !{!7}
+!7 = !DIBasicType(name: "double", size: 64, align: 64, encoding: DW_ATE_float)
+!8 = !DILocation(line: 71, column: 5, scope: !4)
 0.000000
 Token (TOKEN_NUMBER, 1.000000)
 Token (TOKEN_OP, <=)
@@ -2318,7 +2770,7 @@ BinaryExprAST (Line 72, Column 3): op = <=
 @c = external global double
 
 define internal double @__toy_main() {
-  ret double 1.000000e+00
+  ret double 1.000000e+00, !dbg !8
 }
 
 declare double @extern_a(double, double)
@@ -2330,6 +2782,18 @@ declare double @cse_test(double)
 declare double @ta(double, double)
 
 declare double @printc(double)
+
+!llvm.dbg.cu = !{!0}
+
+!0 = !DICompileUnit(language: DW_LANG_C, file: !1, producer: "toy", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, retainedTypes: !2, subprograms: !3, globals: !2, imports: !2)
+!1 = !DIFile(filename: "<stdin>", directory: ".")
+!2 = !{}
+!3 = !{!4}
+!4 = !DISubprogram(name: "__toy_main", scope: !1, file: !1, line: 1, type: !5, isLocal: true, isDefinition: true, scopeLine: 1, isOptimized: false, function: double ()* @__toy_main, variables: !2)
+!5 = !DISubroutineType(types: !6)
+!6 = !{!7}
+!7 = !DIBasicType(name: "double", size: 64, align: 64, encoding: DW_ATE_float)
+!8 = !DILocation(line: 72, column: 6, scope: !4)
 1.000000
 Token (TOKEN_NUMBER, 1.000000)
 Token (TOKEN_OP, <=)
@@ -2349,7 +2813,7 @@ BinaryExprAST (Line 73, Column 3): op = <=
 @c = external global double
 
 define internal double @__toy_main() {
-  ret double 0.000000e+00
+  ret double 0.000000e+00, !dbg !8
 }
 
 declare double @extern_a(double, double)
@@ -2361,6 +2825,18 @@ declare double @cse_test(double)
 declare double @ta(double, double)
 
 declare double @printc(double)
+
+!llvm.dbg.cu = !{!0}
+
+!0 = !DICompileUnit(language: DW_LANG_C, file: !1, producer: "toy", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, retainedTypes: !2, subprograms: !3, globals: !2, imports: !2)
+!1 = !DIFile(filename: "<stdin>", directory: ".")
+!2 = !{}
+!3 = !{!4}
+!4 = !DISubprogram(name: "__toy_main", scope: !1, file: !1, line: 1, type: !5, isLocal: true, isDefinition: true, scopeLine: 1, isOptimized: false, function: double ()* @__toy_main, variables: !2)
+!5 = !DISubroutineType(types: !6)
+!6 = !{!7}
+!7 = !DIBasicType(name: "double", size: 64, align: 64, encoding: DW_ATE_float)
+!8 = !DILocation(line: 73, column: 6, scope: !4)
 0.000000
 Token (TOKEN_NUMBER, 1.000000)
 Token (TOKEN_OP, ==)
@@ -2380,7 +2856,7 @@ BinaryExprAST (Line 74, Column 3): op = ==
 @c = external global double
 
 define internal double @__toy_main() {
-  ret double 1.000000e+00
+  ret double 1.000000e+00, !dbg !8
 }
 
 declare double @extern_a(double, double)
@@ -2392,6 +2868,18 @@ declare double @cse_test(double)
 declare double @ta(double, double)
 
 declare double @printc(double)
+
+!llvm.dbg.cu = !{!0}
+
+!0 = !DICompileUnit(language: DW_LANG_C, file: !1, producer: "toy", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, retainedTypes: !2, subprograms: !3, globals: !2, imports: !2)
+!1 = !DIFile(filename: "<stdin>", directory: ".")
+!2 = !{}
+!3 = !{!4}
+!4 = !DISubprogram(name: "__toy_main", scope: !1, file: !1, line: 1, type: !5, isLocal: true, isDefinition: true, scopeLine: 1, isOptimized: false, function: double ()* @__toy_main, variables: !2)
+!5 = !DISubroutineType(types: !6)
+!6 = !{!7}
+!7 = !DIBasicType(name: "double", size: 64, align: 64, encoding: DW_ATE_float)
+!8 = !DILocation(line: 74, column: 6, scope: !4)
 1.000000
 Token (TOKEN_NUMBER, 1.000000)
 Token (TOKEN_OP, !=)
@@ -2411,7 +2899,7 @@ BinaryExprAST (Line 75, Column 3): op = !=
 @c = external global double
 
 define internal double @__toy_main() {
-  ret double 1.000000e+00
+  ret double 1.000000e+00, !dbg !8
 }
 
 declare double @extern_a(double, double)
@@ -2423,6 +2911,18 @@ declare double @cse_test(double)
 declare double @ta(double, double)
 
 declare double @printc(double)
+
+!llvm.dbg.cu = !{!0}
+
+!0 = !DICompileUnit(language: DW_LANG_C, file: !1, producer: "toy", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, retainedTypes: !2, subprograms: !3, globals: !2, imports: !2)
+!1 = !DIFile(filename: "<stdin>", directory: ".")
+!2 = !{}
+!3 = !{!4}
+!4 = !DISubprogram(name: "__toy_main", scope: !1, file: !1, line: 1, type: !5, isLocal: true, isDefinition: true, scopeLine: 1, isOptimized: false, function: double ()* @__toy_main, variables: !2)
+!5 = !DISubroutineType(types: !6)
+!6 = !{!7}
+!7 = !DIBasicType(name: "double", size: 64, align: 64, encoding: DW_ATE_float)
+!8 = !DILocation(line: 75, column: 6, scope: !4)
 1.000000
 Token (TOKEN_NUMBER, 1.000000)
 Token (TOKEN_OP, >)
@@ -2442,7 +2942,7 @@ BinaryExprAST (Line 76, Column 3): op = >
 @c = external global double
 
 define internal double @__toy_main() {
-  ret double 1.000000e+00
+  ret double 1.000000e+00, !dbg !8
 }
 
 declare double @extern_a(double, double)
@@ -2454,6 +2954,18 @@ declare double @cse_test(double)
 declare double @ta(double, double)
 
 declare double @printc(double)
+
+!llvm.dbg.cu = !{!0}
+
+!0 = !DICompileUnit(language: DW_LANG_C, file: !1, producer: "toy", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, retainedTypes: !2, subprograms: !3, globals: !2, imports: !2)
+!1 = !DIFile(filename: "<stdin>", directory: ".")
+!2 = !{}
+!3 = !{!4}
+!4 = !DISubprogram(name: "__toy_main", scope: !1, file: !1, line: 1, type: !5, isLocal: true, isDefinition: true, scopeLine: 1, isOptimized: false, function: double ()* @__toy_main, variables: !2)
+!5 = !DISubroutineType(types: !6)
+!6 = !{!7}
+!7 = !DIBasicType(name: "double", size: 64, align: 64, encoding: DW_ATE_float)
+!8 = !DILocation(line: 76, column: 5, scope: !4)
 1.000000
 Token (TOKEN_NUMBER, 1.000000)
 Token (TOKEN_OP, >=)
@@ -2473,7 +2985,7 @@ BinaryExprAST (Line 77, Column 3): op = >=
 @c = external global double
 
 define internal double @__toy_main() {
-  ret double 0.000000e+00
+  ret double 0.000000e+00, !dbg !8
 }
 
 declare double @extern_a(double, double)
@@ -2485,6 +2997,18 @@ declare double @cse_test(double)
 declare double @ta(double, double)
 
 declare double @printc(double)
+
+!llvm.dbg.cu = !{!0}
+
+!0 = !DICompileUnit(language: DW_LANG_C, file: !1, producer: "toy", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, retainedTypes: !2, subprograms: !3, globals: !2, imports: !2)
+!1 = !DIFile(filename: "<stdin>", directory: ".")
+!2 = !{}
+!3 = !{!4}
+!4 = !DISubprogram(name: "__toy_main", scope: !1, file: !1, line: 1, type: !5, isLocal: true, isDefinition: true, scopeLine: 1, isOptimized: false, function: double ()* @__toy_main, variables: !2)
+!5 = !DISubroutineType(types: !6)
+!6 = !{!7}
+!7 = !DIBasicType(name: "double", size: 64, align: 64, encoding: DW_ATE_float)
+!8 = !DILocation(line: 77, column: 6, scope: !4)
 0.000000
 >Token (TOKEN_FOR)
 Token (TOKEN_LETTER, ()
@@ -2558,25 +3082,25 @@ ForExprAST (Line 79, Column 1):
 @c = external global double
 
 define internal double @__toy_main() {
-  store double 1.000000e+00, double* @a
-  br label %for_cmp
+  store double 1.000000e+00, double* @a, !dbg !8
+  br label %for_cmp, !dbg !9
 
 for_cmp:                                          ; preds = %for_loop, %0
-  %tmp.43 = load double, double* @a
-  %tmp.44 = fcmp ole double %tmp.43, 2.000000e+01
-  %1 = uitofp i1 %tmp.44 to double
-  %2 = fcmp one double %1, 0.000000e+00
-  br i1 %2, label %for_loop, label %for_after_loop
+  %tmp.43 = load double, double* @a, !dbg !10
+  %tmp.44 = fcmp ole double %tmp.43, 2.000000e+01, !dbg !11
+  %1 = uitofp i1 %tmp.44 to double, !dbg !11
+  %2 = fcmp one double %1, 0.000000e+00, !dbg !9
+  br i1 %2, label %for_loop, label %for_after_loop, !dbg !9
 
 for_loop:                                         ; preds = %for_cmp
-  %tmp.45 = call double @printc(double 4.200000e+01)
-  %tmp.46 = load double, double* @a
-  %tmp.47 = fadd double %tmp.46, 1.000000e+00
-  store double %tmp.47, double* @a
-  br label %for_cmp
+  %tmp.45 = call double @printc(double 4.200000e+01), !dbg !12
+  %tmp.46 = load double, double* @a, !dbg !13
+  %tmp.47 = fadd double %tmp.46, 1.000000e+00, !dbg !9
+  store double %tmp.47, double* @a, !dbg !9
+  br label %for_cmp, !dbg !9
 
 for_after_loop:                                   ; preds = %for_cmp
-  ret double 0.000000e+00
+  ret double 0.000000e+00, !dbg !9
 }
 
 declare double @extern_a(double, double)
@@ -2588,6 +3112,23 @@ declare double @cse_test(double)
 declare double @ta(double, double)
 
 declare double @printc(double)
+
+!llvm.dbg.cu = !{!0}
+
+!0 = !DICompileUnit(language: DW_LANG_C, file: !1, producer: "toy", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, retainedTypes: !2, subprograms: !3, globals: !2, imports: !2)
+!1 = !DIFile(filename: "<stdin>", directory: ".")
+!2 = !{}
+!3 = !{!4}
+!4 = !DISubprogram(name: "__toy_main", scope: !1, file: !1, line: 1, type: !5, isLocal: true, isDefinition: true, scopeLine: 1, isOptimized: false, function: double ()* @__toy_main, variables: !2)
+!5 = !DISubroutineType(types: !6)
+!6 = !{!7}
+!7 = !DIBasicType(name: "double", size: 64, align: 64, encoding: DW_ATE_float)
+!8 = !DILocation(line: 79, column: 10, scope: !4)
+!9 = !DILocation(line: 79, column: 30, scope: !4)
+!10 = !DILocation(line: 79, column: 13, scope: !4)
+!11 = !DILocation(line: 79, column: 18, scope: !4)
+!12 = !DILocation(line: 80, column: 10, scope: !4)
+!13 = !DILocation(line: 79, column: 26, scope: !4)
 ********************0.000000
 Token (TOKEN_IDENTIFIER, printc)
 Token (TOKEN_LETTER, ()
@@ -2610,8 +3151,8 @@ CallExprAST (Line 82, Column 1): Callee = printc
 @c = external global double
 
 define internal double @__toy_main() {
-  %tmp.48 = call double @printc(double 1.000000e+01)
-  ret double %tmp.48
+  %tmp.48 = call double @printc(double 1.000000e+01), !dbg !8
+  ret double %tmp.48, !dbg !8
 }
 
 declare double @extern_a(double, double)
@@ -2623,6 +3164,18 @@ declare double @cse_test(double)
 declare double @ta(double, double)
 
 declare double @printc(double)
+
+!llvm.dbg.cu = !{!0}
+
+!0 = !DICompileUnit(language: DW_LANG_C, file: !1, producer: "toy", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, retainedTypes: !2, subprograms: !3, globals: !2, imports: !2)
+!1 = !DIFile(filename: "<stdin>", directory: ".")
+!2 = !{}
+!3 = !{!4}
+!4 = !DISubprogram(name: "__toy_main", scope: !1, file: !1, line: 1, type: !5, isLocal: true, isDefinition: true, scopeLine: 1, isOptimized: false, function: double ()* @__toy_main, variables: !2)
+!5 = !DISubroutineType(types: !6)
+!6 = !{!7}
+!7 = !DIBasicType(name: "double", size: 64, align: 64, encoding: DW_ATE_float)
+!8 = !DILocation(line: 82, column: 8, scope: !4)
 
 0.000000
 >Token (TOKEN_DEF)
@@ -2663,7 +3216,7 @@ FunctionAST (Line 84, Column 1):
 @c = external global double
 
 define internal double @__toy_main() {
-  ret double 0.000000e+00
+  ret double 0.000000e+00, !dbg !11
 }
 
 declare double @extern_a(double, double)
@@ -2679,13 +3232,41 @@ declare double @printc(double)
 define double @"binary:"(double %LHS, double %RHS) {
 "binary:.entry":
   %LHS1 = alloca double
+  call void @llvm.dbg.declare(metadata double* %LHS1, metadata !12, metadata !13), !dbg !14
   store double %LHS, double* %LHS1
   %RHS2 = alloca double
+  call void @llvm.dbg.declare(metadata double* %RHS2, metadata !15, metadata !13), !dbg !14
   store double %RHS, double* %RHS2
-  %tmp.49 = load double, double* %LHS1
-  %tmp.50 = load double, double* %RHS2
-  ret double %tmp.50
+  %tmp.49 = load double, double* %LHS1, !dbg !16
+  %tmp.50 = load double, double* %RHS2, !dbg !17
+  ret double %tmp.50, !dbg !17
 }
+
+; Function Attrs: nounwind readnone
+declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
+
+attributes #0 = { nounwind readnone }
+
+!llvm.dbg.cu = !{!0}
+
+!0 = !DICompileUnit(language: DW_LANG_C, file: !1, producer: "toy", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, retainedTypes: !2, subprograms: !3, globals: !2, imports: !2)
+!1 = !DIFile(filename: "<stdin>", directory: ".")
+!2 = !{}
+!3 = !{!4, !8}
+!4 = !DISubprogram(name: "__toy_main", scope: !1, file: !1, line: 1, type: !5, isLocal: true, isDefinition: true, scopeLine: 1, isOptimized: false, function: double ()* @__toy_main, variables: !2)
+!5 = !DISubroutineType(types: !6)
+!6 = !{!7}
+!7 = !DIBasicType(name: "double", size: 64, align: 64, encoding: DW_ATE_float)
+!8 = !DISubprogram(name: "binary:", scope: !1, file: !1, line: 84, type: !9, isLocal: true, isDefinition: true, scopeLine: 84, isOptimized: false, function: double (double, double)* @"binary:", variables: !2)
+!9 = !DISubroutineType(types: !10)
+!10 = !{!7, !7, !7}
+!11 = !DILocation(line: 84, column: 5, scope: !4)
+!12 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "LHS", arg: 1, scope: !8, file: !1, line: 84, type: !7)
+!13 = !DIExpression()
+!14 = !DILocation(line: 84, scope: !8)
+!15 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "RHS", arg: 2, scope: !8, file: !1, line: 84, type: !7)
+!16 = !DILocation(line: 85, column: 2, scope: !8)
+!17 = !DILocation(line: 86, column: 2, scope: !8)
 0.000000
 >Token (TOKEN_IDENTIFIER, printc)
 Token (TOKEN_LETTER, ()
@@ -2721,10 +3302,10 @@ BinaryExprAST (Line 89, Column 12): op = :
 @c = external global double
 
 define internal double @__toy_main() {
-  %tmp.51 = call double @printc(double 4.200000e+01)
-  %tmp.52 = call double @printc(double 1.000000e+01)
-  %tmp.53 = call double @"binary:"(double %tmp.51, double %tmp.52)
-  ret double %tmp.53
+  %tmp.51 = call double @printc(double 4.200000e+01), !dbg !8
+  %tmp.52 = call double @printc(double 1.000000e+01), !dbg !9
+  %tmp.53 = call double @"binary:"(double %tmp.51, double %tmp.52), !dbg !9
+  ret double %tmp.53, !dbg !9
 }
 
 declare double @extern_a(double, double)
@@ -2738,6 +3319,19 @@ declare double @ta(double, double)
 declare double @printc(double)
 
 declare double @"binary:"(double, double)
+
+!llvm.dbg.cu = !{!0}
+
+!0 = !DICompileUnit(language: DW_LANG_C, file: !1, producer: "toy", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, retainedTypes: !2, subprograms: !3, globals: !2, imports: !2)
+!1 = !DIFile(filename: "<stdin>", directory: ".")
+!2 = !{}
+!3 = !{!4}
+!4 = !DISubprogram(name: "__toy_main", scope: !1, file: !1, line: 1, type: !5, isLocal: true, isDefinition: true, scopeLine: 1, isOptimized: false, function: double ()* @__toy_main, variables: !2)
+!5 = !DISubroutineType(types: !6)
+!6 = !{!7}
+!7 = !DIBasicType(name: "double", size: 64, align: 64, encoding: DW_ATE_float)
+!8 = !DILocation(line: 89, column: 8, scope: !4)
+!9 = !DILocation(line: 89, column: 21, scope: !4)
 *
 0.000000
 >Token (TOKEN_DEF)
@@ -2784,7 +3378,7 @@ FunctionAST (Line 91, Column 1):
 @c = external global double
 
 define internal double @__toy_main() {
-  ret double 0.000000e+00
+  ret double 0.000000e+00, !dbg !11
 }
 
 declare double @extern_a(double, double)
@@ -2802,21 +3396,47 @@ declare double @"binary:"(double, double)
 define double @"unary!"(double %RHS) {
 "unary!.entry":
   %RHS1 = alloca double
+  call void @llvm.dbg.declare(metadata double* %RHS1, metadata !12, metadata !13), !dbg !14
   store double %RHS, double* %RHS1
-  %tmp.54 = load double, double* %RHS1
-  %0 = fcmp one double %tmp.54, 0.000000e+00
-  br i1 %0, label %if_then, label %if_else
+  %tmp.54 = load double, double* %RHS1, !dbg !15
+  %0 = fcmp one double %tmp.54, 0.000000e+00, !dbg !16
+  br i1 %0, label %if_then, label %if_else, !dbg !16
 
 if_then:                                          ; preds = %"unary!.entry"
-  br label %if_endif
+  br label %if_endif, !dbg !16
 
 if_else:                                          ; preds = %"unary!.entry"
-  br label %if_endif
+  br label %if_endif, !dbg !16
 
 if_endif:                                         ; preds = %if_else, %if_then
-  %iftmp = phi double [ 0.000000e+00, %if_then ], [ 1.000000e+00, %if_else ]
-  ret double %iftmp
+  %iftmp = phi double [ 0.000000e+00, %if_then ], [ 1.000000e+00, %if_else ], !dbg !16
+  ret double %iftmp, !dbg !16
 }
+
+; Function Attrs: nounwind readnone
+declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
+
+attributes #0 = { nounwind readnone }
+
+!llvm.dbg.cu = !{!0}
+
+!0 = !DICompileUnit(language: DW_LANG_C, file: !1, producer: "toy", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, retainedTypes: !2, subprograms: !3, globals: !2, imports: !2)
+!1 = !DIFile(filename: "<stdin>", directory: ".")
+!2 = !{}
+!3 = !{!4, !8}
+!4 = !DISubprogram(name: "__toy_main", scope: !1, file: !1, line: 1, type: !5, isLocal: true, isDefinition: true, scopeLine: 1, isOptimized: false, function: double ()* @__toy_main, variables: !2)
+!5 = !DISubroutineType(types: !6)
+!6 = !{!7}
+!7 = !DIBasicType(name: "double", size: 64, align: 64, encoding: DW_ATE_float)
+!8 = !DISubprogram(name: "unary!", scope: !1, file: !1, line: 91, type: !9, isLocal: true, isDefinition: true, scopeLine: 91, isOptimized: false, function: double (double)* @"unary!", variables: !2)
+!9 = !DISubroutineType(types: !10)
+!10 = !{!7, !7}
+!11 = !DILocation(line: 91, column: 5, scope: !4)
+!12 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "RHS", arg: 1, scope: !8, file: !1, line: 91, type: !7)
+!13 = !DIExpression()
+!14 = !DILocation(line: 91, scope: !8)
+!15 = !DILocation(line: 92, column: 7, scope: !8)
+!16 = !DILocation(line: 92, column: 20, scope: !8)
 0.000000
 >Token (TOKEN_OP, !)
 Token (TOKEN_NUMBER, 3.000000)
@@ -2832,8 +3452,8 @@ UnaryExprAST (Line 95, Column 1): op = !
 @c = external global double
 
 define internal double @__toy_main() {
-  %tmp.55 = call double @"unary!"(double 3.000000e+00)
-  ret double %tmp.55
+  %tmp.55 = call double @"unary!"(double 3.000000e+00), !dbg !8
+  ret double %tmp.55, !dbg !8
 }
 
 declare double @extern_a(double, double)
@@ -2849,6 +3469,18 @@ declare double @printc(double)
 declare double @"binary:"(double, double)
 
 declare double @"unary!"(double)
+
+!llvm.dbg.cu = !{!0}
+
+!0 = !DICompileUnit(language: DW_LANG_C, file: !1, producer: "toy", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, retainedTypes: !2, subprograms: !3, globals: !2, imports: !2)
+!1 = !DIFile(filename: "<stdin>", directory: ".")
+!2 = !{}
+!3 = !{!4}
+!4 = !DISubprogram(name: "__toy_main", scope: !1, file: !1, line: 1, type: !5, isLocal: true, isDefinition: true, scopeLine: 1, isOptimized: false, function: double ()* @__toy_main, variables: !2)
+!5 = !DISubroutineType(types: !6)
+!6 = !{!7}
+!7 = !DIBasicType(name: "double", size: 64, align: 64, encoding: DW_ATE_float)
+!8 = !DILocation(line: 95, column: 2, scope: !4)
 0.000000
 Token (TOKEN_OP, !)
 Token (TOKEN_NUMBER, 0.000000)
@@ -2864,8 +3496,8 @@ UnaryExprAST (Line 96, Column 1): op = !
 @c = external global double
 
 define internal double @__toy_main() {
-  %tmp.56 = call double @"unary!"(double 0.000000e+00)
-  ret double %tmp.56
+  %tmp.56 = call double @"unary!"(double 0.000000e+00), !dbg !8
+  ret double %tmp.56, !dbg !8
 }
 
 declare double @extern_a(double, double)
@@ -2881,6 +3513,18 @@ declare double @printc(double)
 declare double @"binary:"(double, double)
 
 declare double @"unary!"(double)
+
+!llvm.dbg.cu = !{!0}
+
+!0 = !DICompileUnit(language: DW_LANG_C, file: !1, producer: "toy", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, retainedTypes: !2, subprograms: !3, globals: !2, imports: !2)
+!1 = !DIFile(filename: "<stdin>", directory: ".")
+!2 = !{}
+!3 = !{!4}
+!4 = !DISubprogram(name: "__toy_main", scope: !1, file: !1, line: 1, type: !5, isLocal: true, isDefinition: true, scopeLine: 1, isOptimized: false, function: double ()* @__toy_main, variables: !2)
+!5 = !DISubroutineType(types: !6)
+!6 = !{!7}
+!7 = !DIBasicType(name: "double", size: 64, align: 64, encoding: DW_ATE_float)
+!8 = !DILocation(line: 96, column: 2, scope: !4)
 1.000000
 >Token (TOKEN_IDENTIFIER, a)
 Token (TOKEN_LETTER, =)
@@ -2897,8 +3541,8 @@ AssignmentExprAST (Line 98, Column 1): name = a
 @c = external global double
 
 define internal double @__toy_main() {
-  store double 4.200000e+01, double* @a
-  ret double 4.200000e+01
+  store double 4.200000e+01, double* @a, !dbg !8
+  ret double 4.200000e+01, !dbg !8
 }
 
 declare double @extern_a(double, double)
@@ -2914,6 +3558,18 @@ declare double @printc(double)
 declare double @"binary:"(double, double)
 
 declare double @"unary!"(double)
+
+!llvm.dbg.cu = !{!0}
+
+!0 = !DICompileUnit(language: DW_LANG_C, file: !1, producer: "toy", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, retainedTypes: !2, subprograms: !3, globals: !2, imports: !2)
+!1 = !DIFile(filename: "<stdin>", directory: ".")
+!2 = !{}
+!3 = !{!4}
+!4 = !DISubprogram(name: "__toy_main", scope: !1, file: !1, line: 1, type: !5, isLocal: true, isDefinition: true, scopeLine: 1, isOptimized: false, function: double ()* @__toy_main, variables: !2)
+!5 = !DISubroutineType(types: !6)
+!6 = !{!7}
+!7 = !DIBasicType(name: "double", size: 64, align: 64, encoding: DW_ATE_float)
+!8 = !DILocation(line: 98, column: 5, scope: !4)
 42.000000
 Token (TOKEN_DEF)
 Token (TOKEN_IDENTIFIER, a_function)
@@ -2981,7 +3637,7 @@ FunctionAST (Line 99, Column 1):
 @c = external global double
 
 define internal double @__toy_main() {
-  ret double 0.000000e+00
+  ret double 0.000000e+00, !dbg !11
 }
 
 declare double @extern_a(double, double)
@@ -3000,16 +3656,45 @@ declare double @"unary!"(double)
 
 define double @a_function(double %a) {
 a_function.entry:
-  store double %a, double* @a
-  store double 4.200000e+01, double* @a
-  %tmp.57 = load double, double* @a
-  %tmp.58 = call double @printc(double %tmp.57)
-  %tmp.59 = load double, double* @a
-  %tmp.60 = fsub double %tmp.59, 3.200000e+01
-  %tmp.61 = call double @printc(double %tmp.60)
-  %tmp.62 = call double @"binary:"(double %tmp.58, double %tmp.61)
-  ret double %tmp.62
+  %a1 = alloca double
+  call void @llvm.dbg.declare(metadata double* %a1, metadata !12, metadata !13), !dbg !14
+  store double %a, double* %a1
+  store double 4.200000e+01, double* %a1, !dbg !15
+  %tmp.57 = load double, double* %a1, !dbg !16
+  %tmp.58 = call double @printc(double %tmp.57), !dbg !16
+  %tmp.59 = load double, double* %a1, !dbg !17
+  %tmp.60 = fsub double %tmp.59, 3.200000e+01, !dbg !18
+  %tmp.61 = call double @printc(double %tmp.60), !dbg !18
+  %tmp.62 = call double @"binary:"(double %tmp.58, double %tmp.61), !dbg !18
+  ret double %tmp.62, !dbg !18
 }
+
+; Function Attrs: nounwind readnone
+declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
+
+attributes #0 = { nounwind readnone }
+
+!llvm.dbg.cu = !{!0}
+
+!0 = !DICompileUnit(language: DW_LANG_C, file: !1, producer: "toy", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, retainedTypes: !2, subprograms: !3, globals: !2, imports: !2)
+!1 = !DIFile(filename: "<stdin>", directory: ".")
+!2 = !{}
+!3 = !{!4, !8}
+!4 = !DISubprogram(name: "__toy_main", scope: !1, file: !1, line: 1, type: !5, isLocal: true, isDefinition: true, scopeLine: 1, isOptimized: false, function: double ()* @__toy_main, variables: !2)
+!5 = !DISubroutineType(types: !6)
+!6 = !{!7}
+!7 = !DIBasicType(name: "double", size: 64, align: 64, encoding: DW_ATE_float)
+!8 = !DISubprogram(name: "a_function", scope: !1, file: !1, line: 99, type: !9, isLocal: true, isDefinition: true, scopeLine: 99, isOptimized: false, function: double (double)* @a_function, variables: !2)
+!9 = !DISubroutineType(types: !10)
+!10 = !{!7, !7}
+!11 = !DILocation(line: 99, column: 5, scope: !4)
+!12 = !DILocalVariable(tag: DW_TAG_arg_variable, name: "a", arg: 1, scope: !8, file: !1, line: 99, type: !7)
+!13 = !DIExpression()
+!14 = !DILocation(line: 99, scope: !8)
+!15 = !DILocation(line: 100, column: 7, scope: !8)
+!16 = !DILocation(line: 101, column: 10, scope: !8)
+!17 = !DILocation(line: 101, column: 22, scope: !8)
+!18 = !DILocation(line: 101, column: 26, scope: !8)
 0.000000
 >Token (TOKEN_IDENTIFIER, a_function)
 Token (TOKEN_LETTER, ()
@@ -3032,8 +3717,8 @@ CallExprAST (Line 104, Column 1): Callee = a_function
 @c = external global double
 
 define internal double @__toy_main() {
-  %tmp.63 = call double @a_function(double 4.200000e+01)
-  ret double %tmp.63
+  %tmp.63 = call double @a_function(double 4.200000e+01), !dbg !8
+  ret double %tmp.63, !dbg !8
 }
 
 declare double @extern_a(double, double)
@@ -3051,6 +3736,18 @@ declare double @"binary:"(double, double)
 declare double @"unary!"(double)
 
 declare double @a_function(double)
+
+!llvm.dbg.cu = !{!0}
+
+!0 = !DICompileUnit(language: DW_LANG_C, file: !1, producer: "toy", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, retainedTypes: !2, subprograms: !3, globals: !2, imports: !2)
+!1 = !DIFile(filename: "<stdin>", directory: ".")
+!2 = !{}
+!3 = !{!4}
+!4 = !DISubprogram(name: "__toy_main", scope: !1, file: !1, line: 1, type: !5, isLocal: true, isDefinition: true, scopeLine: 1, isOptimized: false, function: double ()* @__toy_main, variables: !2)
+!5 = !DISubroutineType(types: !6)
+!6 = !{!7}
+!7 = !DIBasicType(name: "double", size: 64, align: 64, encoding: DW_ATE_float)
+!8 = !DILocation(line: 104, column: 12, scope: !4)
 *
 0.000000
 Token (TOKEN_IDENTIFIER, printc)
@@ -3118,16 +3815,16 @@ BinaryExprAST (Line 105, Column 23): op = :
 @c = external global double
 
 define internal double @__toy_main() {
-  %tmp.64 = load double, double* @a
-  %tmp.65 = call double @printc(double %tmp.64)
-  %tmp.66 = load double, double* @a
-  %tmp.67 = call double @printc(double %tmp.66)
-  %tmp.68 = call double @"binary:"(double %tmp.65, double %tmp.67)
-  %tmp.69 = load double, double* @a
-  %tmp.70 = fsub double %tmp.69, 3.200000e+01
-  %tmp.71 = call double @printc(double %tmp.70)
-  %tmp.72 = call double @"binary:"(double %tmp.68, double %tmp.71)
-  ret double %tmp.72
+  %tmp.64 = load double, double* @a, !dbg !8
+  %tmp.65 = call double @printc(double %tmp.64), !dbg !8
+  %tmp.66 = load double, double* @a, !dbg !9
+  %tmp.67 = call double @printc(double %tmp.66), !dbg !9
+  %tmp.68 = call double @"binary:"(double %tmp.65, double %tmp.67), !dbg !9
+  %tmp.69 = load double, double* @a, !dbg !10
+  %tmp.70 = fsub double %tmp.69, 3.200000e+01, !dbg !11
+  %tmp.71 = call double @printc(double %tmp.70), !dbg !11
+  %tmp.72 = call double @"binary:"(double %tmp.68, double %tmp.71), !dbg !11
+  ret double %tmp.72, !dbg !11
 }
 
 declare double @extern_a(double, double)
@@ -3145,6 +3842,21 @@ declare double @"binary:"(double, double)
 declare double @"unary!"(double)
 
 declare double @a_function(double)
+
+!llvm.dbg.cu = !{!0}
+
+!0 = !DICompileUnit(language: DW_LANG_C, file: !1, producer: "toy", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, retainedTypes: !2, subprograms: !3, globals: !2, imports: !2)
+!1 = !DIFile(filename: "<stdin>", directory: ".")
+!2 = !{}
+!3 = !{!4}
+!4 = !DISubprogram(name: "__toy_main", scope: !1, file: !1, line: 1, type: !5, isLocal: true, isDefinition: true, scopeLine: 1, isOptimized: false, function: double ()* @__toy_main, variables: !2)
+!5 = !DISubroutineType(types: !6)
+!6 = !{!7}
+!7 = !DIBasicType(name: "double", size: 64, align: 64, encoding: DW_ATE_float)
+!8 = !DILocation(line: 105, column: 8, scope: !4)
+!9 = !DILocation(line: 105, column: 20, scope: !4)
+!10 = !DILocation(line: 105, column: 32, scope: !4)
+!11 = !DILocation(line: 105, column: 36, scope: !4)
 **
 0.000000
 Token (TOKEN_IDENTIFIER, a)
@@ -3169,9 +3881,9 @@ BinaryExprAST (Line 106, Column 3): op = *
 @c = external global double
 
 define internal double @__toy_main() {
-  %tmp.73 = load double, double* @a
-  %tmp.74 = fmul double %tmp.73, 5.000000e+00
-  ret double %tmp.74
+  %tmp.73 = load double, double* @a, !dbg !8
+  %tmp.74 = fmul double %tmp.73, 5.000000e+00, !dbg !9
+  ret double %tmp.74, !dbg !9
 }
 
 declare double @extern_a(double, double)
@@ -3189,5 +3901,18 @@ declare double @"binary:"(double, double)
 declare double @"unary!"(double)
 
 declare double @a_function(double)
+
+!llvm.dbg.cu = !{!0}
+
+!0 = !DICompileUnit(language: DW_LANG_C, file: !1, producer: "toy", isOptimized: false, runtimeVersion: 0, emissionKind: 1, enums: !2, retainedTypes: !2, subprograms: !3, globals: !2, imports: !2)
+!1 = !DIFile(filename: "<stdin>", directory: ".")
+!2 = !{}
+!3 = !{!4}
+!4 = !DISubprogram(name: "__toy_main", scope: !1, file: !1, line: 1, type: !5, isLocal: true, isDefinition: true, scopeLine: 1, isOptimized: false, function: double ()* @__toy_main, variables: !2)
+!5 = !DISubroutineType(types: !6)
+!6 = !{!7}
+!7 = !DIBasicType(name: "double", size: 64, align: 64, encoding: DW_ATE_float)
+!8 = !DILocation(line: 106, column: 1, scope: !4)
+!9 = !DILocation(line: 106, column: 5, scope: !4)
 210.000000
 Token (TOKEN_EOF)
