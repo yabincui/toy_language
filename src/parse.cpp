@@ -12,7 +12,11 @@
 #include "string.h"
 #include "utils.h"
 
-#define nextToken() LOG(DEBUG) << "nextToken() " << getNextToken().toString()
+#define nextToken()                                         \
+  do {                                                      \
+    getNextToken();                                         \
+    LOG(DEBUG) << "nextToken() " << currToken().toString(); \
+  } while (0)
 
 #define unreadToken()                                         \
   do {                                                        \
@@ -20,19 +24,19 @@
     unreadCurrToken();                                        \
   } while (0)
 
-#define consumeLetterToken(Letter)                          \
+#define consumeLetterToken(letter)                          \
   do {                                                      \
-    CHECK(isLetterToken(Letter)) << currToken().toString(); \
+    CHECK(isLetterToken(letter)) << currToken().toString(); \
     nextToken();                                            \
   } while (0)
 
-static bool isLetterToken(char Letter) {
-  return currToken().Type == TOKEN_LETTER && currToken().Letter == Letter;
+static bool isLetterToken(char letter) {
+  return currToken().type == TOKEN_LETTER && currToken().letter == letter;
 }
 
-std::vector<std::unique_ptr<ExprAST>> ExprStorage;
+std::vector<std::unique_ptr<ExprAST>> expr_storage;
 
-static std::unordered_map<int, std::string> ExprASTTypeNameMap = {
+static std::unordered_map<int, std::string> expr_ast_type_name_map = {
     {NUMBER_EXPR_AST, "NumberExprAST"},
     {VARIABLE_EXPR_AST, "VariableExprAST"},
     {UNARY_EXPR_AST, "UnaryExprAST"},
@@ -47,98 +51,88 @@ static std::unordered_map<int, std::string> ExprASTTypeNameMap = {
 };
 
 std::string ExprAST::dumpHeader() const {
-  return stringPrintf("%s (Line %zu, Column %zu)",
-                      ExprASTTypeNameMap[Type_].c_str(), Loc_.Line, Loc_.Column);
+  return stringPrintf("%s (Line %zu, Column %zu)", expr_ast_type_name_map[type_].c_str(), loc_.line,
+                      loc_.column);
 }
 
-void NumberExprAST::dump(int Indent) const {
-  fprintIndented(stderr, Indent, "%s: val = %lf\n", dumpHeader().c_str(), Val_);
+void NumberExprAST::dump(int indent) const {
+  fprintIndented(stderr, indent, "%s: val = %lf\n", dumpHeader().c_str(), val_);
 }
 
-void VariableExprAST::dump(int Indent) const {
-  fprintIndented(stderr, Indent, "%s: name = %s\n", dumpHeader().c_str(),
-                 Name_.c_str());
+void VariableExprAST::dump(int indent) const {
+  fprintIndented(stderr, indent, "%s: name = %s\n", dumpHeader().c_str(), name_.c_str());
 }
 
-void UnaryExprAST::dump(int Indent) const {
-  fprintIndented(stderr, Indent, "%s: op = %s\n", dumpHeader().c_str(),
-                 Op_.desc.c_str());
-  Right_->dump(Indent + 1);
+void UnaryExprAST::dump(int indent) const {
+  fprintIndented(stderr, indent, "%s: op = %s\n", dumpHeader().c_str(), op_.desc.c_str());
+  right_->dump(indent + 1);
 }
 
-void BinaryExprAST::dump(int Indent) const {
-  fprintIndented(stderr, Indent, "%s: op = %s\n", dumpHeader().c_str(),
-                 Op_.desc.c_str());
-  Left_->dump(Indent + 1);
-  Right_->dump(Indent + 1);
+void BinaryExprAST::dump(int indent) const {
+  fprintIndented(stderr, indent, "%s: op = %s\n", dumpHeader().c_str(), op_.desc.c_str());
+  left_->dump(indent + 1);
+  right_->dump(indent + 1);
 }
 
-void AssignmentExprAST::dump(int Indent) const {
-  fprintIndented(stderr, Indent, "%s: name = %s\n", dumpHeader().c_str(),
-                 VarName_.c_str());
-  Right_->dump(Indent + 1);
+void AssignmentExprAST::dump(int indent) const {
+  fprintIndented(stderr, indent, "%s: name = %s\n", dumpHeader().c_str(), var_name_.c_str());
+  right_->dump(indent + 1);
 }
 
-void PrototypeAST::dump(int Indent) const {
-  fprintIndented(stderr, Indent, "%s: %s (", dumpHeader().c_str(),
-                 Name_.c_str());
-  for (size_t i = 0; i < Args_.size(); ++i) {
-    fprintf(stderr, "%s%s", Args_[i].c_str(),
-            (i == Args_.size() - 1) ? ")\n" : ", ");
+void PrototypeAST::dump(int indent) const {
+  fprintIndented(stderr, indent, "%s: %s (", dumpHeader().c_str(), name_.c_str());
+  for (size_t i = 0; i < args_.size(); ++i) {
+    fprintf(stderr, "%s%s", args_[i].c_str(), (i == args_.size() - 1) ? ")\n" : ", ");
   }
 }
 
-void FunctionAST::dump(int Indent) const {
-  fprintIndented(stderr, Indent, "%s:\n", dumpHeader().c_str());
-  Prototype_->dump(Indent + 1);
-  Body_->dump(Indent + 1);
+void FunctionAST::dump(int indent) const {
+  fprintIndented(stderr, indent, "%s:\n", dumpHeader().c_str());
+  prototype_->dump(indent + 1);
+  body_->dump(indent + 1);
 }
 
-void CallExprAST::dump(int Indent) const {
-  fprintIndented(stderr, Indent, "%s: Callee = %s\n", dumpHeader().c_str(),
-                 Callee_.c_str());
-  for (size_t i = 0; i < Args_.size(); ++i) {
-    fprintIndented(stderr, Indent + 1, "Arg #%zu:\n", i);
-    Args_[i]->dump(Indent + 2);
+void CallExprAST::dump(int indent) const {
+  fprintIndented(stderr, indent, "%s: Callee = %s\n", dumpHeader().c_str(), callee_.c_str());
+  for (size_t i = 0; i < args_.size(); ++i) {
+    fprintIndented(stderr, indent + 1, "Arg #%zu:\n", i);
+    args_[i]->dump(indent + 2);
   }
 }
 
-void IfExprAST::dump(int Indent) const {
-  fprintIndented(stderr, Indent,
-                 "%s: have %zu CondThenExprs, have %d ElseExpr\n",
-                 dumpHeader().c_str(), CondThenExprs_.size(),
-                 (ElseExpr_ == nullptr ? 0 : 1));
-  for (size_t i = 0; i < CondThenExprs_.size(); ++i) {
-    fprintIndented(stderr, Indent + 1, "CondExpr #%zu\n", i + 1);
-    CondThenExprs_[i].first->dump(Indent + 2);
-    fprintIndented(stderr, Indent + 1, "ThenExpr #%zu\n", i + 1);
-    CondThenExprs_[i].second->dump(Indent + 2);
+void IfExprAST::dump(int indent) const {
+  fprintIndented(stderr, indent, "%s: have %zu CondThenExprs, have %d ElseExpr\n",
+                 dumpHeader().c_str(), cond_then_exprs_.size(), (else_expr_ == nullptr ? 0 : 1));
+  for (size_t i = 0; i < cond_then_exprs_.size(); ++i) {
+    fprintIndented(stderr, indent + 1, "CondExpr #%zu\n", i + 1);
+    cond_then_exprs_[i].first->dump(indent + 2);
+    fprintIndented(stderr, indent + 1, "ThenExpr #%zu\n", i + 1);
+    cond_then_exprs_[i].second->dump(indent + 2);
   }
 
-  if (ElseExpr_ != nullptr) {
-    fprintIndented(stderr, Indent + 1, "ElseExpr\n");
-    ElseExpr_->dump(Indent + 2);
+  if (else_expr_ != nullptr) {
+    fprintIndented(stderr, indent + 1, "ElseExpr\n");
+    else_expr_->dump(indent + 2);
   }
 }
 
-void BlockExprAST::dump(int Indent) const {
-  fprintIndented(stderr, Indent, "%s: have %zu exprs\n", dumpHeader().c_str(),
-                 Exprs_.size());
-  for (auto& Expr : Exprs_) {
-    Expr->dump(Indent + 1);
+void BlockExprAST::dump(int indent) const {
+  fprintIndented(stderr, indent, "%s: have %zu exprs\n", dumpHeader().c_str(), exprs_.size());
+  for (auto& expr : exprs_) {
+    expr->dump(indent + 1);
   }
 }
 
-void ForExprAST::dump(int Indent) const {
-  fprintIndented(stderr, Indent, "%s:\n", dumpHeader().c_str());
-  fprintIndented(stderr, Indent + 1, "InitExpr:\n");
-  InitExpr_->dump(Indent + 2);
-  fprintIndented(stderr, Indent + 1, "CondExpr:\n");
-  CondExpr_->dump(Indent + 2);
-  fprintIndented(stderr, Indent + 1, "NextExpr:\n");
-  NextExpr_->dump(Indent + 2);
-  fprintIndented(stderr, Indent + 1, "BlockExpr:\n");
-  BlockExpr_->dump(Indent + 2);
+void ForExprAST::dump(int indent) const {
+  fprintIndented(stderr, indent, "%s:\n", dumpHeader().c_str());
+  fprintIndented(stderr, indent + 1, "InitExpr:\n");
+  init_expr_->dump(indent + 2);
+  fprintIndented(stderr, indent + 1, "CondExpr:\n");
+  cond_expr_->dump(indent + 2);
+  fprintIndented(stderr, indent + 1, "NextExpr:\n");
+  next_expr_->dump(indent + 2);
+  fprintIndented(stderr, indent + 1, "BlockExpr:\n");
+  block_expr_->dump(indent + 2);
 }
 
 static ExprAST* parseExpression();
@@ -148,23 +142,23 @@ static ExprAST* parseExpression();
 //         := ( expression )
 //         := identifier (expr,...)
 static ExprAST* parsePrimary() {
-  Token Curr = currToken();
-  if (Curr.Type == TOKEN_IDENTIFIER) {
+  Token curr = currToken();
+  if (curr.type == TOKEN_IDENTIFIER) {
     nextToken();
     if (!isLetterToken('(')) {
       unreadToken();
-      ExprAST* Expr = new VariableExprAST(Curr.Identifier, Curr.Loc);
-      ExprStorage.push_back(std::unique_ptr<ExprAST>(Expr));
-      return Expr;
+      ExprAST* expr = new VariableExprAST(curr.identifier, curr.loc);
+      expr_storage.push_back(std::unique_ptr<ExprAST>(expr));
+      return expr;
     } else {
-      std::string Callee = Curr.Identifier;
+      std::string callee = curr.identifier;
       nextToken();
-      std::vector<ExprAST*> Args;
+      std::vector<ExprAST*> args;
       if (!isLetterToken(')')) {
         while (true) {
-          ExprAST* Arg = parseExpression();
-          CHECK(Arg != nullptr);
-          Args.push_back(Arg);
+          ExprAST* arg = parseExpression();
+          CHECK(arg != nullptr);
+          args.push_back(arg);
           nextToken();
           if (isLetterToken(',')) {
             nextToken();
@@ -175,46 +169,45 @@ static ExprAST* parsePrimary() {
           }
         }
       }
-      CallExprAST* CallExpr = new CallExprAST(Callee, Args, Curr.Loc);
-      ExprStorage.push_back(std::unique_ptr<ExprAST>(CallExpr));
-      return CallExpr;
+      CallExprAST* call_expr = new CallExprAST(callee, args, curr.loc);
+      expr_storage.push_back(std::unique_ptr<ExprAST>(call_expr));
+      return call_expr;
     }
   }
-  if (Curr.Type == TOKEN_NUMBER) {
-    ExprAST* Expr = new NumberExprAST(Curr.Number, Curr.Loc);
-    ExprStorage.push_back(std::unique_ptr<ExprAST>(Expr));
-    return Expr;
+  if (curr.type == TOKEN_NUMBER) {
+    ExprAST* expr = new NumberExprAST(curr.number, curr.loc);
+    expr_storage.push_back(std::unique_ptr<ExprAST>(expr));
+    return expr;
   }
   if (isLetterToken('(')) {
     nextToken();
-    ExprAST* Expr = parseExpression();
+    ExprAST* expr = parseExpression();
     nextToken();
     CHECK(isLetterToken(')'));
-    return Expr;
+    return expr;
   }
-  LOG(FATAL) << "Unexpected token " << Curr.toString();
+  LOG(FATAL) << "Unexpected token " << curr.toString();
   return nullptr;
 }
 
-static std::set<std::string> UnaryOpSet;
+static std::set<std::string> unary_op_set;
 
 // UnaryExpression := Primary
 //                 := user_defined_binary_op_letter UnaryExpression
 static ExprAST* parseUnaryExpression() {
-  Token Curr = currToken();
-  if (Curr.Type == TOKEN_OP &&
-      UnaryOpSet.find(Curr.Op.desc) != UnaryOpSet.end()) {
+  Token curr = currToken();
+  if (curr.type == TOKEN_OP && unary_op_set.find(curr.op.desc) != unary_op_set.end()) {
     nextToken();
-    ExprAST* Right = parseUnaryExpression();
-    CHECK(Right != nullptr);
-    ExprAST* Expr = new UnaryExprAST(Curr.Op, Right, Curr.Loc);
-    ExprStorage.push_back(std::unique_ptr<ExprAST>(Expr));
-    return Expr;
+    ExprAST* right = parseUnaryExpression();
+    CHECK(right != nullptr);
+    ExprAST* expr = new UnaryExprAST(curr.op, right, curr.loc);
+    expr_storage.push_back(std::unique_ptr<ExprAST>(expr));
+    return expr;
   }
   return parsePrimary();
 }
 
-static std::map<std::string, int> OpPrecedenceMap = {
+static std::map<std::string, int> op_priority_map = {
     {"<", 10},  {"<=", 10}, {"==", 10}, {"!=", 10}, {">", 10},
     {">=", 10}, {"+", 20},  {"-", 20},  {"*", 30},  {"/", 30},
 };
@@ -232,45 +225,44 @@ static std::map<std::string, int> OpPrecedenceMap = {
 //                  := BinaryExpression / BinaryExpression
 //                  := BinaryExpression user_defined_binary_op_letter
 //                  BinaryExpression
-static ExprAST* parseBinaryExpression(int PrevPrecedence = -1) {
-  ExprAST* Result = parseUnaryExpression();
+static ExprAST* parseBinaryExpression(int prev_priority = -1) {
+  ExprAST* ret = parseUnaryExpression();
   while (true) {
     nextToken();
-    Token Curr = currToken();
-    if (Curr.Type != TOKEN_OP) {
+    Token curr = currToken();
+    if (curr.type != TOKEN_OP) {
       unreadToken();
       break;
     }
-    int Precedence = OpPrecedenceMap.find(Curr.Op.desc)->second;
-    if (Precedence <= PrevPrecedence) {
+    int priority = op_priority_map.find(curr.op.desc)->second;
+    if (priority <= prev_priority) {
       unreadToken();
       break;
     }
     nextToken();
-    ExprAST* Right = parseBinaryExpression(Precedence);
-    CHECK(Right != nullptr);
-    ExprAST* Expr = new BinaryExprAST(Curr.Op, Result, Right, Curr.Loc);
-    ExprStorage.push_back(std::unique_ptr<ExprAST>(Expr));
-    Result = Expr;
+    ExprAST* right = parseBinaryExpression(priority);
+    CHECK(right != nullptr);
+    ExprAST* expr = new BinaryExprAST(curr.op, ret, right, curr.loc);
+    expr_storage.push_back(std::unique_ptr<ExprAST>(expr));
+    ret = expr;
   }
-  return Result;
+  return ret;
 }
 
 // Expression := BinaryExpression
 //            := identifier = Expression
 static ExprAST* parseExpression() {
-  Token Curr = currToken();
-  if (Curr.Type == TOKEN_IDENTIFIER) {
-    std::string VarName = Curr.Identifier;
+  Token curr = currToken();
+  if (curr.type == TOKEN_IDENTIFIER) {
+    std::string var_name = curr.identifier;
     nextToken();
     if (isLetterToken('=')) {
       nextToken();
-      ExprAST* Expr = parseExpression();
-      CHECK(Expr != nullptr);
-      AssignmentExprAST* AssignmentExpr =
-          new AssignmentExprAST(VarName, Expr, Curr.Loc);
-      ExprStorage.push_back(std::unique_ptr<ExprAST>(AssignmentExpr));
-      return AssignmentExpr;
+      ExprAST* expr = parseExpression();
+      CHECK(expr != nullptr);
+      AssignmentExprAST* assign_expr = new AssignmentExprAST(var_name, expr, curr.loc);
+      expr_storage.push_back(std::unique_ptr<ExprAST>(assign_expr));
+      return assign_expr;
     }
     unreadToken();
   }
@@ -288,89 +280,86 @@ static ExprAST* parseExpression() {
 //           := for ( Expression; Expression; Expression ) {
 //           Statement... }
 static ExprAST* parseStatement() {
-  Token Curr = currToken();
-  if (Curr.Type == TOKEN_IDENTIFIER || Curr.Type == TOKEN_NUMBER ||
-      (isLetterToken('(')) ||
-      (Curr.Type == TOKEN_OP &&
-       UnaryOpSet.find(Curr.Op.desc) != UnaryOpSet.end())) {
-    ExprAST* Expr = parseExpression();
+  Token curr = currToken();
+  if (curr.type == TOKEN_IDENTIFIER || curr.type == TOKEN_NUMBER || (isLetterToken('(')) ||
+      (curr.type == TOKEN_OP && unary_op_set.find(curr.op.desc) != unary_op_set.end())) {
+    ExprAST* expr = parseExpression();
     nextToken();
     CHECK(isLetterToken(';')) << currToken().toString();
-    return Expr;
+    return expr;
   }
-  if (Curr.Type == TOKEN_IF) {
-    std::vector<std::pair<ExprAST*, ExprAST*>> CondThenExprs;
+  if (curr.type == TOKEN_IF) {
+    std::vector<std::pair<ExprAST*, ExprAST*>> cond_then_exprs;
     nextToken();
     consumeLetterToken('(');
-    ExprAST* CondExpr = parseExpression();
-    CHECK(CondExpr != nullptr);
+    ExprAST* cond_expr = parseExpression();
+    CHECK(cond_expr != nullptr);
     nextToken();
     consumeLetterToken(')');
-    ExprAST* ThenExpr = parseStatement();
-    CHECK(ThenExpr != nullptr);
-    CondThenExprs.push_back(std::make_pair(CondExpr, ThenExpr));
+    ExprAST* then_expr = parseStatement();
+    CHECK(then_expr != nullptr);
+    cond_then_exprs.push_back(std::make_pair(cond_expr, then_expr));
     while (true) {
       nextToken();
-      if (currToken().Type != TOKEN_ELIF) {
+      if (currToken().type != TOKEN_ELIF) {
         break;
       }
       nextToken();
       consumeLetterToken('(');
-      ExprAST* CondExpr = parseExpression();
-      CHECK(CondExpr != nullptr);
+      ExprAST* cond_expr = parseExpression();
+      CHECK(cond_expr != nullptr);
       nextToken();
       consumeLetterToken(')');
-      ExprAST* ThenExpr = parseStatement();
-      CHECK(ThenExpr != nullptr);
-      CondThenExprs.push_back(std::make_pair(CondExpr, ThenExpr));
+      ExprAST* then_expr = parseStatement();
+      CHECK(then_expr != nullptr);
+      cond_then_exprs.push_back(std::make_pair(cond_expr, then_expr));
     }
-    ExprAST* ElseExpr = nullptr;
-    if (currToken().Type == TOKEN_ELSE) {
+    ExprAST* else_expr = nullptr;
+    if (currToken().type == TOKEN_ELSE) {
       nextToken();
-      ElseExpr = parseStatement();
-      CHECK(ElseExpr != nullptr);
+      else_expr = parseStatement();
+      CHECK(else_expr != nullptr);
     } else {
       unreadToken();
     }
-    IfExprAST* IfExpr = new IfExprAST(CondThenExprs, ElseExpr, Curr.Loc);
-    ExprStorage.push_back(std::unique_ptr<ExprAST>(IfExpr));
-    return IfExpr;
+    IfExprAST* if_expr = new IfExprAST(cond_then_exprs, else_expr, curr.loc);
+    expr_storage.push_back(std::unique_ptr<ExprAST>(if_expr));
+    return if_expr;
   }
   if (isLetterToken('{')) {
-    std::vector<ExprAST*> Exprs;
+    std::vector<ExprAST*> exprs;
     while (true) {
       nextToken();
       if (isLetterToken('}')) {
         break;
       }
-      ExprAST* Expr = parseStatement();
-      CHECK(Expr != nullptr);
-      Exprs.push_back(Expr);
+      ExprAST* expr = parseStatement();
+      CHECK(expr != nullptr);
+      exprs.push_back(expr);
     }
-    BlockExprAST* BlockExpr = new BlockExprAST(Exprs, Curr.Loc);
-    ExprStorage.push_back(std::unique_ptr<ExprAST>(BlockExpr));
-    return BlockExpr;
+    BlockExprAST* block_expr = new BlockExprAST(exprs, curr.loc);
+    expr_storage.push_back(std::unique_ptr<ExprAST>(block_expr));
+    return block_expr;
   }
-  if (Curr.Type == TOKEN_FOR) {
+  if (curr.type == TOKEN_FOR) {
     nextToken();
     consumeLetterToken('(');
-    ExprAST* InitExpr = parseExpression();
+    ExprAST* init_expr = parseExpression();
     nextToken();
     consumeLetterToken(';');
-    ExprAST* CondExpr = parseExpression();
+    ExprAST* cond_expr = parseExpression();
     nextToken();
     consumeLetterToken(';');
-    ExprAST* NextExpr = parseExpression();
+    ExprAST* next_expr = parseExpression();
     nextToken();
     consumeLetterToken(')');
     CHECK(isLetterToken('{'));
-    ExprAST* BlockExpr = parseStatement();
-    ForExprAST* ForExpr =
-        new ForExprAST(InitExpr, CondExpr, NextExpr, BlockExpr, Curr.Loc);
-    ExprStorage.push_back(std::unique_ptr<ExprAST>(ForExpr));
-    return ForExpr;
+    ExprAST* block_expr = parseStatement();
+    ForExprAST* for_expr = new ForExprAST(init_expr, cond_expr, next_expr, block_expr, curr.loc);
+    expr_storage.push_back(std::unique_ptr<ExprAST>(for_expr));
+    return for_expr;
   }
-  LOG(FATAL) << "Unexpected token " << Curr.toString();
+  LOG(FATAL) << "Unexpected token " << curr.toString();
   return nullptr;
 }
 
@@ -378,42 +367,42 @@ static ExprAST* parseStatement() {
 //                   := binary letter [priority] ( identifier1,identifier2,... )
 //                   := unary letter ( identifier1,identifier2,... )
 static PrototypeAST* parseFunctionPrototype() {
-  Token Curr = currToken();
-  std::string FunctionName;
-  bool IsBinaryOp = false;
-  char BinaryOpLetter;
-  int BinaryOpPriority = 0;
-  bool IsUnaryOp = false;
-  char UnaryOpLetter;
-  if (Curr.Type == TOKEN_IDENTIFIER) {
-    FunctionName = Curr.Identifier;
+  Token curr = currToken();
+  std::string function_name;
+  bool is_binary_op = false;
+  char binary_op_letter;
+  int binary_op_priority = 0;
+  bool is_unary_op = false;
+  char unary_op_letter;
+  if (curr.type == TOKEN_IDENTIFIER) {
+    function_name = curr.identifier;
     nextToken();
-  } else if (Curr.Type == TOKEN_BINARY) {
+  } else if (curr.type == TOKEN_BINARY) {
     nextToken();
-    CHECK_EQ(TOKEN_LETTER, currToken().Type);
-    IsBinaryOp = true;
-    BinaryOpLetter = currToken().Letter;
-    FunctionName = "binary" + std::string(1, BinaryOpLetter);
+    CHECK_EQ(TOKEN_LETTER, currToken().type);
+    is_binary_op = true;
+    binary_op_letter = currToken().letter;
+    function_name = "binary" + std::string(1, binary_op_letter);
     nextToken();
-    if (currToken().Type == TOKEN_NUMBER) {
-      BinaryOpPriority = static_cast<int>(currToken().Number);
+    if (currToken().type == TOKEN_NUMBER) {
+      binary_op_priority = static_cast<int>(currToken().number);
       nextToken();
     }
-  } else if (Curr.Type == TOKEN_UNARY) {
+  } else if (curr.type == TOKEN_UNARY) {
     nextToken();
-    CHECK_EQ(TOKEN_LETTER, currToken().Type);
-    IsUnaryOp = true;
-    UnaryOpLetter = currToken().Letter;
-    FunctionName = "unary" + std::string(1, UnaryOpLetter);
+    CHECK_EQ(TOKEN_LETTER, currToken().type);
+    is_unary_op = true;
+    unary_op_letter = currToken().letter;
+    function_name = "unary" + std::string(1, unary_op_letter);
     nextToken();
   }
   CHECK(isLetterToken('('));
-  std::vector<std::string> Args;
+  std::vector<std::string> args;
   nextToken();
   if (!isLetterToken(')')) {
     while (true) {
-      CHECK_EQ(TOKEN_IDENTIFIER, currToken().Type);
-      Args.push_back(currToken().Identifier);
+      CHECK_EQ(TOKEN_IDENTIFIER, currToken().type);
+      args.push_back(currToken().identifier);
       nextToken();
       if (isLetterToken(',')) {
         nextToken();
@@ -425,41 +414,40 @@ static PrototypeAST* parseFunctionPrototype() {
     }
   }
   nextToken();
-  PrototypeAST* Prototype = new PrototypeAST(FunctionName, Args, Curr.Loc);
-  ExprStorage.push_back(std::unique_ptr<ExprAST>(Prototype));
+  PrototypeAST* prototype = new PrototypeAST(function_name, args, curr.loc);
+  expr_storage.push_back(std::unique_ptr<ExprAST>(prototype));
 
-  if (IsBinaryOp) {
-    addDynamicOp(BinaryOpLetter);
-    OpPrecedenceMap[std::string(1, BinaryOpLetter)] = BinaryOpPriority;
-  } else if (IsUnaryOp) {
-    addDynamicOp(UnaryOpLetter);
-    UnaryOpSet.insert(std::string(1, UnaryOpLetter));
+  if (is_binary_op) {
+    addDynamicOp(binary_op_letter);
+    op_priority_map[std::string(1, binary_op_letter)] = binary_op_priority;
+  } else if (is_unary_op) {
+    addDynamicOp(unary_op_letter);
+    unary_op_set.insert(std::string(1, unary_op_letter));
   }
-
-  return Prototype;
+  return prototype;
 }
 
 // Extern := extern FunctionPrototype ;
 static PrototypeAST* parseExtern() {
-  Token Curr = currToken();
-  CHECK_EQ(TOKEN_EXTERN, Curr.Type);
+  Token curr = currToken();
+  CHECK_EQ(TOKEN_EXTERN, curr.type);
   nextToken();
-  PrototypeAST* Prototype = parseFunctionPrototype();
+  PrototypeAST* prototype = parseFunctionPrototype();
   CHECK(isLetterToken(';'));
-  return Prototype;
+  return prototype;
 }
 
 // Function := def FunctionPrototype Statement
 static FunctionAST* parseFunction() {
-  Token Curr = currToken();
-  CHECK_EQ(TOKEN_DEF, Curr.Type);
+  Token curr = currToken();
+  CHECK_EQ(TOKEN_DEF, curr.type);
   nextToken();
-  PrototypeAST* Prototype = parseFunctionPrototype();
-  ExprAST* Body = parseStatement();
-  CHECK(Body != nullptr);
-  FunctionAST* Function = new FunctionAST(Prototype, Body, Curr.Loc);
-  ExprStorage.push_back(std::unique_ptr<ExprAST>(Function));
-  return Function;
+  PrototypeAST* prototype = parseFunctionPrototype();
+  ExprAST* body = parseStatement();
+  CHECK(body != nullptr);
+  FunctionAST* function = new FunctionAST(prototype, body, curr.loc);
+  expr_storage.push_back(std::unique_ptr<ExprAST>(function));
+  return function;
 }
 
 void prepareParsePipeline() {
@@ -467,40 +455,30 @@ void prepareParsePipeline() {
 
 ExprAST* parsePipeline() {
   nextToken();
-  Token Curr = currToken();
-  if (Curr.Type == TOKEN_EOF || isLetterToken(';')) {
+  Token curr = currToken();
+  if (curr.type == TOKEN_EOF || isLetterToken(';')) {
     return nullptr;
   }
-  if (Curr.Type == TOKEN_IDENTIFIER || Curr.Type == TOKEN_NUMBER ||
-      Curr.Type == TOKEN_IF || Curr.Type == TOKEN_FOR || isLetterToken('(') ||
-      isLetterToken('{') ||
-      (Curr.Type == TOKEN_OP &&
-       UnaryOpSet.find(Curr.Op.desc) != UnaryOpSet.end())) {
-    ExprAST* Expr = parseStatement();
-    CHECK(Expr != nullptr);
-    if (GlobalOption.DumpAST) {
-      Expr->dump(0);
-    }
-    return Expr;
+  ExprAST* ret = nullptr;
+  if (curr.type == TOKEN_IDENTIFIER || curr.type == TOKEN_NUMBER || curr.type == TOKEN_IF ||
+      curr.type == TOKEN_FOR || isLetterToken('(') || isLetterToken('{') ||
+      (curr.type == TOKEN_OP && unary_op_set.find(curr.op.desc) != unary_op_set.end())) {
+    ret = parseStatement();
+    CHECK(ret != nullptr);
+  } else if (curr.type == TOKEN_EXTERN) {
+    ret = parseExtern();
+    CHECK(ret != nullptr);
+  } else if (curr.type == TOKEN_DEF) {
+    ret = parseFunction();
+    CHECK(ret != nullptr);
   }
-  if (Curr.Type == TOKEN_EXTERN) {
-    PrototypeAST* Prototype = parseExtern();
-    CHECK(Prototype != nullptr);
-    if (GlobalOption.DumpAST) {
-      Prototype->dump(0);
+  if (ret != nullptr) {
+    if (global_option.dump_ast) {
+      ret->dump(0);
     }
-    return Prototype;
+    return ret;
   }
-  if (Curr.Type == TOKEN_DEF) {
-    FunctionAST* Function = parseFunction();
-    CHECK(Function != nullptr);
-    if (GlobalOption.DumpAST) {
-      Function->dump(0);
-    }
-    return Function;
-  }
-
-  LOG(FATAL) << "Unexpected token " << Curr.toString();
+  LOG(FATAL) << "Unexpected token " << curr.toString();
   return nullptr;
 }
 
@@ -508,14 +486,14 @@ void finishParsePipeline() {
 }
 
 std::vector<ExprAST*> parseMain() {
-  std::vector<ExprAST*> Exprs;
+  std::vector<ExprAST*> exprs;
   prepareParsePipeline();
   while (true) {
-    ExprAST* Expr = parsePipeline();
-    if (Expr == nullptr) {
+    ExprAST* expr = parsePipeline();
+    if (expr == nullptr) {
       break;
     }
-    Exprs.push_back(Expr);
+    exprs.push_back(expr);
   }
-  return Exprs;
+  return exprs;
 }

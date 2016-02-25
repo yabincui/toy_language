@@ -8,13 +8,13 @@
 
 extern "C" {
 
-double print(double X) {
-  printf("%lf\n", X);
+double print(double x) {
+  printf("%lf\n", x);
   return 0.0;
 }
 
-double printc(double X) {
-  char c = static_cast<char>(X);
+double printc(double x) {
+  char c = static_cast<char>(x);
   printf("%c", c);
   return 0.0;
 }

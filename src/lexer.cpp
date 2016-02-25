@@ -3,18 +3,22 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include <deque>
 #include <map>
 #include <stack>
 #include <string>
+#include <unordered_map>
+#include <vector>
 
 #include "logging.h"
 #include "option.h"
 #include "string.h"
 
-size_t ExprsInCurrLine = 0;  // Used to decide whether to show prompt.
+size_t exprs_in_curline = 0;  // Used to decide whether to show prompt.
 
 // Lexer
-static std::map<TokenType, std::string> TokenNameMap = {
+static std::map<TokenType, std::string> token_name_map = {
     {TOKEN_INVALID, "TOKEN_INVALID"},
     {TOKEN_EOF, "TOKEN_EOF"},
     {TOKEN_DEF, "TOKEN_DEF"},
@@ -31,243 +35,329 @@ static std::map<TokenType, std::string> TokenNameMap = {
     {TOKEN_LETTER, "TOKEN_LETTER"},
 };
 
-static std::vector<std::string> OpMap = {
-    "+", "-", "*", "/", "<", "<=", "==", ">", ">=", "!=",
+static std::unordered_map<char, std::vector<std::string>> op_map = {
+    {'+', {"+"}},       {'-', {"-"}},  {'*', {"*"}},       {'/', {"/"}},
+    {'<', {"<=", "<"}}, {'=', {"=="}}, {'>', {">=", ">"}}, {'!', {"!="}},
 };
 
-Token::Token(TokenType Type, const std::string& Identifier, double Number,
-             OpType Op, char Letter, SourceLocation Loc)
-    : Type(Type),
-      Identifier(Identifier),
-      Number(Number),
-      Op(Op),
-      Letter(Letter),
-      Loc(Loc) {
+static std::unordered_map<std::string, TokenType> keyword_map;
+
+Token::Token() : type(TOKEN_INVALID), number(0.0), letter(0) {
 }
 
-Token Token::createNumberToken(double Number, SourceLocation Loc) {
-  return Token(TOKEN_NUMBER, "", Number, OpType(), 0, Loc);
+Token Token::createNumberToken(double number, SourceLocation loc) {
+  Token token;
+  token.type = TOKEN_NUMBER;
+  token.number = number;
+  token.loc = loc;
+  return token;
 }
 
-Token Token::createIdentifierToken(const std::string& Identifier,
-                                   SourceLocation Loc) {
-  return Token(TOKEN_IDENTIFIER, Identifier, 0.0, OpType(), 0, Loc);
+Token Token::createIdentifierToken(const std::string& identifier, SourceLocation loc) {
+  Token token;
+  token.type = TOKEN_IDENTIFIER;
+  token.identifier = identifier;
+  token.loc = loc;
+  return token;
 }
 
-Token Token::createOpToken(OpType Op, SourceLocation Loc) {
-  return Token(TOKEN_OP, "", 0.0, Op, 0, Loc);
+Token Token::createOpToken(OpType op, SourceLocation loc) {
+  Token token;
+  token.type = TOKEN_OP;
+  token.op = op;
+  token.loc = loc;
+  return token;
 }
 
-Token Token::createLetterToken(char Letter, SourceLocation Loc) {
-  return Token(TOKEN_LETTER, "", 0.0, OpType(), Letter, Loc);
+Token Token::createLetterToken(char letter, SourceLocation loc) {
+  Token token;
+  token.type = TOKEN_LETTER;
+  token.letter = letter;
+  token.loc = loc;
+  return token;
 }
 
-Token Token::createToken(TokenType Type, SourceLocation Loc) {
-  return Token(Type, "", 0.0, OpType(), 0, Loc);
+Token Token::createToken(TokenType type, SourceLocation loc) {
+  Token token;
+  token.type = type;
+  token.loc = loc;
+  return token;
 }
 
 std::string Token::toString() const {
-  auto it = TokenNameMap.find(Type);
-  if (it == TokenNameMap.end()) {
-    return stringPrintf("Token (Unknown Type %d)", Type);
+  auto it = token_name_map.find(type);
+  if (it == token_name_map.end()) {
+    return stringPrintf("Token (Unknown Type %d)", type);
   }
   std::string s = stringPrintf("Token (%s", it->second.c_str());
-  if (Type == TOKEN_IDENTIFIER) {
-    s += ", " + Identifier;
-  } else if (Type == TOKEN_NUMBER) {
-    s += ", " + stringPrintf("%lf", Number);
-  } else if (Type == TOKEN_OP) {
-    s += ", " + Op.desc;
-  } else if (Type == TOKEN_LETTER) {
-    s += ", " + std::string(1, Letter);
+  if (type == TOKEN_IDENTIFIER) {
+    s += ", " + identifier;
+  } else if (type == TOKEN_NUMBER) {
+    s += ", " + stringPrintf("%lf", number);
+  } else if (type == TOKEN_OP) {
+    s += ", " + op.desc;
+  } else if (type == TOKEN_LETTER) {
+    s += ", " + std::string(1, letter);
   }
-  s += ")";
+  s += "), loc " + loc.toString();
   return s;
 }
 
 struct CharWithLoc {
-  int Char;
-  SourceLocation Loc;
+  int ch;
+  SourceLocation loc;
 };
 
-static std::stack<CharWithLoc> CharStack;
+static std::deque<CharWithLoc> char_deque;
+
+static size_t curr_line = 1;
+static size_t curr_column = 1;
 
 static CharWithLoc getChar() {
-  static size_t CurrLine = 1;
-  static size_t CurrColumn = 1;
-
-  if (!CharStack.empty()) {
-    CharWithLoc Ret = CharStack.top();
-    CharStack.pop();
-    return Ret;
+  if (!char_deque.empty()) {
+    CharWithLoc ret = char_deque.front();
+    char_deque.pop_front();
+    return ret;
   }
-  int Char = fgetc(GlobalOption.InputFp);
-  CharWithLoc Ret;
-  Ret.Char = Char;
-  Ret.Loc.Line = CurrLine;
-  Ret.Loc.Column = CurrColumn++;
-  if (Char == '\n') {
-    CurrLine++;
-    CurrColumn = 1;
+  int ch = fgetc(global_option.input_fp);
+  CharWithLoc ret;
+  ret.ch = ch;
+  ret.loc.line = curr_line;
+  ret.loc.column = curr_column++;
+  if (ch == '\n') {
+    curr_line++;
+    curr_column = 1;
   }
-  return Ret;
+  return ret;
 }
 
-static void ungetChar(CharWithLoc Char) {
-  CharStack.push(Char);
+static void ungetChar(CharWithLoc ch) {
+  char_deque.push_front(ch);
+}
+
+static void consumeComment() {
+  CharWithLoc ch = getChar();
+  while (ch.ch != EOF) {
+    if (ch.ch == '*') {
+      CharWithLoc next = getChar();
+      if (next.ch == '/') {
+        return;
+      }
+      ch = next;
+    }
+  }
+  CHECK_NE(ch.ch, EOF);
+}
+
+static Token getKeywordOrIdentifierToken(const std::string& s, SourceLocation loc) {
+  if (keyword_map.empty()) {
+    keyword_map["def"] = TOKEN_DEF;
+    keyword_map["extern"] = TOKEN_EXTERN;
+    keyword_map["if"] = TOKEN_IF;
+    keyword_map["elif"] = TOKEN_ELIF;
+    keyword_map["else"] = TOKEN_ELSE;
+    keyword_map["for"] = TOKEN_FOR;
+    keyword_map["binary"] = TOKEN_BINARY;
+    keyword_map["unary"] = TOKEN_UNARY;
+  }
+  auto it = keyword_map.find(s);
+  if (it != keyword_map.end()) {
+    return Token::createToken(it->second, loc);
+  }
+  return Token::createIdentifierToken(s, loc);
+}
+
+static Token getOperatorToken(CharWithLoc start) {
+  auto it = op_map.find(start.ch);
+  if (it == op_map.end()) {
+    return Token();
+  }
+  const std::vector<std::string>& strs = it->second;
+  for (auto& s : strs) {
+    std::vector<CharWithLoc> v;
+    size_t i;
+    for (i = 1; i < s.size(); ++i) {
+      CharWithLoc ch = getChar();
+      if (ch.ch != s[i]) {
+        ungetChar(ch);
+        break;
+      }
+      v.push_back(ch);
+    }
+    if (i == s.size()) {
+      return Token::createOpToken(OpType(s), start.loc);
+    }
+    for (auto it = v.rbegin(); it != v.rend(); ++it) {
+      ungetChar(*it);
+    }
+  }
+  return Token();
 }
 
 static Token produceToken() {
-  CharWithLoc LastChar = getChar();
+  CharWithLoc ch = getChar();
 
 Repeat:
-  while (isspace(LastChar.Char)) {
-    LastChar = getChar();
-    if (LastChar.Char == '\n') {
-      if (GlobalOption.Interactive && ExprsInCurrLine > 0) {
-        ExprsInCurrLine = 0;
+  while (isspace(ch.ch)) {
+    ch = getChar();
+    if (ch.ch == '\n') {
+      if (global_option.interactive && exprs_in_curline > 0) {
+        exprs_in_curline = 0;
         printPrompt();
       }
     }
   }
-  if (LastChar.Char == '#') {
-    while (LastChar.Char != '\n' && LastChar.Char != EOF) {
-      LastChar = getChar();
+  if (ch.ch == '#') {
+    while (ch.ch != '\n' && ch.ch != EOF) {
+      ch = getChar();
     }
     goto Repeat;
   }
-  if (isalpha(LastChar.Char) || LastChar.Char == '_') {
-    CharWithLoc StartChar = LastChar;
-    std::string s(1, static_cast<char>(LastChar.Char));
+  if (ch.ch == '/') {
+    CharWithLoc next = getChar();
+    if (next.ch == '*') {
+      consumeComment();
+      ch = getChar();
+    } else {
+      ungetChar(next);
+    }
+  }
+  if (isalpha(ch.ch) || ch.ch == '_') {
+    CharWithLoc start = ch;
+    std::string s(1, static_cast<char>(start.ch));
     while (true) {
-      LastChar = getChar();
-      if (isalnum(LastChar.Char) || LastChar.Char == '_') {
-        s.push_back(LastChar.Char);
+      ch = getChar();
+      if (isalnum(ch.ch) || ch.ch == '_') {
+        s.push_back(ch.ch);
       } else {
         break;
       }
     }
-    ungetChar(LastChar);
-    if (s == "def") {
-      return Token::createToken(TOKEN_DEF, StartChar.Loc);
-    }
-    if (s == "extern") {
-      return Token::createToken(TOKEN_EXTERN, StartChar.Loc);
-    }
-    if (s == "if") {
-      return Token::createToken(TOKEN_IF, StartChar.Loc);
-    }
-    if (s == "elif") {
-      return Token::createToken(TOKEN_ELIF, StartChar.Loc);
-    }
-    if (s == "else") {
-      return Token::createToken(TOKEN_ELSE, StartChar.Loc);
-    }
-    if (s == "for") {
-      return Token::createToken(TOKEN_FOR, StartChar.Loc);
-    }
-    if (s == "binary") {
-      return Token::createToken(TOKEN_BINARY, StartChar.Loc);
-    }
-    if (s == "unary") {
-      return Token::createToken(TOKEN_UNARY, StartChar.Loc);
-    }
-    return Token::createIdentifierToken(s, StartChar.Loc);
+    ungetChar(ch);
+    return getKeywordOrIdentifierToken(s, start.loc);
   }
-
-  if (isdigit(LastChar.Char)) {
-    CharWithLoc StartChar = LastChar;
-    std::string s(1, static_cast<char>(LastChar.Char));
+  if (isdigit(ch.ch)) {
+    CharWithLoc start = ch;
+    std::string s(1, static_cast<char>(ch.ch));
     while (true) {
-      LastChar = getChar();
-      if (!isalnum(LastChar.Char) && LastChar.Char != '.') {
+      ch = getChar();
+      if (!isalnum(ch.ch) && ch.ch != '.') {
         break;
       }
-      s.push_back(LastChar.Char);
+      s.push_back(ch.ch);
     }
-    ungetChar(LastChar);
-    return Token::createNumberToken(strtod(s.c_str(), nullptr), StartChar.Loc);
+    ungetChar(ch);
+    return Token::createNumberToken(strtod(s.c_str(), nullptr), start.loc);
   }
 
-  if (LastChar.Char == EOF) {
-    return Token::createToken(TOKEN_EOF, LastChar.Loc);
+  if (ch.ch == EOF) {
+    return Token::createToken(TOKEN_EOF, ch.loc);
   }
 
-  // Match Op.
-  std::string MatchOp;
-  for (auto& s : OpMap) {
-    if (s[0] != LastChar.Char) {
-      continue;
-    }
-    std::vector<CharWithLoc> Stack;
-    size_t i;
-    for (i = 1; i < s.size(); ++i) {
-      CharWithLoc Char = getChar();
-      if (Char.Char != s[i]) {
-        ungetChar(Char);
-        break;
-      }
-      Stack.push_back(Char);
-    }
-    if (i == s.size() && MatchOp.size() < s.size()) {
-      MatchOp = s;
-    }
-    for (auto It = Stack.rbegin(); It != Stack.rend(); ++It) {
-      ungetChar(*It);
-    }
+  Token token = getOperatorToken(ch);
+  if (token.type != TOKEN_INVALID) {
+    return token;
   }
-  if (!MatchOp.empty()) {
-    for (size_t i = 1; i < MatchOp.size(); ++i) {
-      getChar();
-    }
-    return Token::createOpToken(OpType(MatchOp), LastChar.Loc);
-  }
-
-  return Token::createLetterToken(LastChar.Char, LastChar.Loc);
+  return Token::createLetterToken(ch.ch, ch.loc);
 }
 
-static Token PrevToken(TOKEN_INVALID, "", 0.0, OpType(), 0, SourceLocation());
-static Token CurToken(TOKEN_INVALID, "", 0.0, OpType(), 0, SourceLocation());
-static Token BufferedToken(TOKEN_INVALID, "", 0.0, OpType(), 0,
-                           SourceLocation());
+template <class T>
+class RingBuffer {
+ public:
+  RingBuffer(size_t size = 10) : buffer_(size), data_start_(0), data_end_(0), cur_(0) {
+  }
+
+  const T& getCurrent() {
+    return buffer_[cur_];
+  }
+
+  bool isEnd() {
+    return cur_ == data_end_;
+  }
+
+  void moveTowardStart() {
+    CHECK_NE(cur_, data_start_);
+    if (cur_ == 0) {
+      cur_ = buffer_.size() - 1;
+    } else {
+      cur_--;
+    }
+  }
+
+  bool moveTowardEnd() {
+    if (cur_ == data_end_) {
+      return false;
+    }
+    CHECK_NE(cur_, data_end_);
+    cur_++;
+    if (cur_ == buffer_.size()) {
+      cur_ = 0;
+    }
+    return true;
+  }
+
+  void push(const T& t) {
+    buffer_[data_end_] = t;
+    data_end_++;
+    if (data_end_ == buffer_.size()) {
+      data_end_ = 0;
+    }
+    buffer_[data_end_] = T();
+    if (data_start_ == data_end_) {
+      data_start_++;
+      if (data_start_ == buffer_.size()) {
+        data_start_ = 0;
+      }
+    }
+  }
+
+ private:
+  std::vector<T> buffer_;
+  size_t data_start_;
+  size_t data_end_;
+  size_t cur_;
+};
+
+static RingBuffer<Token> token_buffer;
 
 const Token& currToken() {
-  CHECK_NE(TOKEN_INVALID, CurToken.Type);
-  return CurToken;
+  const Token& token = token_buffer.getCurrent();
+  CHECK_NE(token.type, TOKEN_INVALID);
+  return token;
 }
 
 const Token& getNextToken() {
-  PrevToken = CurToken;
-  if (BufferedToken.Type != TOKEN_INVALID) {
-    CurToken = BufferedToken;
-    BufferedToken = Token::createToken(TOKEN_INVALID, SourceLocation());
-  } else {
-    CurToken = produceToken();
+  if (!token_buffer.isEnd()) {
+    if (!token_buffer.moveTowardEnd()) {
+      LOG(FATAL) << "failed to move toward end near: " << curr_line << "(" << curr_column << ")";
+    }
   }
-  if (GlobalOption.DumpToken) {
-    fprintf(stderr, "%s\n", CurToken.toString().c_str());
+  if (token_buffer.isEnd()) {
+    token_buffer.push(produceToken());
   }
-  return CurToken;
+  if (global_option.dump_token) {
+    fprintf(stderr, "%s\n", currToken().toString().c_str());
+  }
+  return currToken();
 }
 
 void unreadCurrToken() {
-  CHECK_NE(TOKEN_INVALID, PrevToken.Type);
-  CHECK_EQ(TOKEN_INVALID, BufferedToken.Type);
-  BufferedToken = CurToken;
-  CurToken = PrevToken;
-  PrevToken = Token::createToken(TOKEN_INVALID, SourceLocation());
-  if (GlobalOption.DumpToken) {
-    fprintf(stderr, "unread %s\n", BufferedToken.toString().c_str());
+  if (global_option.dump_token) {
+    fprintf(stderr, "unread %s\n", currToken().toString().c_str());
   }
+  token_buffer.moveTowardStart();
 }
 
-void addDynamicOp(char Op) {
-  std::string Str(1, Op);
-  for (auto& S : OpMap) {
-    if (S == Str) {
-      LOG(ERROR) << "Add existing op: " << S;
+void addDynamicOp(char op) {
+  std::string s(1, op);
+  auto it = op_map.find(op);
+  if (it != op_map.end()) {
+    if (it->second.back() == s) {
+      LOG(ERROR) << "Add existing op: " << s;
       return;
     }
+    it->second.push_back(s);
+  } else {
+    op_map[op] = std::vector<std::string>(1, s);
   }
-  OpMap.push_back(Str);
 }

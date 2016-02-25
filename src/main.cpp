@@ -9,8 +9,8 @@
 #include "string.h"
 #include "supportlib.h"
 
-static void usage(const std::string& ExecName) {
-  printf("%s  Experiment a toy language\n", ExecName.c_str());
+static void usage(const std::string& exec_name) {
+  printf("%s  Experiment a toy language\n", exec_name.c_str());
   printf(
       "Usage:\n"
       "--dump dumpType1, dumpType2,...\n"
@@ -29,7 +29,7 @@ static void usage(const std::string& ExecName) {
       "Default Option: --dump code\n\n");
 }
 
-Option GlobalOption = {
+Option global_option = {
     "<stdin>",  // InputFile
     stdin,      // InputFp
     true,       // Interactive
@@ -50,77 +50,76 @@ bool nextArgumentOrError(const std::vector<std::string>& Args, size_t& i) {
 }
 
 static bool parseOptions(int argc, char** argv) {
-  std::vector<std::string> Args;
+  std::vector<std::string> args;
   for (int i = 0; i < argc; ++i) {
-    Args.push_back(argv[i]);
+    args.push_back(argv[i]);
   }
-  for (size_t i = 1; i < Args.size(); ++i) {
-    if (Args[i] == "--dump") {
-      if (!nextArgumentOrError(Args, i)) {
+  for (size_t i = 1; i < args.size(); ++i) {
+    if (args[i] == "--dump") {
+      if (!nextArgumentOrError(args, i)) {
         return false;
       }
-      GlobalOption.DumpToken = false;
-      GlobalOption.DumpAST = false;
-      GlobalOption.DumpCode = false;
-      std::vector<std::string> DumpList = stringSplit(Args[i], ',');
-      for (auto& Item : DumpList) {
-        if (Item == "token") {
-          GlobalOption.DumpToken = true;
-        } else if (Item == "ast") {
-          GlobalOption.DumpAST = true;
-        } else if (Item == "code") {
-          GlobalOption.DumpCode = true;
-        } else if (Item == "none") {
+      global_option.dump_token = false;
+      global_option.dump_ast = false;
+      global_option.dump_code = false;
+      std::vector<std::string> dump_list = stringSplit(args[i], ',');
+      for (const auto& item : dump_list) {
+        if (item == "token") {
+          global_option.dump_token = true;
+        } else if (item == "ast") {
+          global_option.dump_ast = true;
+        } else if (item == "code") {
+          global_option.dump_code = true;
+        } else if (item == "none") {
         } else {
-          LOG(ERROR) << "Unknown dump type " << Item;
+          LOG(ERROR) << "Unknown dump type " << item;
           return false;
         }
       }
-    } else if (Args[i] == "-h" || Args[i] == "--help") {
-      usage(Args[0]);
+    } else if (args[i] == "-h" || args[i] == "--help") {
+      usage(args[0]);
       exit(0);
-    } else if (Args[i] == "-i") {
-      if (!nextArgumentOrError(Args, i)) {
+    } else if (args[i] == "-i") {
+      if (!nextArgumentOrError(args, i)) {
         return false;
       }
-      FILE* fp = fopen(Args[i].c_str(), "r");
+      FILE* fp = fopen(args[i].c_str(), "r");
       if (fp == nullptr) {
-        LOG(ERROR) << "Can't open file " << Args[i];
+        LOG(ERROR) << "Can't open file " << args[i];
         return false;
       }
-      GlobalOption.InputFile = Args[i];
-      GlobalOption.InputFp = fp;
-      GlobalOption.Interactive = false;
-    } else if (Args[i] == "--log") {
-      if (!nextArgumentOrError(Args, i)) {
+      global_option.input_file = args[i];
+      global_option.input_fp = fp;
+      global_option.interactive = false;
+    } else if (args[i] == "--log") {
+      if (!nextArgumentOrError(args, i)) {
         return false;
       }
-      if (Args[i] == "debug") {
-        GlobalOption.LogLevel = DEBUG;
-      } else if (Args[i] == "error") {
-        GlobalOption.LogLevel = ERROR;
-      } else if (Args[i] == "fatal") {
-        GlobalOption.LogLevel = FATAL;
+      if (args[i] == "debug") {
+        global_option.log_level = DEBUG;
+      } else if (args[i] == "error") {
+        global_option.log_level = ERROR;
+      } else if (args[i] == "fatal") {
+        global_option.log_level = FATAL;
       } else {
-        LOG(ERROR) << "Unknown log level: " << Args[i];
+        LOG(ERROR) << "Unknown log level: " << args[i];
         return false;
       }
-    } else if (Args[i] == "--no-execute") {
-      GlobalOption.Execute = false;
+    } else if (args[i] == "--no-execute") {
+      global_option.execute = false;
     } else {
-      LOG(ERROR) << "Unknown Option: " << Args[i];
+      LOG(ERROR) << "Unknown Option: " << args[i];
       return false;
     }
   }
 
   LOG(DEBUG) << "\n"
-             << "GlobalOption: InputFile = " << GlobalOption.InputFile << "\n"
-             << "              InputFp = " << GlobalOption.InputFp << "\n"
-             << "              Interactive = " << GlobalOption.Interactive
-             << "\n"
-             << "              DumpToken = " << GlobalOption.DumpToken << "\n"
-             << "              DumpAST = " << GlobalOption.DumpAST << "\n"
-             << "              DumpCode = " << GlobalOption.DumpCode << "\n";
+             << "GlobalOption: input_file = " << global_option.input_file << "\n"
+             << "              input_fp = " << global_option.input_fp << "\n"
+             << "              interactive = " << global_option.interactive << "\n"
+             << "              dump_token = " << global_option.dump_token << "\n"
+             << "              dump_ast = " << global_option.dump_ast << "\n"
+             << "              dump_code = " << global_option.dump_code << "\n";
   return true;
 }
 
@@ -137,17 +136,17 @@ static void interactiveMain() {
 
   printPrompt();
   while (true) {
-    ExprAST* Expr = parsePipeline();
-    if (Expr != nullptr) {
-      std::unique_ptr<llvm::Module> Module = codePipeline(Expr);
-      if (Module != nullptr) {
-        optPipeline(Module.get());
-        executionPipeline(Module.release());
+    ExprAST* expr = parsePipeline();
+    if (expr != nullptr) {
+      std::unique_ptr<llvm::Module> module = codePipeline(expr);
+      if (module != nullptr) {
+        optPipeline(module.get());
+        executionPipeline(module.release());
       }
-      ExprsInCurrLine++;
+      exprs_in_curline++;
     } else {
-      Token Curr = currToken();
-      if (Curr.Type == TOKEN_EOF) {
+      Token curr = currToken();
+      if (curr.type == TOKEN_EOF) {
         break;
       }
     }
@@ -161,13 +160,13 @@ static void interactiveMain() {
 
 static void nonInteractiveMain() {
   LOG(DEBUG) << "parseMain()";
-  std::vector<ExprAST*> Exprs = parseMain();
+  std::vector<ExprAST*> exprs = parseMain();
   LOG(DEBUG) << "codeMain()";
-  std::unique_ptr<llvm::Module> Module = codeMain(Exprs);
+  std::unique_ptr<llvm::Module> module = codeMain(exprs);
   LOG(DEBUG) << "optMain()";
-  optMain(Module.get());
+  optMain(module.get());
   LOG(DEBUG) << "executionMain()";
-  executionMain(Module.release());
+  executionMain(module.release());
 }
 
 int main(int argc, char** argv) {
@@ -176,7 +175,7 @@ int main(int argc, char** argv) {
   }
 
   initSupportLib();
-  if (GlobalOption.Interactive) {
+  if (global_option.interactive) {
     interactiveMain();
   } else {
     nonInteractiveMain();

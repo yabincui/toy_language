@@ -6,10 +6,10 @@
 
 // Used in interactive mode.
 void prepareExecutionPipeline();
-void executionPipeline(llvm::Module* Module);
+void executionPipeline(llvm::Module* module);
 void finishExecutionPipeline();
 
 // Used in non-interactive mode.
-void executionMain(llvm::Module* Module);
+void executionMain(llvm::Module* module);
 
 #endif  // TOY_EXECUTION_H_

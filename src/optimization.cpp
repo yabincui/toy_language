@@ -26,22 +26,21 @@ Pass");
 void prepareOptPipeline() {
 }
 
-void optPipeline(llvm::Module* Module) {
-  llvm::legacy::FunctionPassManager FPM(Module);
-  FPM.add(llvm::createGVNPass(false));
-  FPM.add(llvm::createPromoteMemoryToRegisterPass());
-  FPM.doInitialization();
+void optPipeline(llvm::Module* module) {
+  llvm::legacy::FunctionPassManager fpm(module);
+  fpm.add(llvm::createGVNPass(false));
+  fpm.add(llvm::createPromoteMemoryToRegisterPass());
+  fpm.doInitialization();
 
-  for (auto FunctionIt = Module->begin(); FunctionIt != Module->end();
-       ++FunctionIt) {
-    llvm::Function& Function = *FunctionIt;
-    FPM.run(Function);
+  for (auto it = module->begin(); it != module->end(); ++it) {
+    llvm::Function& function = *it;
+    fpm.run(function);
   }
 }
 
 void finishOptPipeline() {
 }
 
-void optMain(llvm::Module* Module) {
-  optPipeline(Module);
+void optMain(llvm::Module* module) {
+  optPipeline(module);
 }

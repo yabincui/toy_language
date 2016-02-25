@@ -7,16 +7,16 @@
 #include "logging.h"
 
 struct Option {
-  std::string InputFile;
-  FILE* InputFp;
-  bool Interactive;
-  bool DumpToken;
-  bool DumpAST;
-  bool DumpCode;
-  LogSeverity LogLevel;
-  bool Execute;
+  std::string input_file;
+  FILE* input_fp;
+  bool interactive;
+  bool dump_token;
+  bool dump_ast;
+  bool dump_code;
+  LogSeverity log_level;
+  bool execute;
 };
 
-extern Option GlobalOption;
+extern Option global_option;
 
 #endif  // TOY_OPTION_H_

@@ -22,536 +22,507 @@
 #include "parse.h"
 #include "string.h"
 
-static llvm::LLVMContext* Context;
-static llvm::Module* CurrModule;
-static llvm::Function* GlobalFunction;
-static llvm::Function* CurrFunction;
-static std::unique_ptr<llvm::IRBuilder<>> CurrBuilder;
-static std::unique_ptr<llvm::DIBuilder> DIBuilder;
-static std::vector<PrototypeAST*> ExternFunctions;
-static std::vector<std::string> ExternVariables;
+static llvm::LLVMContext* context;
+static llvm::Module* cur_module;
+static llvm::Function* global_function;
+static llvm::Function* cur_function;
+static std::unique_ptr<llvm::IRBuilder<>> cur_builder;
+static std::unique_ptr<llvm::DIBuilder> di_builder;
+static std::vector<PrototypeAST*> extern_functions;
+static std::vector<std::string> extern_variables;
 
 class Scope {
  public:
-  Scope(Scope* PrevScope) : PrevScope_(PrevScope) {
+  Scope(Scope* prev_scope) : prev_scope_(prev_scope) {
   }
 
-  llvm::Value* findVariableFromScopeList(const std::string& Name);
-  void insertVariable(const std::string& Name, llvm::Value* Value);
+  llvm::Value* findVariableFromScopeList(const std::string& name);
+  void insertVariable(const std::string& name, llvm::Value* value);
 
  private:
-  Scope* PrevScope_;
-  std::unordered_map<std::string, llvm::Value*> SymbolTable_;
+  Scope* prev_scope_;
+  std::unordered_map<std::string, llvm::Value*> symbol_table_;
 };
 
-static std::unique_ptr<Scope> GlobalScope;
-static Scope* CurrScope;
+static std::unique_ptr<Scope> global_scope;
+static Scope* cur_scope;
 
-llvm::Value* Scope::findVariableFromScopeList(const std::string& Name) {
-  for (Scope* Curr = this; Curr != nullptr; Curr = Curr->PrevScope_) {
-    auto It = Curr->SymbolTable_.find(Name);
-    if (It != Curr->SymbolTable_.end()) {
+llvm::Value* Scope::findVariableFromScopeList(const std::string& name) {
+  for (Scope* curr = this; curr != nullptr; curr = curr->prev_scope_) {
+    auto It = curr->symbol_table_.find(name);
+    if (It != curr->symbol_table_.end()) {
       return It->second;
     }
   }
   return nullptr;
 }
 
-void Scope::insertVariable(const std::string& Name, llvm::Value* Value) {
-  SymbolTable_[Name] = Value;
+void Scope::insertVariable(const std::string& name, llvm::Value* value) {
+  symbol_table_[name] = value;
 }
 
 class ScopeGuard {
  public:
-  ScopeGuard() : SavedScope_(CurrScope), CurrScope_(CurrScope) {
-    CurrScope = &CurrScope_;
+  ScopeGuard() : saved_scope_(cur_scope), cur_scope_(cur_scope) {
+    cur_scope = &cur_scope_;
   }
 
   ~ScopeGuard() {
-    CurrScope = SavedScope_;
+    cur_scope = saved_scope_;
   }
 
  private:
-  Scope* SavedScope_;
-  Scope CurrScope_;
+  Scope* saved_scope_;
+  Scope cur_scope_;
 };
 
 class CurrFunctionGuard {
  public:
-  CurrFunctionGuard(llvm::Function* Function) {
-    SavedFunction_ = CurrFunction;
-    CurrFunction = Function;
+  CurrFunctionGuard(llvm::Function* function) : saved_function_(cur_function) {
+    cur_function = function;
   }
 
   ~CurrFunctionGuard() {
-    CurrFunction = SavedFunction_;
+    cur_function = saved_function_;
   }
 
  private:
-  llvm::Function* SavedFunction_;
-  ScopeGuard ScopeGuard_;
+  llvm::Function* saved_function_;
+  ScopeGuard scope_guard_;
 };
 
 struct DebugInfo {
-  llvm::DICompileUnit* DICompileUnit;
-  llvm::DIFile* DIFile;
-  llvm::DIBasicType* DIDoubleType;
-  std::vector<llvm::DIScope*> DIScopeStack;
+  llvm::DICompileUnit* di_compile_unit;
+  llvm::DIFile* di_file;
+  llvm::DIBasicType* di_double_type;
+  std::vector<llvm::DIScope*> di_scope_stack;
 
-  llvm::DITypeRefArray getDoubleArrayType(size_t Count);
-  llvm::DISubroutineType* createSubroutineType(size_t ArgCount);
-  llvm::DISubprogram* createFunction(const std::string& Name,
-                                     llvm::Function* Function, size_t ArgCount,
-                                     size_t Line, size_t ScopeLine);
-  llvm::DIGlobalVariable* createGlobalVariable(const std::string& Name,
-                                               size_t Line,
+  llvm::DITypeRefArray getDoubleArrayType(size_t count);
+  llvm::DISubroutineType* createSubroutineType(size_t arg_count);
+  llvm::DISubprogram* createFunction(const std::string& name, llvm::Function* function,
+                                     size_t arg_count, size_t line, size_t scope_line);
+  llvm::DIGlobalVariable* createGlobalVariable(const std::string& Name, size_t Line,
                                                llvm::Constant* Value);
-  llvm::DILocalVariable* createLocalVariable(const std::string& Name,
-                                             size_t Line, size_t ArgIndex,
+  llvm::DILocalVariable* createLocalVariable(const std::string& Name, size_t Line, size_t ArgIndex,
                                              llvm::Value* Storage);
-  void emitLocation(ExprAST* Expr);
-  void pushDIScope(llvm::DIScope* DIScope);
+  void emitLocation(ExprAST* expr);
+  void pushDIScope(llvm::DIScope* di_scope);
   void popDIScope();
 };
 
-DebugInfo GlobalDebugInfo;
+DebugInfo global_debug_info;
 
-llvm::DITypeRefArray DebugInfo::getDoubleArrayType(size_t Count) {
-  std::vector<llvm::Metadata*> Elements(Count, DIDoubleType);
-  return DIBuilder->getOrCreateTypeArray(Elements);
+llvm::DITypeRefArray DebugInfo::getDoubleArrayType(size_t count) {
+  std::vector<llvm::Metadata*> elements(count, di_double_type);
+  return di_builder->getOrCreateTypeArray(elements);
 }
 
-llvm::DISubroutineType* DebugInfo::createSubroutineType(size_t ArgCount) {
-  llvm::DITypeRefArray Array = getDoubleArrayType(ArgCount + 1);
-  return DIBuilder->createSubroutineType(DIFile, Array, 0);
+llvm::DISubroutineType* DebugInfo::createSubroutineType(size_t arg_count) {
+  llvm::DITypeRefArray array = getDoubleArrayType(arg_count + 1);
+  return di_builder->createSubroutineType(di_file, array, 0);
 }
 
-llvm::DISubprogram* DebugInfo::createFunction(const std::string& Name,
-                                              llvm::Function* Function,
-                                              size_t ArgCount, size_t Line,
-                                              size_t ScopeLine) {
-  llvm::DISubroutineType* SubroutineType = createSubroutineType(ArgCount);
-  return DIBuilder->createFunction(DIFile, Name, "", DIFile, Line,
-                                   SubroutineType, true, true, ScopeLine, 0,
-                                   false, Function);
+llvm::DISubprogram* DebugInfo::createFunction(const std::string& name, llvm::Function* function,
+                                              size_t arg_count, size_t line, size_t scope_line) {
+  llvm::DISubroutineType* subroutine_type = createSubroutineType(arg_count);
+  return di_builder->createFunction(di_file, name, "", di_file, line, subroutine_type, true, true,
+                                    scope_line, 0, false, function);
 }
 
-llvm::DIGlobalVariable* DebugInfo::createGlobalVariable(
-    const std::string& Name, size_t Line, llvm::Constant* Constant) {
-  llvm::DIGlobalVariable* DIGlobalVariable = DIBuilder->createGlobalVariable(
-      DIFile, Name, "", DIFile, Line, DIDoubleType, true, Constant);
-  return DIGlobalVariable;
+llvm::DIGlobalVariable* DebugInfo::createGlobalVariable(const std::string& name, size_t line,
+                                                        llvm::Constant* constant) {
+  llvm::DIGlobalVariable* di_global_variable = di_builder->createGlobalVariable(
+      di_file, name, "", di_file, line, di_double_type, true, constant);
+  return di_global_variable;
 }
 
 // ArgIndex = 0 when it is not an argument.
-llvm::DILocalVariable* DebugInfo::createLocalVariable(const std::string& Name,
-                                                      size_t Line,
-                                                      size_t ArgIndex,
-                                                      llvm::Value* Storage) {
-  LOG(DEBUG) << "DebugInfo::createLocalVariable, Name " << Name
-             << ", DIScopeStack.size() = " << DIScopeStack.size();
-  unsigned Tag = (ArgIndex != 0 ? llvm::dwarf::DW_TAG_arg_variable
-                                : llvm::dwarf::DW_TAG_auto_variable);
-  llvm::DILocalVariable* DILocalVariable =
-      DIBuilder->createLocalVariable(Tag, DIScopeStack.back(), Name, DIFile,
-                                     Line, DIDoubleType, false, 0, ArgIndex);
-  DIBuilder->insertDeclare(Storage, DILocalVariable,
-                           DIBuilder->createExpression(),
-                           llvm::DebugLoc::get(Line, 0, DIScopeStack.back()),
-                           CurrBuilder->GetInsertBlock());
-  return DILocalVariable;
+llvm::DILocalVariable* DebugInfo::createLocalVariable(const std::string& name, size_t line,
+                                                      size_t arg_index, llvm::Value* storage) {
+  LOG(DEBUG) << "DebugInfo::createLocalVariable, Name " << name
+             << ", DIScopeStack.size() = " << di_scope_stack.size();
+  unsigned tag =
+      (arg_index != 0 ? llvm::dwarf::DW_TAG_arg_variable : llvm::dwarf::DW_TAG_auto_variable);
+  llvm::DILocalVariable* di_local_variable = di_builder->createLocalVariable(
+      tag, di_scope_stack.back(), name, di_file, line, di_double_type, false, 0, arg_index);
+  di_builder->insertDeclare(storage, di_local_variable, di_builder->createExpression(),
+                            llvm::DebugLoc::get(line, 0, di_scope_stack.back()),
+                            cur_builder->GetInsertBlock());
+  return di_local_variable;
 }
 
-void DebugInfo::emitLocation(ExprAST* Expr) {
-  if (Expr == nullptr) {
-    CurrBuilder->SetCurrentDebugLocation(llvm::DebugLoc());
+void DebugInfo::emitLocation(ExprAST* expr) {
+  if (expr == nullptr) {
+    cur_builder->SetCurrentDebugLocation(llvm::DebugLoc());
   } else {
-    CurrBuilder->SetCurrentDebugLocation(llvm::DebugLoc::get(
-        Expr->getLoc().Line, Expr->getLoc().Column, DIScopeStack.back()));
+    cur_builder->SetCurrentDebugLocation(
+        llvm::DebugLoc::get(expr->getLoc().line, expr->getLoc().column, di_scope_stack.back()));
   }
 }
 
-void DebugInfo::pushDIScope(llvm::DIScope* DIScope) {
-  DIScopeStack.push_back(DIScope);
+void DebugInfo::pushDIScope(llvm::DIScope* di_scope) {
+  di_scope_stack.push_back(di_scope);
 }
 
 void DebugInfo::popDIScope() {
-  CHECK(!DIScopeStack.empty());
-  DIScopeStack.pop_back();
+  CHECK(!di_scope_stack.empty());
+  di_scope_stack.pop_back();
 }
 
 llvm::Value* NumberExprAST::codegen() {
-  GlobalDebugInfo.emitLocation(this);
-  return llvm::ConstantFP::get(*Context, llvm::APFloat(Val_));
+  global_debug_info.emitLocation(this);
+  return llvm::ConstantFP::get(*context, llvm::APFloat(val_));
 }
 
 static std::string getTmpName() {
-  static uint64_t TmpCount = 0;
-  return stringPrintf("tmp.%" PRIu64, ++TmpCount);
+  static uint64_t tmp_count = 0;
+  return stringPrintf("tmp.%" PRIu64, ++tmp_count);
 }
 
 static std::string getTmpModuleName() {
-  static uint64_t TmpCount = 0;
-  return stringPrintf("tmpmodule.%" PRIu64, ++TmpCount);
+  static uint64_t tmp_count = 0;
+  return stringPrintf("tmpmodule.%" PRIu64, ++tmp_count);
 }
 
-static llvm::Value* getVariable(const std::string& Name) {
-  llvm::Value* Variable = nullptr;
-  CHECK(CurrScope != nullptr);
-  Variable = CurrScope->findVariableFromScopeList(Name);
-  if (Variable == nullptr) {
-    Variable = CurrModule->getGlobalVariable(Name);
+static llvm::Value* getVariable(const std::string& name) {
+  llvm::Value* variable = nullptr;
+  CHECK(cur_scope != nullptr);
+  variable = cur_scope->findVariableFromScopeList(name);
+  if (variable == nullptr) {
+    variable = cur_module->getGlobalVariable(name);
   }
-  return Variable;
+  return variable;
 }
 
 // ArgIndex = 0 when it is not an argument.
-static llvm::Value* createVariable(const std::string& Name, size_t Line,
-                                   size_t ArgIndex) {
-  LOG(DEBUG) << "createVariable, Name " << Name;
-  llvm::Value* Variable;
-  if (CurrScope == GlobalScope.get()) {
-    llvm::Constant* Constant =
-        llvm::ConstantFP::get(*Context, llvm::APFloat(0.0));
-    Variable = new llvm::GlobalVariable(
-        *CurrModule, llvm::Type::getDoubleTy(*Context), false,
-        llvm::GlobalVariable::InternalLinkage, Constant, Name);
-    ExternVariables.push_back(Name);
-    GlobalDebugInfo.createGlobalVariable(Name, Line, Constant);
-    LOG(DEBUG) << "create global variable " << Name;
+static llvm::Value* createVariable(const std::string& name, size_t line, size_t arg_index) {
+  LOG(DEBUG) << "createVariable, Name " << name;
+  llvm::Value* variable;
+  if (cur_scope == global_scope.get()) {
+    llvm::Constant* constant = llvm::ConstantFP::get(*context, llvm::APFloat(0.0));
+    variable = new llvm::GlobalVariable(*cur_module, llvm::Type::getDoubleTy(*context), false,
+                                        llvm::GlobalVariable::InternalLinkage, constant, name);
+    extern_variables.push_back(name);
+    global_debug_info.createGlobalVariable(name, line, constant);
+    LOG(DEBUG) << "create global variable " << name;
   } else {
-    Variable = CurrBuilder->CreateAlloca(llvm::Type::getDoubleTy(*Context),
-                                         nullptr, Name);
-    GlobalDebugInfo.createLocalVariable(Name, Line, ArgIndex, Variable);
-    LOG(DEBUG) << "create local variable " << Name;
+    variable = cur_builder->CreateAlloca(llvm::Type::getDoubleTy(*context), nullptr, name);
+    global_debug_info.createLocalVariable(name, line, arg_index, variable);
+    LOG(DEBUG) << "create local variable " << name;
   }
-  CurrScope->insertVariable(Name, Variable);
-  return Variable;
+  cur_scope->insertVariable(name, variable);
+  return variable;
 }
 
 llvm::Value* VariableExprAST::codegen() {
-  GlobalDebugInfo.emitLocation(this);
-  llvm::Value* Variable = getVariable(Name_);
-  if (Variable == nullptr) {
-    LOG(FATAL) << "Using unassigned variable: " << Name_;
+  global_debug_info.emitLocation(this);
+  llvm::Value* variable = getVariable(name_);
+  if (variable == nullptr) {
+    LOG(FATAL) << "Using unassigned variable: " << name_ << ", loc " << getLoc().toString();
   }
-  llvm::LoadInst* LoadInst = CurrBuilder->CreateLoad(Variable, getTmpName());
-  return LoadInst;
+  llvm::LoadInst* load_inst = cur_builder->CreateLoad(variable, getTmpName());
+  return load_inst;
 }
 
 llvm::Value* UnaryExprAST::codegen() {
-  llvm::Value* RightValue = Right_->codegen();
-  CHECK(RightValue != nullptr);
-  std::string OpStr = Op_.desc;
-  llvm::Function* Function = CurrModule->getFunction("unary" + OpStr);
-  if (Function != nullptr) {
-    CHECK_EQ(1u, Function->arg_size());
-    std::vector<llvm::Value*> Values(1, RightValue);
-    return CurrBuilder->CreateCall(Function, Values, getTmpName());
+  llvm::Value* right_value = right_->codegen();
+  CHECK(right_value != nullptr);
+  std::string op_str = op_.desc;
+  llvm::Function* function = cur_module->getFunction("unary" + op_str);
+  if (function != nullptr) {
+    CHECK_EQ(1u, function->arg_size());
+    std::vector<llvm::Value*> values(1, right_value);
+    return cur_builder->CreateCall(function, values, getTmpName());
   }
-  LOG(FATAL) << "Unexpected unary operator " << OpStr;
+  LOG(FATAL) << "Unexpected unary operator " << op_str;
   return nullptr;
 }
 
 llvm::Value* BinaryExprAST::codegen() {
-  GlobalDebugInfo.emitLocation(this);
-  llvm::Value* LeftValue = Left_->codegen();
-  CHECK(LeftValue != nullptr);
-  llvm::Value* RightValue = Right_->codegen();
-  CHECK(RightValue != nullptr);
-  llvm::Value* Result = nullptr;
-  std::string OpStr = Op_.desc;
-  llvm::Function* Function = CurrModule->getFunction("binary" + OpStr);
-  if (Function != nullptr) {
-    CHECK_EQ(2u, Function->arg_size());
-    std::vector<llvm::Value*> Values;
-    Values.push_back(LeftValue);
-    Values.push_back(RightValue);
-    return CurrBuilder->CreateCall(Function, Values, getTmpName());
+  global_debug_info.emitLocation(this);
+  llvm::Value* left_value = left_->codegen();
+  CHECK(left_value != nullptr);
+  llvm::Value* right_value = right_->codegen();
+  CHECK(right_value != nullptr);
+  llvm::Value* result = nullptr;
+  std::string op_str = op_.desc;
+  llvm::Function* function = cur_module->getFunction("binary" + op_str);
+  if (function != nullptr) {
+    CHECK_EQ(2u, function->arg_size());
+    std::vector<llvm::Value*> values;
+    values.push_back(left_value);
+    values.push_back(right_value);
+    return cur_builder->CreateCall(function, values, getTmpName());
   }
-  if (OpStr == "<") {
-    Result = CurrBuilder->CreateFCmpOLT(LeftValue, RightValue, getTmpName());
-  } else if (OpStr == "<=") {
-    Result = CurrBuilder->CreateFCmpOLE(LeftValue, RightValue, getTmpName());
-  } else if (OpStr == "==") {
-    Result = CurrBuilder->CreateFCmpOEQ(LeftValue, RightValue, getTmpName());
-  } else if (OpStr == "!=") {
-    Result = CurrBuilder->CreateFCmpONE(LeftValue, RightValue, getTmpName());
-  } else if (OpStr == ">") {
-    Result = CurrBuilder->CreateFCmpOGT(LeftValue, RightValue, getTmpName());
-  } else if (OpStr == ">=") {
-    Result = CurrBuilder->CreateFCmpOGT(LeftValue, RightValue, getTmpName());
-  } else if (OpStr == "+") {
-    Result = CurrBuilder->CreateFAdd(LeftValue, RightValue, getTmpName());
-  } else if (OpStr == "-") {
-    Result = CurrBuilder->CreateFSub(LeftValue, RightValue, getTmpName());
-  } else if (OpStr == "*") {
-    Result = CurrBuilder->CreateFMul(LeftValue, RightValue, getTmpName());
-  } else if (OpStr == "/") {
-    Result = CurrBuilder->CreateFDiv(LeftValue, RightValue, getTmpName());
+  if (op_str == "<") {
+    result = cur_builder->CreateFCmpOLT(left_value, right_value, getTmpName());
+  } else if (op_str == "<=") {
+    result = cur_builder->CreateFCmpOLE(left_value, right_value, getTmpName());
+  } else if (op_str == "==") {
+    result = cur_builder->CreateFCmpOEQ(left_value, right_value, getTmpName());
+  } else if (op_str == "!=") {
+    result = cur_builder->CreateFCmpONE(left_value, right_value, getTmpName());
+  } else if (op_str == ">") {
+    result = cur_builder->CreateFCmpOGT(left_value, right_value, getTmpName());
+  } else if (op_str == ">=") {
+    result = cur_builder->CreateFCmpOGT(left_value, right_value, getTmpName());
+  } else if (op_str == "+") {
+    result = cur_builder->CreateFAdd(left_value, right_value, getTmpName());
+  } else if (op_str == "-") {
+    result = cur_builder->CreateFSub(left_value, right_value, getTmpName());
+  } else if (op_str == "*") {
+    result = cur_builder->CreateFMul(left_value, right_value, getTmpName());
+  } else if (op_str == "/") {
+    result = cur_builder->CreateFDiv(left_value, right_value, getTmpName());
   } else {
-    LOG(FATAL) << "Unexpected binary operator " << OpStr;
+    LOG(FATAL) << "Unexpected binary operator " << op_str;
   }
-  Result = CurrBuilder->CreateUIToFP(Result, llvm::Type::getDoubleTy(*Context));
-  return Result;
+  result = cur_builder->CreateUIToFP(result, llvm::Type::getDoubleTy(*context));
+  return result;
 }
 
 llvm::Value* AssignmentExprAST::codegen() {
-  GlobalDebugInfo.emitLocation(this);
-  llvm::Value* Variable = getVariable(VarName_);
-  if (Variable == nullptr) {
-    Variable = createVariable(VarName_, getLoc().Line, 0);
+  global_debug_info.emitLocation(this);
+  llvm::Value* variable = getVariable(var_name_);
+  if (variable == nullptr) {
+    variable = createVariable(var_name_, getLoc().line, 0);
   }
-  CHECK(Variable != nullptr);
-  llvm::Value* Value = Right_->codegen();
-  CurrBuilder->CreateStore(Value, Variable);
-  return Value;
+  CHECK(variable != nullptr);
+  llvm::Value* value = right_->codegen();
+  cur_builder->CreateStore(value, variable);
+  return value;
 }
 
 llvm::Function* PrototypeAST::codegen() {
-  GlobalDebugInfo.emitLocation(this);
-  std::vector<llvm::Type*> Doubles(Args_.size(),
-                                   llvm::Type::getDoubleTy(*Context));
-  llvm::FunctionType* FunctionType = llvm::FunctionType::get(
-      llvm::Type::getDoubleTy(*Context), Doubles, false);
-  llvm::Function* Function = llvm::Function::Create(
-      FunctionType, llvm::GlobalValue::ExternalLinkage, Name_, CurrModule);
-  auto ArgIt = Function->arg_begin();
-  for (size_t i = 0; i < Function->arg_size(); ++i, ++ArgIt) {
-    ArgIt->setName(Args_[i]);
+  global_debug_info.emitLocation(this);
+  std::vector<llvm::Type*> doubles(args_.size(), llvm::Type::getDoubleTy(*context));
+  llvm::FunctionType* function_type =
+      llvm::FunctionType::get(llvm::Type::getDoubleTy(*context), doubles, false);
+  llvm::Function* function =
+      llvm::Function::Create(function_type, llvm::GlobalValue::ExternalLinkage, name_, cur_module);
+  auto arg_it = function->arg_begin();
+  for (size_t i = 0; i < function->arg_size(); ++i, ++arg_it) {
+    arg_it->setName(args_[i]);
   }
-  return Function;
+  return function;
 }
 
-llvm::DISubprogram* PrototypeAST::genDebugInfo(llvm::Function* Function) const {
-  return GlobalDebugInfo.createFunction(Name_, Function, Args_.size(),
-                                        getLoc().Line, getLoc().Line);
+llvm::DISubprogram* PrototypeAST::genDebugInfo(llvm::Function* function) const {
+  return global_debug_info.createFunction(name_, function, args_.size(), getLoc().line,
+                                          getLoc().line);
 }
 
 llvm::Function* FunctionAST::codegen() {
-  llvm::Function* Function = Prototype_->codegen();
-  CHECK(Function != nullptr);
-  CurrFunctionGuard Guard(Function);
-  llvm::DISubprogram* DISubprogram = Prototype_->genDebugInfo(Function);
-  GlobalDebugInfo.pushDIScope(DISubprogram);
-  std::string BodyLabel = stringPrintf("%s.entry", Function->getName().data());
-  llvm::BasicBlock* BasicBlock =
-      llvm::BasicBlock::Create(*Context, BodyLabel, Function);
-  llvm::IRBuilder<>::InsertPointGuard InsertPointGuard(*CurrBuilder);
-  CurrBuilder->SetInsertPoint(BasicBlock);
+  llvm::Function* function = prototype_->codegen();
+  CHECK(function != nullptr);
+  CurrFunctionGuard guard(function);
+  llvm::DISubprogram* di_subprogram = prototype_->genDebugInfo(function);
+  global_debug_info.pushDIScope(di_subprogram);
+  std::string body_label = stringPrintf("%s.entry", function->getName().data());
+  llvm::BasicBlock* basic_block = llvm::BasicBlock::Create(*context, body_label, function);
+  llvm::IRBuilder<>::InsertPointGuard InsertPointGuard(*cur_builder);
+  cur_builder->SetInsertPoint(basic_block);
 
   // Don't allow to break on argument initialization.
-  GlobalDebugInfo.emitLocation(nullptr);
+  global_debug_info.emitLocation(nullptr);
 
-  auto ArgIt = Function->arg_begin();
-  for (size_t i = 0; i < Function->arg_size(); ++i, ++ArgIt) {
-    llvm::Value* Variable =
-        createVariable(ArgIt->getName(), getLoc().Line, i + 1);
-    CurrBuilder->CreateStore(&*ArgIt, Variable);
+  auto arg_it = function->arg_begin();
+  for (size_t i = 0; i < function->arg_size(); ++i, ++arg_it) {
+    llvm::Value* variable = createVariable(arg_it->getName(), getLoc().line, i + 1);
+    cur_builder->CreateStore(&*arg_it, variable);
   }
 
-  GlobalDebugInfo.emitLocation(nullptr);
+  global_debug_info.emitLocation(nullptr);
 
-  llvm::Value* RetVal = Body_->codegen();
-  CHECK(RetVal != nullptr);
-  CurrBuilder->CreateRet(RetVal);
-  GlobalDebugInfo.popDIScope();
-  return Function;
+  llvm::Value* ret_val = body_->codegen();
+  CHECK(ret_val != nullptr);
+  cur_builder->CreateRet(ret_val);
+  global_debug_info.popDIScope();
+  return function;
 }
 
 llvm::Value* CallExprAST::codegen() {
-  GlobalDebugInfo.emitLocation(this);
-  llvm::Function* Function = CurrModule->getFunction(Callee_);
-  CHECK(Function != nullptr);
-  CHECK_EQ(Function->arg_size(), Args_.size());
-  std::vector<llvm::Value*> Values;
-  for (auto& Arg : Args_) {
-    llvm::Value* Value = Arg->codegen();
-    Values.push_back(Value);
+  global_debug_info.emitLocation(this);
+  llvm::Function* function = cur_module->getFunction(callee_);
+  CHECK(function != nullptr);
+  CHECK_EQ(function->arg_size(), args_.size());
+  std::vector<llvm::Value*> values;
+  for (auto& arg : args_) {
+    llvm::Value* value = arg->codegen();
+    values.push_back(value);
   }
-  return CurrBuilder->CreateCall(Function, Values, getTmpName());
+  return cur_builder->CreateCall(function, values, getTmpName());
 }
 
 llvm::Value* IfExprAST::codegen() {
-  GlobalDebugInfo.emitLocation(this);
-  std::vector<llvm::BasicBlock*> CondBeginBlocks;
-  std::vector<llvm::BasicBlock*> CondEndBlocks;
-  std::vector<llvm::BasicBlock*> ThenBeginBlocks;
-  std::vector<llvm::BasicBlock*> ThenEndBlocks;
-  std::vector<llvm::Value*> CondValues;
-  std::vector<llvm::Value*> ThenValues;
+  global_debug_info.emitLocation(this);
+  std::vector<llvm::BasicBlock*> cond_begin_blocks;
+  std::vector<llvm::BasicBlock*> cond_end_blocks;
+  std::vector<llvm::BasicBlock*> then_begin_blocks;
+  std::vector<llvm::BasicBlock*> then_end_blocks;
+  std::vector<llvm::Value*> cond_values;
+  std::vector<llvm::Value*> then_values;
 
-  for (size_t i = 0; i < CondThenExprs_.size(); ++i) {
+  for (size_t i = 0; i < cond_then_exprs_.size(); ++i) {
     // Cond block.
     if (i != 0) {
-      llvm::BasicBlock* CondBlock =
-          llvm::BasicBlock::Create(*Context, "if_cond", CurrFunction);
-      CurrBuilder->SetInsertPoint(CondBlock);
+      llvm::BasicBlock* cond_block = llvm::BasicBlock::Create(*context, "if_cond", cur_function);
+      cur_builder->SetInsertPoint(cond_block);
     }
-    CondBeginBlocks.push_back(CurrBuilder->GetInsertBlock());
-    llvm::Value* CondValue = CondThenExprs_[i].first->codegen();
-    CondValues.push_back(CondValue);
-    CondEndBlocks.push_back(CurrBuilder->GetInsertBlock());
+    cond_begin_blocks.push_back(cur_builder->GetInsertBlock());
+    llvm::Value* cond_value = cond_then_exprs_[i].first->codegen();
+    cond_values.push_back(cond_value);
+    cond_end_blocks.push_back(cur_builder->GetInsertBlock());
 
     // Then block.
-    llvm::BasicBlock* ThenBlock =
-        llvm::BasicBlock::Create(*Context, "if_then", CurrFunction);
-    CurrBuilder->SetInsertPoint(ThenBlock);
-    ThenBeginBlocks.push_back(CurrBuilder->GetInsertBlock());
-    llvm::Value* ThenValue = CondThenExprs_[i].second->codegen();
-    ThenValues.push_back(ThenValue);
-    ThenEndBlocks.push_back(CurrBuilder->GetInsertBlock());
+    llvm::BasicBlock* then_block = llvm::BasicBlock::Create(*context, "if_then", cur_function);
+    cur_builder->SetInsertPoint(then_block);
+    then_begin_blocks.push_back(cur_builder->GetInsertBlock());
+    llvm::Value* then_value = cond_then_exprs_[i].second->codegen();
+    then_values.push_back(then_value);
+    then_end_blocks.push_back(cur_builder->GetInsertBlock());
   }
   // Else block.
-  llvm::BasicBlock* ElseBeginBlock =
-      llvm::BasicBlock::Create(*Context, "if_else", CurrFunction);
-  CurrBuilder->SetInsertPoint(ElseBeginBlock);
-  llvm::Value* ElseValue = llvm::ConstantFP::get(*Context, llvm::APFloat(0.0));
-  if (ElseExpr_ != nullptr) {
-    ElseValue = ElseExpr_->codegen();
+  llvm::BasicBlock* else_begin_block = llvm::BasicBlock::Create(*context, "if_else", cur_function);
+  cur_builder->SetInsertPoint(else_begin_block);
+  llvm::Value* else_value = llvm::ConstantFP::get(*context, llvm::APFloat(0.0));
+  if (else_expr_ != nullptr) {
+    else_value = else_expr_->codegen();
   }
-  llvm::BasicBlock* ElseEndBlock = CurrBuilder->GetInsertBlock();
+  llvm::BasicBlock* else_end_block = cur_builder->GetInsertBlock();
 
-  llvm::BasicBlock* MergeBlock =
-      llvm::BasicBlock::Create(*Context, "if_endif", CurrFunction);
+  llvm::BasicBlock* merge_block = llvm::BasicBlock::Create(*context, "if_endif", cur_function);
 
   // Fix up branches.
-  for (size_t i = 0; i < CondThenExprs_.size(); ++i) {
-    CurrBuilder->SetInsertPoint(CondEndBlocks[i]);
-    llvm::Value* CmpValue = CondValues[i];
-    if (CmpValue->getType() == llvm::Type::getDoubleTy(*Context)) {
-      CmpValue = CurrBuilder->CreateFCmpONE(
-          CondValues[i], llvm::ConstantFP::get(*Context, llvm::APFloat(0.0)));
+  for (size_t i = 0; i < cond_then_exprs_.size(); ++i) {
+    cur_builder->SetInsertPoint(cond_end_blocks[i]);
+    llvm::Value* cmp_value = cond_values[i];
+    if (cmp_value->getType() == llvm::Type::getDoubleTy(*context)) {
+      cmp_value = cur_builder->CreateFCmpONE(cond_values[i],
+                                             llvm::ConstantFP::get(*context, llvm::APFloat(0.0)));
     }
-    CurrBuilder->CreateCondBr(
-        CmpValue, ThenBeginBlocks[i],
-        (i + 1 < CondThenExprs_.size() ? CondBeginBlocks[i + 1]
-                                       : ElseBeginBlock));
+    cur_builder->CreateCondBr(
+        cmp_value, then_begin_blocks[i],
+        (i + 1 < cond_then_exprs_.size() ? cond_begin_blocks[i + 1] : else_begin_block));
 
-    CurrBuilder->SetInsertPoint(ThenEndBlocks[i]);
-    CurrBuilder->CreateBr(MergeBlock);
+    cur_builder->SetInsertPoint(then_end_blocks[i]);
+    cur_builder->CreateBr(merge_block);
   }
 
-  CurrBuilder->SetInsertPoint(ElseEndBlock);
-  CurrBuilder->CreateBr(MergeBlock);
+  cur_builder->SetInsertPoint(else_end_block);
+  cur_builder->CreateBr(merge_block);
 
-  CurrBuilder->SetInsertPoint(MergeBlock);
-  llvm::PHINode* PHINode = CurrBuilder->CreatePHI(
-      llvm::Type::getDoubleTy(*Context), CondThenExprs_.size() + 1, "iftmp");
-  for (size_t i = 0; i < CondThenExprs_.size(); ++i) {
-    PHINode->addIncoming(ThenValues[i], ThenEndBlocks[i]);
+  cur_builder->SetInsertPoint(merge_block);
+  llvm::PHINode* phi_node = cur_builder->CreatePHI(llvm::Type::getDoubleTy(*context),
+                                                   cond_then_exprs_.size() + 1, "iftmp");
+  for (size_t i = 0; i < cond_then_exprs_.size(); ++i) {
+    phi_node->addIncoming(then_values[i], then_end_blocks[i]);
   }
-  PHINode->addIncoming(ElseValue, ElseEndBlock);
-  return PHINode;
+  phi_node->addIncoming(else_value, else_end_block);
+  return phi_node;
 }
 
 llvm::Value* BlockExprAST::codegen() {
-  GlobalDebugInfo.emitLocation(this);
-  llvm::Value* LastValue = llvm::ConstantFP::get(*Context, llvm::APFloat(0.0));
-  for (auto& Expr : Exprs_) {
-    LastValue = Expr->codegen();
+  global_debug_info.emitLocation(this);
+  llvm::Value* last_value = llvm::ConstantFP::get(*context, llvm::APFloat(0.0));
+  for (auto& expr : exprs_) {
+    last_value = expr->codegen();
   }
-  return LastValue;
+  return last_value;
 }
 
 llvm::Value* ForExprAST::codegen() {
-  GlobalDebugInfo.emitLocation(this);
+  global_debug_info.emitLocation(this);
   // Init block.
-  ScopeGuard ScopeGuardInst;
-  InitExpr_->codegen();
-  llvm::BasicBlock* InitEndBlock = CurrBuilder->GetInsertBlock();
+  ScopeGuard scoped_guard_init;
+  init_expr_->codegen();
+  llvm::BasicBlock* init_end_block = cur_builder->GetInsertBlock();
 
   // Cmp block.
-  llvm::BasicBlock* CmpBeginBlock =
-      llvm::BasicBlock::Create(*Context, "for_cmp", CurrFunction);
-  CurrBuilder->SetInsertPoint(CmpBeginBlock);
-  llvm::Value* CondValue = CondExpr_->codegen();
-  llvm::BasicBlock* CmpEndBlock = CurrBuilder->GetInsertBlock();
+  llvm::BasicBlock* cmp_begin_block = llvm::BasicBlock::Create(*context, "for_cmp", cur_function);
+  cur_builder->SetInsertPoint(cmp_begin_block);
+  llvm::Value* cond_value = cond_expr_->codegen();
+  llvm::BasicBlock* cmp_end_block = cur_builder->GetInsertBlock();
 
   // Loop block.
-  llvm::BasicBlock* LoopBeginBlock =
-      llvm::BasicBlock::Create(*Context, "for_loop", CurrFunction);
-  CurrBuilder->SetInsertPoint(LoopBeginBlock);
-  BlockExpr_->codegen();
-  NextExpr_->codegen();
-  llvm::BasicBlock* LoopEndBlock = CurrBuilder->GetInsertBlock();
+  llvm::BasicBlock* loop_begin_block = llvm::BasicBlock::Create(*context, "for_loop", cur_function);
+  cur_builder->SetInsertPoint(loop_begin_block);
+  block_expr_->codegen();
+  next_expr_->codegen();
+  llvm::BasicBlock* loop_end_block = cur_builder->GetInsertBlock();
 
   // After loop block.
-  llvm::BasicBlock* AfterLoopBlock =
-      llvm::BasicBlock::Create(*Context, "for_after_loop", CurrFunction);
+  llvm::BasicBlock* after_loop_block =
+      llvm::BasicBlock::Create(*context, "for_after_loop", cur_function);
 
   // Fix branches.
-  CurrBuilder->SetInsertPoint(InitEndBlock);
-  CurrBuilder->CreateBr(CmpBeginBlock);
-  CurrBuilder->SetInsertPoint(CmpEndBlock);
-  llvm::Value* CmpValue = CondValue;
-  if (CmpValue->getType() == llvm::Type::getDoubleTy(*Context)) {
-    CmpValue = CurrBuilder->CreateFCmpONE(
-        CondValue, llvm::ConstantFP::get(*Context, llvm::APFloat(0.0)));
+  cur_builder->SetInsertPoint(init_end_block);
+  cur_builder->CreateBr(cmp_begin_block);
+  cur_builder->SetInsertPoint(cmp_end_block);
+  llvm::Value* cmp_value = cond_value;
+  if (cmp_value->getType() == llvm::Type::getDoubleTy(*context)) {
+    cmp_value =
+        cur_builder->CreateFCmpONE(cond_value, llvm::ConstantFP::get(*context, llvm::APFloat(0.0)));
   }
-  CurrBuilder->CreateCondBr(CmpValue, LoopBeginBlock, AfterLoopBlock);
+  cur_builder->CreateCondBr(cmp_value, loop_begin_block, after_loop_block);
 
-  CurrBuilder->SetInsertPoint(LoopEndBlock);
-  CurrBuilder->CreateBr(CmpBeginBlock);
+  cur_builder->SetInsertPoint(loop_end_block);
+  cur_builder->CreateBr(cmp_begin_block);
 
-  CurrBuilder->SetInsertPoint(AfterLoopBlock);
-  return llvm::ConstantFP::get(*Context, llvm::APFloat(0.0));
+  cur_builder->SetInsertPoint(after_loop_block);
+  return llvm::ConstantFP::get(*context, llvm::APFloat(0.0));
 }
 
-static llvm::Function* createTmpFunction(const std::string& FunctionName) {
-  llvm::FunctionType* FunctionType = llvm::FunctionType::get(
-      llvm::Type::getDoubleTy(*Context), std::vector<llvm::Type*>(), false);
-  llvm::Function* Function =
-      llvm::Function::Create(FunctionType, llvm::GlobalValue::InternalLinkage,
-                             FunctionName, CurrModule);
-  llvm::BasicBlock::Create(*Context, "", Function);
-  return Function;
+static llvm::Function* createTmpFunction(const std::string& function_name) {
+  llvm::FunctionType* function_type =
+      llvm::FunctionType::get(llvm::Type::getDoubleTy(*context), std::vector<llvm::Type*>(), false);
+  llvm::Function* function = llvm::Function::Create(
+      function_type, llvm::GlobalValue::InternalLinkage, function_name, cur_module);
+  llvm::BasicBlock::Create(*context, "", function);
+  return function;
 }
 
 void prepareCodePipeline() {
-  Context = &llvm::getGlobalContext();
-  CurrBuilder.reset(new llvm::IRBuilder<>(*Context));
-  ExternFunctions.clear();
-  ExternVariables.clear();
-  GlobalScope.reset(new Scope(nullptr));
-  CurrScope = GlobalScope.get();
+  context = &llvm::getGlobalContext();
+  cur_builder.reset(new llvm::IRBuilder<>(*context));
+  extern_functions.clear();
+  extern_variables.clear();
+  global_scope.reset(new Scope(nullptr));
+  cur_scope = global_scope.get();
 }
 
-static std::unique_ptr<llvm::Module> codePipeline(
-    const std::vector<ExprAST*>& Exprs) {
-  std::unique_ptr<llvm::Module> TheModule(
-      new llvm::Module(getTmpModuleName(), *Context));
-  CurrModule = TheModule.get();
-  GlobalFunction = createTmpFunction(ToyMainFunctionName);
-  CurrBuilder->SetInsertPoint(&GlobalFunction->back());
-  DIBuilder.reset(new llvm::DIBuilder(*TheModule));
-  GlobalDebugInfo.DICompileUnit = DIBuilder->createCompileUnit(
-      llvm::dwarf::DW_LANG_C, GlobalOption.InputFile, ".", "toy", false, "", 0,
-      "", llvm::DIBuilder::FullDebug, 0, true);
-  GlobalDebugInfo.DIFile =
-      DIBuilder->createFile(GlobalDebugInfo.DICompileUnit->getFilename(),
-                            GlobalDebugInfo.DICompileUnit->getDirectory());
-  GlobalDebugInfo.DIDoubleType =
-      DIBuilder->createBasicType("double", 64, 64, llvm::dwarf::DW_ATE_float);
-  llvm::DISubprogram* GlobalDISubprogram = GlobalDebugInfo.createFunction(
-      ToyMainFunctionName, GlobalFunction, 0, 1, 1);
-  GlobalDebugInfo.pushDIScope(GlobalDISubprogram);
+static std::unique_ptr<llvm::Module> codePipeline(const std::vector<ExprAST*>& exprs) {
+  std::unique_ptr<llvm::Module> module(new llvm::Module(getTmpModuleName(), *context));
+  cur_module = module.get();
+  global_function = createTmpFunction(toy_main_function_name);
+  cur_builder->SetInsertPoint(&global_function->back());
+  di_builder.reset(new llvm::DIBuilder(*cur_module));
+  global_debug_info.di_compile_unit =
+      di_builder->createCompileUnit(llvm::dwarf::DW_LANG_C, global_option.input_file, ".", "toy",
+                                    false, "", 0, "", llvm::DIBuilder::FullDebug, 0, true);
+  global_debug_info.di_file =
+      di_builder->createFile(global_debug_info.di_compile_unit->getFilename(),
+                             global_debug_info.di_compile_unit->getDirectory());
+  global_debug_info.di_double_type =
+      di_builder->createBasicType("double", 64, 64, llvm::dwarf::DW_ATE_float);
+  llvm::DISubprogram* global_di_sub_program =
+      global_debug_info.createFunction(toy_main_function_name, global_function, 0, 1, 1);
+  global_debug_info.pushDIScope(global_di_sub_program);
 
-  CurrFunction = GlobalFunction;
-  llvm::Value* RetValue = llvm::ConstantFP::get(*Context, llvm::APFloat(0.0));
+  cur_function = global_function;
+  llvm::Value* ret_value = llvm::ConstantFP::get(*context, llvm::APFloat(0.0));
 
-  for (auto& Name : ExternVariables) {
-    new llvm::GlobalVariable(*CurrModule, llvm::Type::getDoubleTy(*Context),
-                             false, llvm::GlobalVariable::ExternalLinkage,
-                             nullptr, Name);
+  for (auto& name : extern_variables) {
+    new llvm::GlobalVariable(*cur_module, llvm::Type::getDoubleTy(*context), false,
+                             llvm::GlobalVariable::ExternalLinkage, nullptr, name);
   }
 
-  for (auto Expr : ExternFunctions) {
-    Expr->codegen();
+  for (auto expr : extern_functions) {
+    expr->codegen();
   }
-  for (auto Expr : Exprs) {
-    llvm::Value* Value = Expr->codegen();
-    switch (Expr->type()) {
+  for (auto expr : exprs) {
+    llvm::Value* value = expr->codegen();
+    switch (expr->type()) {
       case NUMBER_EXPR_AST:
       case VARIABLE_EXPR_AST:
       case UNARY_EXPR_AST:
@@ -561,37 +532,37 @@ static std::unique_ptr<llvm::Module> codePipeline(
       case IF_EXPR_AST:
       case BLOCK_EXPR_AST:
       case FOR_EXPR_AST: {
-        RetValue = Value;
+        ret_value = value;
         break;
       }
       default:
         break;
     }
   }
-  for (auto Expr : Exprs) {
-    switch (Expr->type()) {
+  for (auto expr : exprs) {
+    switch (expr->type()) {
       case PROTOTYPE_AST:
-        ExternFunctions.push_back(reinterpret_cast<PrototypeAST*>(Expr));
+        extern_functions.push_back(reinterpret_cast<PrototypeAST*>(expr));
         break;
       case FUNCTION_AST: {
-        FunctionAST* Function = reinterpret_cast<FunctionAST*>(Expr);
-        ExternFunctions.push_back(Function->getPrototype());
+        FunctionAST* function = reinterpret_cast<FunctionAST*>(expr);
+        extern_functions.push_back(function->getPrototype());
         break;
       }
       default:
         break;
     }
   }
-  CurrBuilder->CreateRet(RetValue);
-  GlobalDebugInfo.popDIScope();
-  if (GlobalOption.DumpCode) {
-    DIBuilder->finalize();
-    TheModule->dump();
+  cur_builder->CreateRet(ret_value);
+  global_debug_info.popDIScope();
+  di_builder->finalize();  // ?
+  if (global_option.dump_code) {
+    cur_module->dump();
   }
-  CurrFunction = nullptr;
-  GlobalFunction = nullptr;
-  CurrModule = nullptr;
-  return TheModule;
+  cur_function = nullptr;
+  global_function = nullptr;
+  cur_module = nullptr;
+  return module;
 }
 
 std::unique_ptr<llvm::Module> codePipeline(ExprAST* Expr) {
@@ -599,17 +570,16 @@ std::unique_ptr<llvm::Module> codePipeline(ExprAST* Expr) {
 }
 
 void finishCodePipeline() {
-  CurrScope = nullptr;
-  GlobalScope.reset(nullptr);
-  ExternVariables.clear();
-  ExternFunctions.clear();
-  CurrBuilder.reset(nullptr);
+  cur_scope = nullptr;
+  global_scope.reset(nullptr);
+  extern_variables.clear();
+  extern_functions.clear();
+  cur_builder.reset(nullptr);
 }
 
-std::unique_ptr<llvm::Module> codeMain(const std::vector<ExprAST*>& Exprs) {
+std::unique_ptr<llvm::Module> codeMain(const std::vector<ExprAST*>& exprs) {
   prepareCodePipeline();
-  std::unique_ptr<llvm::Module> Module = codePipeline(Exprs);
+  std::unique_ptr<llvm::Module> module = codePipeline(exprs);
   finishCodePipeline();
-
-  return Module;
+  return module;
 }

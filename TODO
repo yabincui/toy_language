@@ -1,0 +1,13 @@
+TODO
+
+Generate executable code.
+Learn the debug information.
+Add document to describe toy language.
+Add print string function.
+Split runtest.
+Add unit tests.
+Combine the language with crowbar_extension.
+Learn from c parsers like pycparser.
+Use flex/bison for the front end.
+
+

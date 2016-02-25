@@ -10,57 +10,57 @@
 #include "logging.h"
 #include "option.h"
 
-static std::unique_ptr<llvm::ExecutionEngine> Engine;
+static std::unique_ptr<llvm::ExecutionEngine> engine;
 
 void prepareExecutionPipeline() {
 }
 
-static void prepareExecutionPipeline(llvm::Module* Module) {
+static void prepareExecutionPipeline(llvm::Module* module) {
   llvm::InitializeNativeTarget();
   llvm::InitializeNativeTargetAsmPrinter();
   llvm::InitializeNativeTargetAsmParser();
-  std::string Err;
-  llvm::ExecutionEngine* ExecutionEngine =
-      llvm::EngineBuilder(std::unique_ptr<llvm::Module>(Module))
-          .setErrorStr(&Err)
+  std::string err;
+  llvm::ExecutionEngine* execution_engine =
+      llvm::EngineBuilder(std::unique_ptr<llvm::Module>(module))
+          .setErrorStr(&err)
           .setEngineKind(llvm::EngineKind::JIT)
           .create();
-  CHECK(ExecutionEngine != nullptr) << Err;
-  Engine.reset(ExecutionEngine);
+  CHECK(execution_engine != nullptr) << err;
+  engine.reset(execution_engine);
 }
 
-void executionPipeline(llvm::Module* Module) {
-  if (GlobalOption.Execute == false) {
+void executionPipeline(llvm::Module* module) {
+  if (global_option.execute == false) {
     return;
   }
-  if (Engine == nullptr) {
-    prepareExecutionPipeline(Module);
+  if (engine == nullptr) {
+    prepareExecutionPipeline(module);
   } else {
-    Engine->addModule(std::unique_ptr<llvm::Module>(Module));
+    engine->addModule(std::unique_ptr<llvm::Module>(module));
   }
-  llvm::Function* MainFunction = Module->getFunction(ToyMainFunctionName);
-  if (MainFunction != nullptr) {
+  llvm::Function* main_function = module->getFunction(toy_main_function_name);
+  if (main_function != nullptr) {
     LOG(DEBUG) << "Before finalizing Object";
-    Engine->finalizeObject();
+    engine->finalizeObject();
     LOG(DEBUG) << "After finalizing Object";
-    void* JITFunction = Engine->getPointerToFunction(MainFunction);
-    CHECK(JITFunction != nullptr);
+    void* jit_function = engine->getPointerToFunction(main_function);
+    CHECK(jit_function != nullptr);
     LOG(DEBUG) << "Before executing JITFunction";
-    double Value = reinterpret_cast<double (*)()>(JITFunction)();
+    double value = reinterpret_cast<double (*)()>(jit_function)();
     LOG(DEBUG) << "After executing JITFunction";
-    printf("%lf\n", Value);
+    printf("%lf\n", value);
     fflush(stdout);
   }
 }
 
 void finishExecutionPipeline() {
-  Engine.reset(nullptr);
+  engine.reset(nullptr);
 }
 
-void executionMain(llvm::Module* Module) {
+void executionMain(llvm::Module* module) {
   prepareExecutionPipeline();
-  llvm::Function* MainFunction = Module->getFunction(ToyMainFunctionName);
-  CHECK(MainFunction != nullptr);
-  executionPipeline(Module);
+  llvm::Function* main_function = module->getFunction(toy_main_function_name);
+  CHECK(main_function != nullptr);
+  executionPipeline(module);
   finishExecutionPipeline();
 }

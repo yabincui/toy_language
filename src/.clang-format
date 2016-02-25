@@ -2,7 +2,7 @@ BasedOnStyle: Google
 AllowShortBlocksOnASingleLine: false                                                                   
 AllowShortFunctionsOnASingleLine: false                                                                
                                                                                                        
-ColumnLimit: 80                                                                                       
+ColumnLimit: 100                                                                                    
 CommentPragmas: NOLINT:.*                                                                              
 DerivePointerAlignment: false                                                                          
 IndentWidth: 2                                                                                         

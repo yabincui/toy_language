@@ -28,27 +28,29 @@ struct OpType {
 };
 
 struct SourceLocation {
-  size_t Line;
-  size_t Column;
+  size_t line;
+  size_t column;
+
+  std::string toString() const {
+    return std::to_string(line) + "(" + std::to_string(column) + ")";
+  }
 };
 
 struct Token {
-  TokenType Type;
-  std::string Identifier;
-  double Number;
-  OpType Op;
-  char Letter;
-  SourceLocation Loc;
+  TokenType type;
+  std::string identifier;
+  double number;
+  OpType op;
+  char letter;
+  SourceLocation loc;
 
-  Token(TokenType Type, const std::string& Identifier, double Number, OpType Op,
-        char Letter, SourceLocation Loc);
+  Token();
 
-  static Token createNumberToken(double Number, SourceLocation Loc);
-  static Token createIdentifierToken(const std::string& Identifier,
-                                     SourceLocation Loc);
-  static Token createOpToken(OpType Op, SourceLocation Loc);
-  static Token createLetterToken(char Letter, SourceLocation Loc);
-  static Token createToken(TokenType Type, SourceLocation Loc);
+  static Token createNumberToken(double number, SourceLocation loc);
+  static Token createIdentifierToken(const std::string& identifier, SourceLocation loc);
+  static Token createOpToken(OpType op, SourceLocation loc);
+  static Token createLetterToken(char letter, SourceLocation loc);
+  static Token createToken(TokenType type, SourceLocation loc);
 
   std::string toString() const;
 };
@@ -57,7 +59,7 @@ const Token& currToken();
 const Token& getNextToken();
 void unreadCurrToken();
 
-extern size_t ExprsInCurrLine;
+extern size_t exprs_in_curline;
 void printPrompt();
 
 void addDynamicOp(char Op);

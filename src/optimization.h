@@ -5,10 +5,10 @@
 
 // Used in interactive mode.
 void prepareOptPipeline();
-void optPipeline(llvm::Module* Module);
+void optPipeline(llvm::Module* module);
 void finishOptPipeline();
 
 // Used in non-interactive mode.
-void optMain(llvm::Module* Module);
+void optMain(llvm::Module* module);
 
 #endif  // TOY_OPTIMIZATION_H_
