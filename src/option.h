@@ -15,6 +15,7 @@ struct Option {
   bool dump_code;
   LogSeverity log_level;
   bool execute;
+  std::string compile_output_file;
 };
 
 extern Option global_option;

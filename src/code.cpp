@@ -1,9 +1,12 @@
 #include "code.h"
 
 #include <unordered_map>
+#include <vector>
+
 #include <llvm/ADT/APFloat.h>
 #include <llvm/IR/BasicBlock.h>
 #include <llvm/IR/Constants.h>
+#include <llvm/IR/DerivedTypes.h>
 #include <llvm/IR/DIBuilder.h>
 #include <llvm/IR/InstrTypes.h>
 #include <llvm/IR/Instruction.h>
@@ -21,6 +24,7 @@
 #include "option.h"
 #include "parse.h"
 #include "string.h"
+#include "supportlib.h"
 
 static llvm::LLVMContext* context;
 static llvm::Module* cur_module;
@@ -172,6 +176,30 @@ void DebugInfo::popDIScope() {
 llvm::Value* NumberExprAST::codegen() {
   global_debug_info.emitLocation(this);
   return llvm::ConstantFP::get(*context, llvm::APFloat(val_));
+}
+
+llvm::Value* StringLiteralExprAST::codegen() {
+  global_debug_info.emitLocation(this);
+  std::vector<llvm::Constant*> v;
+  const char* p = val_.c_str();
+  llvm::IntegerType* char_type = llvm::IntegerType::get(*context, 8);
+  do {
+    v.push_back(llvm::ConstantInt::get(char_type, *p));
+  } while (*p++ != '\0');
+  llvm::ArrayType* array_type = llvm::ArrayType::get(char_type, val_.size() + 1);
+  llvm::Constant* array = llvm::ConstantArray::get(array_type, v);
+
+  llvm::GlobalVariable* variable = new llvm::GlobalVariable(
+      *cur_module, array_type, true, llvm::GlobalValue::InternalLinkage, array);
+
+  llvm::Type* int_type = llvm::Type::getInt32Ty(*context);
+  llvm::Constant* zero = llvm::ConstantInt::get(int_type, 0);
+  std::vector<llvm::Value*> v2(1, zero);
+  return cur_builder->CreateInBoundsGEP(variable, v2);
+
+  // llvm::PointerType* char_ptype = llvm::Type::getInt8PtrTy(*context);
+
+  // return array;
 }
 
 static std::string getTmpName() {
@@ -520,6 +548,7 @@ static std::unique_ptr<llvm::Module> codePipeline(const std::vector<ExprAST*>& e
   for (auto expr : extern_functions) {
     expr->codegen();
   }
+  addFunctionDeclarationsInSupportLib(context, cur_module);
   for (auto expr : exprs) {
     llvm::Value* value = expr->codegen();
     switch (expr->type()) {

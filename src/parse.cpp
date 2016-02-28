@@ -37,17 +37,12 @@ static bool isLetterToken(char letter) {
 std::vector<std::unique_ptr<ExprAST>> expr_storage;
 
 static std::unordered_map<int, std::string> expr_ast_type_name_map = {
-    {NUMBER_EXPR_AST, "NumberExprAST"},
-    {VARIABLE_EXPR_AST, "VariableExprAST"},
-    {UNARY_EXPR_AST, "UnaryExprAST"},
-    {BINARY_EXPR_AST, "BinaryExprAST"},
-    {ASSIGNMENT_EXPR_AST, "AssignmentExprAST"},
-    {PROTOTYPE_AST, "PrototypeAST"},
-    {FUNCTION_AST, "FunctionAST"},
-    {CALL_EXPR_AST, "CallExprAST"},
-    {IF_EXPR_AST, "IfExprAST"},
-    {BLOCK_EXPR_AST, "BlockExprAST"},
-    {FOR_EXPR_AST, "ForExprAST"},
+    {NUMBER_EXPR_AST, "NumberExprAST"},     {STRING_LITERAL_EXPR_AST, "StringLiteralExprAST"},
+    {VARIABLE_EXPR_AST, "VariableExprAST"}, {UNARY_EXPR_AST, "UnaryExprAST"},
+    {BINARY_EXPR_AST, "BinaryExprAST"},     {ASSIGNMENT_EXPR_AST, "AssignmentExprAST"},
+    {PROTOTYPE_AST, "PrototypeAST"},        {FUNCTION_AST, "FunctionAST"},
+    {CALL_EXPR_AST, "CallExprAST"},         {IF_EXPR_AST, "IfExprAST"},
+    {BLOCK_EXPR_AST, "BlockExprAST"},       {FOR_EXPR_AST, "ForExprAST"},
 };
 
 std::string ExprAST::dumpHeader() const {
@@ -57,6 +52,10 @@ std::string ExprAST::dumpHeader() const {
 
 void NumberExprAST::dump(int indent) const {
   fprintIndented(stderr, indent, "%s: val = %lf\n", dumpHeader().c_str(), val_);
+}
+
+void StringLiteralExprAST::dump(int indent) const {
+  fprintIndented(stderr, indent, "%s: val = %s\n", dumpHeader().c_str(), val_.c_str());
 }
 
 void VariableExprAST::dump(int indent) const {
@@ -139,6 +138,7 @@ static ExprAST* parseExpression();
 
 // Primary := identifier
 //         := number
+//         := string_literal
 //         := ( expression )
 //         := identifier (expr,...)
 static ExprAST* parsePrimary() {
@@ -176,6 +176,11 @@ static ExprAST* parsePrimary() {
   }
   if (curr.type == TOKEN_NUMBER) {
     ExprAST* expr = new NumberExprAST(curr.number, curr.loc);
+    expr_storage.push_back(std::unique_ptr<ExprAST>(expr));
+    return expr;
+  }
+  if (curr.type == TOKEN_STRING_LITERAL) {
+    ExprAST* expr = new StringLiteralExprAST(curr.string_literal, curr.loc);
     expr_storage.push_back(std::unique_ptr<ExprAST>(expr));
     return expr;
   }

@@ -18,6 +18,7 @@ enum TokenType {
   TOKEN_BINARY,
   TOKEN_UNARY,
   TOKEN_LETTER,
+  TOKEN_STRING_LITERAL,
 };
 
 struct OpType {
@@ -42,6 +43,7 @@ struct Token {
   double number;
   OpType op;
   char letter;
+  std::string string_literal;
   SourceLocation loc;
 
   Token();
@@ -50,6 +52,7 @@ struct Token {
   static Token createIdentifierToken(const std::string& identifier, SourceLocation loc);
   static Token createOpToken(OpType op, SourceLocation loc);
   static Token createLetterToken(char letter, SourceLocation loc);
+  static Token createStringLiteralToken(const std::string& s, SourceLocation loc);
   static Token createToken(TokenType type, SourceLocation loc);
 
   std::string toString() const;

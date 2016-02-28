@@ -13,6 +13,7 @@ static void usage(const std::string& exec_name) {
   printf("%s  Experiment a toy language\n", exec_name.c_str());
   printf(
       "Usage:\n"
+      "-c <file>       Compile the code into object file.\n"
       "--dump dumpType1, dumpType2,...\n"
       "                Dump specified contents. Possible type list:\n"
       "                  token:  Dump all tokens received.\n"
@@ -30,14 +31,15 @@ static void usage(const std::string& exec_name) {
 }
 
 Option global_option = {
-    "<stdin>",  // InputFile
-    stdin,      // InputFp
-    true,       // Interactive
-    false,      // DumpToken
-    false,      // DumpAST
-    true,       // DumpCode
-    INFO,       // LogLevel
-    true,       // Execute
+    "<stdin>",  // input_file
+    stdin,      // input_fp
+    true,       // interactive
+    false,      // dump_token
+    false,      // dump_ast
+    true,       // dump_code
+    INFO,       // log_level
+    true,       // execute
+    "",         // compile_output_file
 };
 
 bool nextArgumentOrError(const std::vector<std::string>& Args, size_t& i) {
@@ -55,7 +57,12 @@ static bool parseOptions(int argc, char** argv) {
     args.push_back(argv[i]);
   }
   for (size_t i = 1; i < args.size(); ++i) {
-    if (args[i] == "--dump") {
+    if (args[i] == "-c") {
+      if (!nextArgumentOrError(args, i)) {
+        return false;
+      }
+      global_option.compile_output_file = args[i];
+    } else if (args[i] == "--dump") {
       if (!nextArgumentOrError(args, i)) {
         return false;
       }
@@ -112,6 +119,10 @@ static bool parseOptions(int argc, char** argv) {
       return false;
     }
   }
+  if (!global_option.compile_output_file.empty() && global_option.interactive) {
+    LOG(ERROR) << "Toy can't compile while being interactive\n";
+    return false;
+  }
 
   LOG(DEBUG) << "\n"
              << "GlobalOption: input_file = " << global_option.input_file << "\n"
@@ -119,7 +130,10 @@ static bool parseOptions(int argc, char** argv) {
              << "              interactive = " << global_option.interactive << "\n"
              << "              dump_token = " << global_option.dump_token << "\n"
              << "              dump_ast = " << global_option.dump_ast << "\n"
-             << "              dump_code = " << global_option.dump_code << "\n";
+             << "              dump_code = " << global_option.dump_code << "\n"
+             << "              log_level = " << global_option.log_level << "\n"
+             << "              execute = " << global_option.execute << "\n"
+             << "              compile_output_file = " << global_option.compile_output_file << "\n";
   return true;
 }
 

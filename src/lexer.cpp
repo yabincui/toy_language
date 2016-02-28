@@ -33,6 +33,7 @@ static std::map<TokenType, std::string> token_name_map = {
     {TOKEN_BINARY, "TOKEN_BINARY"},
     {TOKEN_UNARY, "TOKEN_UNARY"},
     {TOKEN_LETTER, "TOKEN_LETTER"},
+    {TOKEN_STRING_LITERAL, "TOKEN_STRING_LITERAL"},
 };
 
 static std::unordered_map<char, std::vector<std::string>> op_map = {
@@ -77,6 +78,14 @@ Token Token::createLetterToken(char letter, SourceLocation loc) {
   return token;
 }
 
+Token Token::createStringLiteralToken(const std::string& s, SourceLocation loc) {
+  Token token;
+  token.type = TOKEN_STRING_LITERAL;
+  token.string_literal = s;
+  token.loc = loc;
+  return token;
+}
+
 Token Token::createToken(TokenType type, SourceLocation loc) {
   Token token;
   token.type = type;
@@ -98,6 +107,8 @@ std::string Token::toString() const {
     s += ", " + op.desc;
   } else if (type == TOKEN_LETTER) {
     s += ", " + std::string(1, letter);
+  } else if (type == TOKEN_STRING_LITERAL) {
+    s += ", " + string_literal;
   }
   s += "), loc " + loc.toString();
   return s;
@@ -194,6 +205,34 @@ static Token getOperatorToken(CharWithLoc start) {
   return Token();
 }
 
+static Token getStringLiteralToken(SourceLocation loc) {
+  std::string s;
+  while (true) {
+    CharWithLoc ch = getChar();
+    if (ch.ch == EOF) {
+      LOG(FATAL) << "unexpected end of string literal";
+    }
+    if (ch.ch == '\\') {
+      CharWithLoc next = getChar();
+      if (next.ch == '\"') {
+        s.push_back(next.ch);
+      } else if (next.ch == 'n') {
+        s.push_back('\n');
+      } else if (next.ch == 't') {
+        s.push_back('\t');
+      } else {
+        LOG(DEBUG) << "unrecognized string literal \"" << next.ch;
+        ungetChar(next);
+      }
+    } else if (ch.ch == '\"') {
+      break;
+    } else {
+      s.push_back(ch.ch);
+    }
+  }
+  return Token::createStringLiteralToken(s, loc);
+}
+
 static Token produceToken() {
   CharWithLoc ch = getChar();
 
@@ -221,6 +260,9 @@ Repeat:
     } else {
       ungetChar(next);
     }
+  }
+  if (ch.ch == '\"') {
+    return getStringLiteralToken(ch.loc);
   }
   if (isalpha(ch.ch) || ch.ch == '_') {
     CharWithLoc start = ch;

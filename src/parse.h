@@ -10,6 +10,7 @@
 
 enum ASTType {
   NUMBER_EXPR_AST,
+  STRING_LITERAL_EXPR_AST,
   VARIABLE_EXPR_AST,
   UNARY_EXPR_AST,
   BINARY_EXPR_AST,
@@ -59,6 +60,19 @@ class NumberExprAST : public ExprAST {
 
  private:
   double val_;
+};
+
+class StringLiteralExprAST : public ExprAST {
+ public:
+  StringLiteralExprAST(const std::string& s, SourceLocation loc)
+      : ExprAST(STRING_LITERAL_EXPR_AST, loc), val_(s) {
+  }
+
+  void dump(int indent = 0) const override;
+  llvm::Value* codegen() override;
+
+ private:
+  const std::string val_;
 };
 
 class VariableExprAST : public ExprAST {
