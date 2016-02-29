@@ -171,7 +171,6 @@ static void interactiveMain() {
         optPipeline(module.get());
         executionPipeline(module.release());
       }
-      exprs_in_curline++;
     } else {
       Token curr = currToken();
       if (curr.type == TOKEN_EOF) {

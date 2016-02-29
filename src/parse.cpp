@@ -481,6 +481,7 @@ ExprAST* parsePipeline() {
     if (global_option.dump_ast) {
       ret->dump(0);
     }
+    exprs_in_curline++;
     return ret;
   }
   LOG(FATAL) << "Unexpected token " << curr.toString();

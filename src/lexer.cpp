@@ -15,7 +15,8 @@
 #include "option.h"
 #include "strings.h"
 
-size_t exprs_in_curline = 0;  // Used to decide whether to show prompt.
+size_t exprs_in_curline = 0;   // Used to decide whether to show prompt.
+size_t tokens_in_curline = 0;  // Same as above.
 
 // Lexer
 static std::map<TokenType, std::string> token_name_map = {
@@ -243,13 +244,14 @@ static Token produceToken() {
 
 Repeat:
   while (isspace(ch.ch)) {
-    ch = getChar();
     if (ch.ch == '\n') {
-      if (global_option.interactive && exprs_in_curline > 0) {
+      if (global_option.interactive && (exprs_in_curline > 0 || tokens_in_curline == 0)) {
         exprs_in_curline = 0;
+        tokens_in_curline = 0;
         printPrompt();
       }
     }
+    ch = getChar();
   }
   if (ch.ch == '#') {
     while (ch.ch != '\n' && ch.ch != EOF) {
@@ -266,6 +268,7 @@ Repeat:
       ungetChar(next);
     }
   }
+  tokens_in_curline++;
   if (ch.ch == '\"') {
     return getStringLiteralToken(ch.loc);
   }

@@ -49,7 +49,7 @@ void executionPipeline(llvm::Module* module) {
     double value = reinterpret_cast<double (*)()>(jit_function)();
     LOG(DEBUG) << "After executing JITFunction";
     if (global_option.interactive) {
-      printf("%lf\n", value);
+      printf("->%lf\n", value);
       fflush(stdout);
     }
   }
