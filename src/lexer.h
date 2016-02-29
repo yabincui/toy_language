@@ -66,5 +66,6 @@ extern size_t exprs_in_curline;
 void printPrompt();
 
 void addDynamicOp(char Op);
+void resetLexer();
 
 #endif  // LEXER_H_

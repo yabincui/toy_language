@@ -1,0 +1,38 @@
+>>>Input
+
+a = 4;
+
+if (a > 2) {
+  print("a > 2\n");
+}
+
+if (a > 4) {
+  print("a > 4\n");
+} else {
+  print("a <= 4\n");
+}
+
+a = 2;
+if (a == 0) {
+  print("a == 0\n");
+} else if (a == 1) {
+  print("a == 1\n");
+} else if (a == 2) {
+  print("a == 2\n");
+}
+
+a = 4;
+if (a < 0) {
+  print("a < 0\n");
+} elif (a > 2) {
+  print("a > 2\n");
+} else {
+  print("0 <= a <= 4\n");
+}
+
+
+>>>Output
+a > 2
+a <= 4
+a == 2
+a > 2

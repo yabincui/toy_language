@@ -19,7 +19,7 @@ size_t exprs_in_curline = 0;   // Used to decide whether to show prompt.
 size_t tokens_in_curline = 0;  // Same as above.
 
 // Lexer
-static std::map<TokenType, std::string> token_name_map = {
+static const std::map<TokenType, std::string> token_name_map = {
     {TOKEN_INVALID, "TOKEN_INVALID"},
     {TOKEN_EOF, "TOKEN_EOF"},
     {TOKEN_DEF, "TOKEN_DEF"},
@@ -37,12 +37,18 @@ static std::map<TokenType, std::string> token_name_map = {
     {TOKEN_STRING_LITERAL, "TOKEN_STRING_LITERAL"},
 };
 
-static std::unordered_map<char, std::vector<std::string>> op_map = {
+static const std::unordered_map<char, std::vector<std::string>> op_init_map = {
     {'+', {"+"}},       {'-', {"-"}},  {'*', {"*"}},       {'/', {"/"}},
     {'<', {"<=", "<"}}, {'=', {"=="}}, {'>', {">=", ">"}}, {'!', {"!="}},
 };
 
-static std::unordered_map<std::string, TokenType> keyword_map;
+static std::unordered_map<char, std::vector<std::string>> op_map;
+
+static const std::unordered_map<std::string, TokenType> keyword_map = {
+    {"def", TOKEN_DEF},       {"extern", TOKEN_EXTERN}, {"if", TOKEN_IF},
+    {"elif", TOKEN_ELIF},     {"else", TOKEN_ELSE},     {"for", TOKEN_FOR},
+    {"binary", TOKEN_BINARY}, {"unary", TOKEN_UNARY},
+};
 
 void printPrompt() {
   printf(">");
@@ -167,16 +173,6 @@ static void consumeComment() {
 }
 
 static Token getKeywordOrIdentifierToken(const std::string& s, SourceLocation loc) {
-  if (keyword_map.empty()) {
-    keyword_map["def"] = TOKEN_DEF;
-    keyword_map["extern"] = TOKEN_EXTERN;
-    keyword_map["if"] = TOKEN_IF;
-    keyword_map["elif"] = TOKEN_ELIF;
-    keyword_map["else"] = TOKEN_ELSE;
-    keyword_map["for"] = TOKEN_FOR;
-    keyword_map["binary"] = TOKEN_BINARY;
-    keyword_map["unary"] = TOKEN_UNARY;
-  }
   auto it = keyword_map.find(s);
   if (it != keyword_map.end()) {
     return Token::createToken(it->second, loc);
@@ -317,6 +313,12 @@ class RingBuffer {
   RingBuffer(size_t size = 10) : buffer_(size), data_start_(0), data_end_(0), cur_(0) {
   }
 
+  void clear() {
+    data_start_ = 0;
+    data_end_ = 0;
+    cur_ = 0;
+  }
+
   const T& getCurrent() {
     return buffer_[cur_];
   }
@@ -410,4 +412,14 @@ void addDynamicOp(char op) {
   } else {
     op_map[op] = std::vector<std::string>(1, s);
   }
+}
+
+void resetLexer() {
+  exprs_in_curline = 0;
+  tokens_in_curline = 0;
+  op_map = op_init_map;
+  char_deque.clear();
+  curr_line = 1;
+  curr_column = 1;
+  token_buffer.clear();
 }

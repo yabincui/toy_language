@@ -1,0 +1,15 @@
+>>>Input
+a = 2;
+b = a + 4;
+c = 2 * a + b;
+printd(a);
+print("\n");
+printd(b);
+print("\n");
+printd(c);
+print("\n");
+
+>>>Output
+2
+6
+10

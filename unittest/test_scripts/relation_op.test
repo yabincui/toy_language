@@ -1,0 +1,25 @@
+>>>Input
+printd(1 < 2);
+print("\n");
+printd(1 < 0);
+print("\n");
+printd(1 <= 1);
+print("\n");
+printd(1 == 1);
+print("\n");
+printd(1 != 2);
+print("\n");
+printd(1 > 0);
+print("\n");
+printd(1 >= 5);
+print("\n");
+
+
+>>>Output
+1
+0
+1
+1
+1
+1
+0

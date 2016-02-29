@@ -1,0 +1,13 @@
+>>>Input
+for (a = 1; a <= 4; a = a + 1) {
+  print("a = ");
+  printd(a);
+  print("\n");
+}
+
+
+>>>Output
+a = 1
+a = 2
+a = 3
+a = 4

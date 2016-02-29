@@ -1,0 +1,9 @@
+>>>Input
+def f(a, b, c) {
+  a + b * c;
+}
+printd(f(2, 3, 4));
+print("\n");
+
+>>>Output
+14

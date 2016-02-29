@@ -1,0 +1,14 @@
+>>>Input
+
+a = 42;
+
+def f(a) {
+  printd(a);
+  print("\n");
+}
+
+f(32);
+
+
+>>>Output
+32

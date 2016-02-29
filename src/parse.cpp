@@ -36,7 +36,7 @@ static bool isLetterToken(char letter) {
 
 std::vector<std::unique_ptr<ExprAST>> expr_storage;
 
-static std::unordered_map<int, std::string> expr_ast_type_name_map = {
+static const std::unordered_map<int, std::string> expr_ast_type_name_map = {
     {NUMBER_EXPR_AST, "NumberExprAST"},     {STRING_LITERAL_EXPR_AST, "StringLiteralExprAST"},
     {VARIABLE_EXPR_AST, "VariableExprAST"}, {UNARY_EXPR_AST, "UnaryExprAST"},
     {BINARY_EXPR_AST, "BinaryExprAST"},     {ASSIGNMENT_EXPR_AST, "AssignmentExprAST"},
@@ -46,8 +46,8 @@ static std::unordered_map<int, std::string> expr_ast_type_name_map = {
 };
 
 std::string ExprAST::dumpHeader() const {
-  return stringPrintf("%s (Line %zu, Column %zu)", expr_ast_type_name_map[type_].c_str(), loc_.line,
-                      loc_.column);
+  return stringPrintf("%s (Line %zu, Column %zu)",
+                      expr_ast_type_name_map.find(type_)->second.c_str(), loc_.line, loc_.column);
 }
 
 void NumberExprAST::dump(int indent) const {
@@ -465,6 +465,8 @@ static FunctionAST* parseFunction() {
 }
 
 void prepareParsePipeline() {
+  resetLexer();
+  expr_storage.clear();
 }
 
 ExprAST* parsePipeline() {
