@@ -1,5 +1,7 @@
 #include "option.h"
 
+#include <fstream>
+
 #include "code.h"
 #include "execution.h"
 #include "lexer.h"
@@ -23,6 +25,8 @@ static void usage(const std::string& exec_name) {
       "-h/--help       Print this help information.\n"
       "-i <file>       Read input from specified file instead of standard\n"
       "                input.\n"
+      "-o <file>       Write output to specified file instead of standard\n"
+      "                output.\n"
       "--log <log_level>\n"
       "                Set log level, can be debug/info/error/fatal.\n"
       "                Default is debug.\n"
@@ -31,15 +35,17 @@ static void usage(const std::string& exec_name) {
 }
 
 Option global_option = {
-    "<stdin>",  // input_file
-    stdin,      // input_fp
-    true,       // interactive
-    false,      // dump_token
-    false,      // dump_ast
-    false,      // dump_code
-    INFO,       // log_level
-    true,       // execute
-    "",         // compile_output_file
+    "<stdin>",   // input_file
+    &std::cin,   // in_stream
+    "<stdout>",  // output_file
+    &std::cout,  // out_stream
+    true,        // interactive
+    false,       // dump_token
+    false,       // dump_ast
+    false,       // dump_code
+    INFO,        // log_level
+    true,        // execute
+    "",          // compile_output_file
 };
 
 bool nextArgumentOrError(const std::vector<std::string>& Args, size_t& i) {
@@ -50,6 +56,9 @@ bool nextArgumentOrError(const std::vector<std::string>& Args, size_t& i) {
   ++i;
   return true;
 }
+
+static std::ifstream ifs;
+static std::ofstream ofs;
 
 static bool parseOptions(int argc, char** argv) {
   std::vector<std::string> args;
@@ -90,13 +99,12 @@ static bool parseOptions(int argc, char** argv) {
       if (!nextArgumentOrError(args, i)) {
         return false;
       }
-      FILE* fp = fopen(args[i].c_str(), "r");
-      if (fp == nullptr) {
-        LOG(ERROR) << "Can't open file " << args[i];
-        return false;
+      ifs.open(args[i].c_str());
+      if (!ifs.good()) {
+        LOG(ERROR) << "Can't open file " << args[i] << ": " << strerror(errno);
       }
       global_option.input_file = args[i];
-      global_option.input_fp = fp;
+      global_option.in_stream = &ifs;
       global_option.interactive = false;
     } else if (args[i] == "--log") {
       if (!nextArgumentOrError(args, i)) {
@@ -114,6 +122,17 @@ static bool parseOptions(int argc, char** argv) {
       }
     } else if (args[i] == "--no-execute") {
       global_option.execute = false;
+    } else if (args[i] == "-o") {
+      if (!nextArgumentOrError(args, i)) {
+        return false;
+      }
+      ofs.open(args[i].c_str());
+      if (!ofs.good()) {
+        LOG(ERROR) << "Can't open file " << args[i] << ": " << strerror(errno);
+        return false;
+      }
+      global_option.output_file = args[i];
+      global_option.out_stream = &ofs;
     } else {
       LOG(ERROR) << "Unknown Option: " << args[i];
       return false;
@@ -126,7 +145,7 @@ static bool parseOptions(int argc, char** argv) {
 
   LOG(DEBUG) << "\n"
              << "GlobalOption: input_file = " << global_option.input_file << "\n"
-             << "              input_fp = " << global_option.input_fp << "\n"
+             << "              output_file = " << global_option.output_file << "\n"
              << "              interactive = " << global_option.interactive << "\n"
              << "              dump_token = " << global_option.dump_token << "\n"
              << "              dump_ast = " << global_option.dump_ast << "\n"

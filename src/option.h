@@ -4,11 +4,15 @@
 #include <stdio.h>
 #include <string>
 
+#include <iostream>
+
 #include "logging.h"
 
 struct Option {
   std::string input_file;
-  FILE* input_fp;
+  std::istream* in_stream;
+  std::string output_file;
+  std::ostream* out_stream;
   bool interactive;
   bool dump_token;
   bool dump_ast;

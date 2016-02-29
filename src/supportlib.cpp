@@ -8,17 +8,19 @@
 #include <llvm-c/Support.h>
 
 #include "logging.h"
+#include "option.h"
 
 extern "C" {
 
 double print(const char* s) {
-  printf("%s", s);
+  global_option.out_stream->write(s, strlen(s));
   return 0.0;
 }
 
 double printc(double x) {
   char c = static_cast<char>(x);
   printf("%c", c);
+  global_option.out_stream->put(c);
   return 0.0;
 }
 

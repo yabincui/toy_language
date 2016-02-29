@@ -18,6 +18,7 @@ SRCS := \
 
 UNITTEST_SRCS := \
 	unittest/gtest_main.cpp \
+	unittest/supportlib_test.cpp \
 
 OBJS := $(subst .cpp,.o,$(subst src/,$(OUT_DIR)/,$(SRCS)))
 UNITTEST_OBJS := $(subst .cpp,.o,$(subst unittest/,$(OUT_DIR)/,$(UNITTEST_SRCS))) \

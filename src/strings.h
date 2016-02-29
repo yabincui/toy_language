@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 
+bool readStringFromFile(const std::string& path, std::string* content);
 std::string stringPrintf(const char* fmt, ...);
 std::vector<std::string> stringSplit(const std::string& s, char delimiter);
 

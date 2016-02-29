@@ -135,7 +135,7 @@ static CharWithLoc getChar() {
     char_deque.pop_front();
     return ret;
   }
-  int ch = fgetc(global_option.input_fp);
+  int ch = global_option.in_stream->get();
   CharWithLoc ret;
   ret.ch = ch;
   ret.loc.line = curr_line;

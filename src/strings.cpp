@@ -3,6 +3,27 @@
 #include <stdarg.h>
 #include <stdio.h>
 
+#include "logging.h"
+
+bool readStringFromFile(const std::string& path, std::string* content) {
+  content->clear();
+  FILE* fp = fopen(path.c_str(), "r");
+  char buf[1024];
+  while (true) {
+    size_t ret = fread(buf, 1, sizeof(buf), fp);
+    if (ret == 0) {
+      break;
+    }
+    content->append(buf, ret);
+  }
+  if (ferror(fp)) {
+    LOG(ERROR) << "failed to read " << path << ": " << strerror(errno);
+    return false;
+  }
+  fclose(fp);
+  return true;
+}
+
 std::string stringPrintf(const char* fmt, ...) {
   va_list ap;
   va_start(ap, fmt);
