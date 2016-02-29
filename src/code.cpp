@@ -256,6 +256,9 @@ llvm::Value* UnaryExprAST::codegen() {
   llvm::Value* right_value = right_->codegen();
   CHECK(right_value != nullptr);
   std::string op_str = op_.desc;
+  if (op_str == "-") {
+    return cur_builder->CreateFNeg(right_value, getTmpName());
+  }
   llvm::Function* function = cur_module->getFunction("unary" + op_str);
   if (function != nullptr) {
     CHECK_EQ(1u, function->arg_size());

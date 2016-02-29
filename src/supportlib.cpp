@@ -17,10 +17,19 @@ double print(const char* s) {
   return 0.0;
 }
 
-double printc(double x) {
-  char c = static_cast<char>(x);
-  printf("%c", c);
-  global_option.out_stream->put(c);
+double printd(double x) {
+  char buf[40];
+  snprintf(buf, sizeof(buf), "%lf", x);
+  // Remove trailing zeros.
+  char* p = buf + strlen(buf) - 1;
+  while (*p == '0') {
+    p--;
+  }
+  if (*p == '.') {
+    p--;
+  }
+  *(p + 1) = '\0';
+  global_option.out_stream->write(buf, strlen(buf));
   return 0.0;
 }
 
@@ -36,4 +45,7 @@ void addFunctionDeclarationsInSupportLib(llvm::LLVMContext* context, llvm::Modul
   std::vector<llvm::Type*> v(1, char_ptype);
   llvm::FunctionType* print_function_type = llvm::FunctionType::get(double_type, v, false);
   llvm::Function::Create(print_function_type, llvm::GlobalValue::ExternalLinkage, "print", module);
+  v[0] = double_type;
+  llvm::FunctionType* printd_function_type = llvm::FunctionType::get(double_type, v, false);
+  llvm::Function::Create(printd_function_type, llvm::GlobalValue::ExternalLinkage, "printd", module);
 }

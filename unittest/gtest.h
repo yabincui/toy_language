@@ -4,6 +4,6 @@
 #include <gtest/gtest.h>
 #include <string>
 
-bool executeScript(const std::string &script, std::string *output);
+std::string getExecDir();
 
 #endif // TOY_UNITTEST_H_

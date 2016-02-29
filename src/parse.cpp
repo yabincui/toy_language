@@ -198,9 +198,18 @@ static ExprAST* parsePrimary() {
 static std::set<std::string> unary_op_set;
 
 // UnaryExpression := Primary
+//                 := - UnaryExpression
 //                 := user_defined_binary_op_letter UnaryExpression
 static ExprAST* parseUnaryExpression() {
   Token curr = currToken();
+  if (curr.type == TOKEN_OP && curr.op.desc == "-") {
+    nextToken();
+    ExprAST* right = parseUnaryExpression();
+    CHECK(right != nullptr);
+    ExprAST* expr = new UnaryExprAST(curr.op, right, curr.loc);
+    expr_storage.push_back(std::unique_ptr<ExprAST>(expr));
+    return expr;
+  }
   if (curr.type == TOKEN_OP && unary_op_set.find(curr.op.desc) != unary_op_set.end()) {
     nextToken();
     ExprAST* right = parseUnaryExpression();
