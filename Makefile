@@ -28,15 +28,15 @@ CC := clang++
 
 LLVM_CXX_FLAGS := $(shell llvm-config --cxxflags)
 
-CXXFLAGS := -std=c++11 $(LLVM_CXX_FLAGS) -fno-rtti -Wno-dangling-else
+CXXFLAGS := -std=c++11 $(LLVM_CXX_FLAGS) -fno-rtti -Wno-dangling-else -g
 
-UNITTEST_CXXFLAGS := $(CXXFLAGS) -I unittest/include -I src/
+UNITTEST_CXXFLAGS := $(CXXFLAGS) -I unittest/gtest_src/include -I src/
 
 LLVM_LDFLAGS := $(shell llvm-config --ldflags --libs --system-libs)
 
-LDFLAGS := $(LLVM_LDFLAGS)
+LDFLAGS := $(LLVM_LDFLAGS) -rdynamic
 
-UNITTEST_LDFLAGS := $(LDFLAGS) -pthread unittest/libgtest.a
+UNITTEST_LDFLAGS := $(LDFLAGS) -pthread -L$(OUT_DIR) -lgtest
 
 DEPS := Makefile $(wildcard src/*.h)
 
@@ -58,14 +58,16 @@ format:
 clean:
 	rm -rf $(OUT_DIR)
 
-$(OUT_DIR)/unittest : $(UNITTEST_OBJS)
+$(OUT_DIR)/libgtest.a: Makefile
+	g++ -isystem unittest/gtest_src/include -Iunittest/gtest_src -pthread \
+		-c unittest/gtest_src/src/gtest-all.cc $(CXXFLAGS) -o $(OUT_DIR)/gtest-all.o
+	ar -rv $@ $(OUT_DIR)/gtest-all.o
+
+$(OUT_DIR)/unittest : $(UNITTEST_OBJS) $(OUT_DIR)/libgtest.a
 	$(CC) -o $@ $^ $(UNITTEST_LDFLAGS)
 
-unittest: format $(OUT_DIR)/unittest
+unittest: format $(OUT_DIR) $(OUT_DIR)/unittest
 	cp -r unittest/test_scripts $(OUT_DIR)
 	$(OUT_DIR)/unittest
 
-runtest: $(TARGET)
-	runtest/runtest.sh $(TARGET) runtest/runtest_input.txt out/runtest_output.txt runtest/runtest_std_output.txt
-
-.PHONY: clean runtest unittest
+.PHONY: clean format unittest

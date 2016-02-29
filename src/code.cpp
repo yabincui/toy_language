@@ -16,7 +16,9 @@
 #include <llvm/IR/Module.h>
 #include <llvm/IR/Value.h>
 #include <llvm/IR/ValueSymbolTable.h>
+#include <llvm/IR/Verifier.h>
 #include <llvm/Support/Dwarf.h>
+#include <llvm/Support/raw_ostream.h>
 
 #include "lexer.h"
 #include "logging.h"
@@ -123,7 +125,8 @@ llvm::DITypeRefArray DebugInfo::getDoubleArrayType(size_t count) {
 
 llvm::DISubroutineType* DebugInfo::createSubroutineType(size_t arg_count) {
   llvm::DITypeRefArray array = getDoubleArrayType(arg_count + 1);
-  return di_builder->createSubroutineType(di_file, array, 0);
+  // return di_builder->createSubroutineType(di_file, array, 0);
+  return di_builder->createSubroutineType(array, 0);
 }
 
 llvm::DISubprogram* DebugInfo::createFunction(const std::string& name, llvm::Function* function,
@@ -145,10 +148,13 @@ llvm::DILocalVariable* DebugInfo::createLocalVariable(const std::string& name, s
                                                       size_t arg_index, llvm::Value* storage) {
   LOG(DEBUG) << "DebugInfo::createLocalVariable, Name " << name
              << ", DIScopeStack.size() = " << di_scope_stack.size();
-  unsigned tag =
-      (arg_index != 0 ? llvm::dwarf::DW_TAG_arg_variable : llvm::dwarf::DW_TAG_auto_variable);
-  llvm::DILocalVariable* di_local_variable = di_builder->createLocalVariable(
-      tag, di_scope_stack.back(), name, di_file, line, di_double_type, false, 0, arg_index);
+  // unsigned tag =
+  //    (arg_index != 0 ? llvm::dwarf::DW_TAG_arg_variable : llvm::dwarf::DW_TAG_auto_variable);
+  unsigned tag = llvm::dwarf::DW_TAG_variable;
+  // llvm::DILocalVariable* di_local_variable = di_builder->createLocalVariable(
+  //    tag, di_scope_stack.back(), name, di_file, line, di_double_type, false, 0, arg_index);
+  llvm::DILocalVariable* di_local_variable =
+      di_builder->createAutoVariable(di_scope_stack.back(), name, di_file, line, di_double_type);
   di_builder->insertDeclare(storage, di_local_variable, di_builder->createExpression(),
                             llvm::DebugLoc::get(line, 0, di_scope_stack.back()),
                             cur_builder->GetInsertBlock());
@@ -594,6 +600,12 @@ static std::unique_ptr<llvm::Module> codePipeline(const std::vector<ExprAST*>& e
   cur_function = nullptr;
   global_function = nullptr;
   cur_module = nullptr;
+  std::string err;
+  llvm::raw_string_ostream os(err);
+  if (!llvm::verifyModule(*module, &os)) {
+    LOG(ERROR) << "verify module failed: " << err;
+    return nullptr;
+  }
   return module;
 }
 
