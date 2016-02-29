@@ -6,7 +6,7 @@
 #include "logging.h"
 #include "optimization.h"
 #include "parse.h"
-#include "string.h"
+#include "strings.h"
 #include "supportlib.h"
 
 static void usage(const std::string& exec_name) {
@@ -36,7 +36,7 @@ Option global_option = {
     true,       // interactive
     false,      // dump_token
     false,      // dump_ast
-    true,       // dump_code
+    false,      // dump_code
     INFO,       // log_level
     true,       // execute
     "",         // compile_output_file
@@ -135,11 +135,6 @@ static bool parseOptions(int argc, char** argv) {
              << "              execute = " << global_option.execute << "\n"
              << "              compile_output_file = " << global_option.compile_output_file << "\n";
   return true;
-}
-
-void printPrompt() {
-  printf(">");
-  fflush(stdout);
 }
 
 static void interactiveMain() {

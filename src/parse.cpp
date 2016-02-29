@@ -9,7 +9,7 @@
 #include "lexer.h"
 #include "logging.h"
 #include "option.h"
-#include "string.h"
+#include "strings.h"
 #include "utils.h"
 
 #define nextToken()                                         \

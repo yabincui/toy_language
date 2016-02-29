@@ -48,8 +48,10 @@ void executionPipeline(llvm::Module* module) {
     LOG(DEBUG) << "Before executing JITFunction";
     double value = reinterpret_cast<double (*)()>(jit_function)();
     LOG(DEBUG) << "After executing JITFunction";
-    printf("%lf\n", value);
-    fflush(stdout);
+    if (global_option.interactive) {
+      printf("%lf\n", value);
+      fflush(stdout);
+    }
   }
 }
 

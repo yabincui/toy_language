@@ -23,7 +23,7 @@
 #include "optimization.h"
 #include "option.h"
 #include "parse.h"
-#include "string.h"
+#include "strings.h"
 #include "supportlib.h"
 
 static llvm::LLVMContext* context;

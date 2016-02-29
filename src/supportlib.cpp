@@ -12,7 +12,7 @@
 extern "C" {
 
 double print(const char* s) {
-  printf("%s\n", s);
+  printf("%s", s);
   return 0.0;
 }
 

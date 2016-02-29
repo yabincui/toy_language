@@ -13,7 +13,7 @@
 
 #include "logging.h"
 #include "option.h"
-#include "string.h"
+#include "strings.h"
 
 size_t exprs_in_curline = 0;  // Used to decide whether to show prompt.
 
@@ -42,6 +42,11 @@ static std::unordered_map<char, std::vector<std::string>> op_map = {
 };
 
 static std::unordered_map<std::string, TokenType> keyword_map;
+
+void printPrompt() {
+  printf(">");
+  fflush(stdout);
+}
 
 Token::Token() : type(TOKEN_INVALID), number(0.0), letter(0) {
 }
