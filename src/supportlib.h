@@ -6,6 +6,4 @@
 
 void initSupportLib();
 
-void addFunctionDeclarationsInSupportLib(llvm::LLVMContext* context, llvm::Module* module);
-
 #endif  // TOY_SUPPORT_LIB_H_

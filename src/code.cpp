@@ -514,7 +514,7 @@ static llvm::Function* createTmpFunction(const std::string& function_name) {
   llvm::FunctionType* function_type =
       llvm::FunctionType::get(llvm::Type::getDoubleTy(*context), std::vector<llvm::Type*>(), false);
   llvm::Function* function = llvm::Function::Create(
-      function_type, llvm::GlobalValue::InternalLinkage, function_name, cur_module);
+      function_type, llvm::GlobalValue::ExternalWeakLinkage, function_name, cur_module);
   llvm::BasicBlock::Create(*context, "", function);
   return function;
 }
@@ -526,6 +526,18 @@ void prepareCodePipeline() {
   extern_variables.clear();
   global_scope.reset(new Scope(nullptr));
   cur_scope = global_scope.get();
+}
+
+static void addFunctionDeclarationsInSupportLib(llvm::LLVMContext* context, llvm::Module* module) {
+  llvm::IntegerType* char_type = llvm::IntegerType::get(*context, 8);
+  llvm::PointerType* char_ptype = llvm::PointerType::getUnqual(char_type);
+  llvm::Type* double_type = llvm::Type::getDoubleTy(*context);
+  std::vector<llvm::Type*> v(1, char_ptype);
+  llvm::FunctionType* print_function_type = llvm::FunctionType::get(double_type, v, false);
+  llvm::Function::Create(print_function_type, llvm::GlobalValue::ExternalLinkage, "print", module);
+  v[0] = double_type;
+  llvm::FunctionType* printd_function_type = llvm::FunctionType::get(double_type, v, false);
+  llvm::Function::Create(printd_function_type, llvm::GlobalValue::ExternalLinkage, "printd", module);
 }
 
 static std::unique_ptr<llvm::Module> codePipeline(const std::vector<ExprAST*>& exprs) {

@@ -1,9 +1,5 @@
 OUT_DIR = out
 
-TARGET := $(OUT_DIR)/toy
-
-all: $(TARGET)
-
 SRCS := \
 	src/code.cpp \
 	src/compilation.cpp \
@@ -22,9 +18,13 @@ UNITTEST_SRCS := \
 	unittest/gtest_main.cpp \
 	unittest/script_test.cpp \
 
+SUPPORTLIB_MAIN_SRCS := \
+	src/supportlib_main.cpp \
+
 OBJS := $(subst .cpp,.o,$(subst src/,$(OUT_DIR)/,$(SRCS)))
 UNITTEST_OBJS := $(subst .cpp,.o,$(subst unittest/,$(OUT_DIR)/,$(UNITTEST_SRCS))) \
 				 $(filter-out $(OUT_DIR)/main.o,$(OBJS))
+SUPPORTLIB_MAIN_OBJS := $(subst .cpp,.o,$(subst src/,$(OUT_DIR)/,$(SUPPORTLIB_MAIN_SRCS)))
 
 CC := g++
 
@@ -41,6 +41,12 @@ LDFLAGS := $(LLVM_LDFLAGS) -rdynamic
 UNITTEST_LDFLAGS := $(LDFLAGS) -pthread -L$(OUT_DIR) -lgtest
 
 DEPS := Makefile $(wildcard src/*.h)
+
+TARGET := $(OUT_DIR)/toy
+SUPPORTLIB_TARGET := $(SUPPORTLIB_MAIN_OBJS)
+
+all: $(TARGET) $(SUPPORTLIB_TARGET)
+
 
 $(OUT_DIR)/%.o : src/%.cpp $(DEPS)
 	$(CC) $(CXXFLAGS) -c -o $@ $<
