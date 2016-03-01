@@ -66,7 +66,7 @@ static bool readTestScript(const std::string& path, std::string* input, std::str
 }
 
 static bool executeScript(const std::string& script, std::string* output) {
-  global_option.interactive = false;
+  global_option.execute = true;
   std::istringstream iss(script);
   global_option.input_file = "string";
   global_option.in_stream = &iss;

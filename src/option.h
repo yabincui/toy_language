@@ -21,6 +21,12 @@ struct Option {
   bool execute;
   bool compile;
   std::string compile_output_file;
+  bool compile_assembly;
+  std::string compile_assembly_output_file;
+
+  Option();
+
+  std::string str() const;
 };
 
 extern Option global_option;

@@ -12,6 +12,7 @@ SRCS := \
 	src/logging.cpp \
 	src/main.cpp \
 	src/optimization.cpp \
+	src/option.cpp \
 	src/parse.cpp \
 	src/strings.cpp \
 	src/supportlib.cpp \

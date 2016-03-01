@@ -12,12 +12,9 @@
 
 #include "logging.h"
 #include "option.h"
+#include "strings.h"
 
-bool compileMain(llvm::Module* module) {
-  if (!global_option.compile) {
-    return true;
-  }
-
+bool compileMain(llvm::Module* module, bool is_assembly, const std::string& output_file) {
   llvm::InitializeAllTargets();
   llvm::InitializeAllTargetMCs();
   llvm::InitializeAllAsmPrinters();
@@ -44,12 +41,12 @@ bool compileMain(llvm::Module* module) {
   module->setDataLayout(machine->createDataLayout());
   llvm::SmallString<128> s;
   llvm::raw_svector_ostream os(s);
-  if (machine->addPassesToEmitFile(pass_manager, os, llvm::TargetMachine::CGFT_AssemblyFile)) {
+  llvm::TargetMachine::CodeGenFileType file_type =
+      is_assembly ? llvm::TargetMachine::CGFT_AssemblyFile : llvm::TargetMachine::CGFT_ObjectFile;
+  if (machine->addPassesToEmitFile(pass_manager, os, file_type)) {
     LOG(ERROR) << "addPassesToEmitFile failed";
     return false;
   }
   pass_manager.run(*module);
-  printf("compiled assemble code:\n");
-  printf("%s\n", s.c_str());
-  return true;
+  return writeStringToFile(output_file, s.str(), !is_assembly);
 }

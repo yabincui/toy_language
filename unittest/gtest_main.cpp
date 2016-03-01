@@ -11,21 +11,6 @@ std::string getExecDir() {
   return exec_dir;
 }
 
-Option global_option = {
-    "<stdin>",   // input_file
-    &std::cin,   // in_stream
-    "<stdout>",  // output_file
-    &std::cout,  // out_stream
-    true,        // interactive
-    false,       // dump_token
-    false,       // dump_ast
-    false,       // dump_code
-    INFO,        // log_level
-    true,        // execute
-    false,       // compile
-    "",          // compile_output_file
-};
-
 int main(int argc, char** argv) {
   testing::InitGoogleTest(&argc, argv);
   exec_dir = argv[0];

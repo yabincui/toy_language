@@ -20,6 +20,20 @@ bool readStringFromFile(const std::string& path, std::string* content) {
   }
   if (ferror(fp)) {
     LOG(ERROR) << "failed to read " << path << ": " << strerror(errno);
+    fclose(fp);
+    return false;
+  }
+  fclose(fp);
+  return true;
+}
+
+bool writeStringToFile(const std::string& path, const std::string& content, bool is_binary) {
+  std::string mode = is_binary ? "wb" : "w";
+  FILE* fp = fopen(path.c_str(), mode.c_str());
+  size_t ret = fwrite(content.c_str(), 1, content.size(), fp);
+  if (ret != content.size()) {
+    LOG(ERROR) << "failed to write " << path << ": " << strerror(errno);
+    fclose(fp);
     return false;
   }
   fclose(fp);

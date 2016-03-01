@@ -20,6 +20,7 @@ static void usage(const std::string& exec_name) {
   printf(
       "Usage:\n"
       "-c <file>       Compile the code into object file.\n"
+      "-s <file>       Compile the code into assembly file.\n"
       "--dump dumpType1, dumpType2,...\n"
       "                Dump specified contents. Possible type list:\n"
       "                  token:  Dump all tokens received.\n"
@@ -38,21 +39,6 @@ static void usage(const std::string& exec_name) {
       "Default Option: --dump code\n\n");
 }
 
-Option global_option = {
-    "<stdin>",   // input_file
-    &std::cin,   // in_stream
-    "<stdout>",  // output_file
-    &std::cout,  // out_stream
-    true,        // interactive
-    false,       // dump_token
-    false,       // dump_ast
-    false,       // dump_code
-    INFO,        // log_level
-    true,        // execute
-    false,       // compile
-    "",          // compile_output_file
-};
-
 bool nextArgumentOrError(const std::vector<std::string>& Args, size_t& i) {
   if (i == Args.size() - 1) {
     LOG(ERROR) << "No argument following " << Args[i] << " option.";
@@ -70,6 +56,8 @@ static bool parseOptions(int argc, char** argv) {
   for (int i = 0; i < argc; ++i) {
     args.push_back(argv[i]);
   }
+  global_option.interactive = true;
+  global_option.execute = true;
   for (size_t i = 1; i < args.size(); ++i) {
     if (args[i] == "-c") {
       if (!nextArgumentOrError(args, i)) {
@@ -139,6 +127,12 @@ static bool parseOptions(int argc, char** argv) {
       }
       global_option.output_file = args[i];
       global_option.out_stream = &ofs;
+    } else if (args[i] == "-s") {
+      if (!nextArgumentOrError(args, i)) {
+        return false;
+      }
+      global_option.compile_assembly = true;
+      global_option.compile_assembly_output_file = args[i];
     } else {
       LOG(ERROR) << "Unknown Option: " << args[i];
       return false;
@@ -149,17 +143,7 @@ static bool parseOptions(int argc, char** argv) {
     return false;
   }
 
-  LOG(DEBUG) << "\n"
-             << "GlobalOption: input_file = " << global_option.input_file << "\n"
-             << "              output_file = " << global_option.output_file << "\n"
-             << "              interactive = " << global_option.interactive << "\n"
-             << "              dump_token = " << global_option.dump_token << "\n"
-             << "              dump_ast = " << global_option.dump_ast << "\n"
-             << "              dump_code = " << global_option.dump_code << "\n"
-             << "              log_level = " << global_option.log_level << "\n"
-             << "              execute = " << global_option.execute << "\n"
-             << "              compile = " << global_option.compile << "\n"
-             << "              compile_output_file = " << global_option.compile_output_file << "\n";
+  LOG(DEBUG) << global_option.str();
   return true;
 }
 
@@ -199,9 +183,13 @@ static void nonInteractiveMain() {
   std::unique_ptr<llvm::Module> module = codeMain(exprs);
   LOG(DEBUG) << "optMain()";
   optMain(module.get());
+  if (global_option.compile_assembly) {
+    bool ret = compileMain(module.get(), true, global_option.compile_assembly_output_file);
+    LOG(DEBUG) << "compileMain() assembly file -> " << ret;
+  }
   if (global_option.compile) {
-    bool ret = compileMain(module.get());
-    LOG(DEBUG) << "compileMain() -> " << ret;
+    bool ret = compileMain(module.get(), false, global_option.compile_output_file);
+    LOG(DEBUG) << "compileMain() object file -> " << ret;
   }
   LOG(DEBUG) << "executionMain()";
   executionMain(module.release());
