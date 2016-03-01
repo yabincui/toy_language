@@ -21,6 +21,7 @@
 #include <llvm/Support/raw_ostream.h>
 
 #include "lexer.h"
+#include "llvm_version.h"
 #include "logging.h"
 #include "optimization.h"
 #include "option.h"
@@ -125,8 +126,11 @@ llvm::DITypeRefArray DebugInfo::getDoubleArrayType(size_t count) {
 
 llvm::DISubroutineType* DebugInfo::createSubroutineType(size_t arg_count) {
   llvm::DITypeRefArray array = getDoubleArrayType(arg_count + 1);
-  // return di_builder->createSubroutineType(di_file, array, 0);
+#if LLVM_NEW
   return di_builder->createSubroutineType(array, 0);
+#else
+  return di_builder->createSubroutineType(di_file, array, 0);
+#endif
 }
 
 llvm::DISubprogram* DebugInfo::createFunction(const std::string& name, llvm::Function* function,
@@ -148,13 +152,15 @@ llvm::DILocalVariable* DebugInfo::createLocalVariable(const std::string& name, s
                                                       size_t arg_index, llvm::Value* storage) {
   LOG(DEBUG) << "DebugInfo::createLocalVariable, Name " << name
              << ", DIScopeStack.size() = " << di_scope_stack.size();
-  // unsigned tag =
-  //    (arg_index != 0 ? llvm::dwarf::DW_TAG_arg_variable : llvm::dwarf::DW_TAG_auto_variable);
-  unsigned tag = llvm::dwarf::DW_TAG_variable;
-  // llvm::DILocalVariable* di_local_variable = di_builder->createLocalVariable(
-  //    tag, di_scope_stack.back(), name, di_file, line, di_double_type, false, 0, arg_index);
+#if LLVM_NEW
   llvm::DILocalVariable* di_local_variable =
       di_builder->createAutoVariable(di_scope_stack.back(), name, di_file, line, di_double_type);
+#else
+  unsigned tag =
+      (arg_index != 0 ? llvm::dwarf::DW_TAG_arg_variable : llvm::dwarf::DW_TAG_auto_variable);
+  llvm::DILocalVariable* di_local_variable = di_builder->createLocalVariable(
+      tag, di_scope_stack.back(), name, di_file, line, di_double_type, false, 0, arg_index);
+#endif
   di_builder->insertDeclare(storage, di_local_variable, di_builder->createExpression(),
                             llvm::DebugLoc::get(line, 0, di_scope_stack.back()),
                             cur_builder->GetInsertBlock());

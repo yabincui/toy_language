@@ -10,6 +10,7 @@
 
 #include <memory>
 
+#include "llvm_version.h"
 #include "logging.h"
 #include "option.h"
 #include "strings.h"
@@ -38,7 +39,11 @@ bool compileMain(llvm::Module* module, bool is_assembly, const std::string& outp
     return false;
   }
   llvm::legacy::PassManager pass_manager;
+#if LLVM_NEW
   module->setDataLayout(machine->createDataLayout());
+#else
+  module->setDataLayout(*machine->getDataLayout());
+#endif
   llvm::SmallString<128> s;
   llvm::raw_svector_ostream os(s);
   llvm::TargetMachine::CodeGenFileType file_type =
