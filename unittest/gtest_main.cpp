@@ -22,6 +22,7 @@ Option global_option = {
     false,       // dump_code
     INFO,        // log_level
     true,        // execute
+    false,       // compile
     "",          // compile_output_file
 };
 

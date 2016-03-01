@@ -1,8 +1,12 @@
 #include "option.h"
 
+#include <errno.h>
+#include <string.h>
+
 #include <fstream>
 
 #include "code.h"
+#include "compilation.h"
 #include "execution.h"
 #include "lexer.h"
 #include "logging.h"
@@ -45,6 +49,7 @@ Option global_option = {
     false,       // dump_code
     INFO,        // log_level
     true,        // execute
+    false,       // compile
     "",          // compile_output_file
 };
 
@@ -70,6 +75,7 @@ static bool parseOptions(int argc, char** argv) {
       if (!nextArgumentOrError(args, i)) {
         return false;
       }
+      global_option.compile = true;
       global_option.compile_output_file = args[i];
     } else if (args[i] == "--dump") {
       if (!nextArgumentOrError(args, i)) {
@@ -138,7 +144,7 @@ static bool parseOptions(int argc, char** argv) {
       return false;
     }
   }
-  if (!global_option.compile_output_file.empty() && global_option.interactive) {
+  if (global_option.compile && global_option.interactive) {
     LOG(ERROR) << "Toy can't compile while being interactive\n";
     return false;
   }
@@ -152,6 +158,7 @@ static bool parseOptions(int argc, char** argv) {
              << "              dump_code = " << global_option.dump_code << "\n"
              << "              log_level = " << global_option.log_level << "\n"
              << "              execute = " << global_option.execute << "\n"
+             << "              compile = " << global_option.compile << "\n"
              << "              compile_output_file = " << global_option.compile_output_file << "\n";
   return true;
 }
@@ -192,6 +199,10 @@ static void nonInteractiveMain() {
   std::unique_ptr<llvm::Module> module = codeMain(exprs);
   LOG(DEBUG) << "optMain()";
   optMain(module.get());
+  if (global_option.compile) {
+    bool ret = compileMain(module.get());
+    LOG(DEBUG) << "compileMain() -> " << ret;
+  }
   LOG(DEBUG) << "executionMain()";
   executionMain(module.release());
 }

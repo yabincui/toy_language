@@ -116,7 +116,7 @@ struct DebugInfo {
   void popDIScope();
 };
 
-DebugInfo global_debug_info;
+// DebugInfo global_debug_info;
 
 llvm::DITypeRefArray DebugInfo::getDoubleArrayType(size_t count) {
   std::vector<llvm::Metadata*> elements(count, di_double_type);
@@ -180,12 +180,12 @@ void DebugInfo::popDIScope() {
 }
 
 llvm::Value* NumberExprAST::codegen() {
-  global_debug_info.emitLocation(this);
+  // global_debug_info.emitLocation(this);
   return llvm::ConstantFP::get(*context, llvm::APFloat(val_));
 }
 
 llvm::Value* StringLiteralExprAST::codegen() {
-  global_debug_info.emitLocation(this);
+  // global_debug_info.emitLocation(this);
   std::vector<llvm::Constant*> v;
   const char* p = val_.c_str();
   llvm::IntegerType* char_type = llvm::IntegerType::get(*context, 8);
@@ -201,11 +201,10 @@ llvm::Value* StringLiteralExprAST::codegen() {
   llvm::Type* int_type = llvm::Type::getInt32Ty(*context);
   llvm::Constant* zero = llvm::ConstantInt::get(int_type, 0);
   std::vector<llvm::Value*> v2(1, zero);
-  return cur_builder->CreateInBoundsGEP(variable, v2);
+  llvm::Value* array_ptr = cur_builder->CreateInBoundsGEP(variable, v2);
 
-  // llvm::PointerType* char_ptype = llvm::Type::getInt8PtrTy(*context);
-
-  // return array;
+  llvm::Type* char_ptype = llvm::Type::getInt8PtrTy(*context);
+  return cur_builder->CreatePointerCast(array_ptr, char_ptype);
 }
 
 static std::string getTmpName() {
@@ -237,11 +236,11 @@ static llvm::Value* createVariable(const std::string& name, size_t line, size_t 
     variable = new llvm::GlobalVariable(*cur_module, llvm::Type::getDoubleTy(*context), false,
                                         llvm::GlobalVariable::InternalLinkage, constant, name);
     extern_variables.push_back(name);
-    global_debug_info.createGlobalVariable(name, line, constant);
+    // global_debug_info.createGlobalVariable(name, line, constant);
     LOG(DEBUG) << "create global variable " << name;
   } else {
     variable = cur_builder->CreateAlloca(llvm::Type::getDoubleTy(*context), nullptr, name);
-    global_debug_info.createLocalVariable(name, line, arg_index, variable);
+    // global_debug_info.createLocalVariable(name, line, arg_index, variable);
     LOG(DEBUG) << "create local variable " << name;
   }
   cur_scope->insertVariable(name, variable);
@@ -249,7 +248,7 @@ static llvm::Value* createVariable(const std::string& name, size_t line, size_t 
 }
 
 llvm::Value* VariableExprAST::codegen() {
-  global_debug_info.emitLocation(this);
+  // global_debug_info.emitLocation(this);
   llvm::Value* variable = getVariable(name_);
   if (variable == nullptr) {
     LOG(FATAL) << "Using unassigned variable: " << name_ << ", loc " << getLoc().toString();
@@ -276,7 +275,7 @@ llvm::Value* UnaryExprAST::codegen() {
 }
 
 llvm::Value* BinaryExprAST::codegen() {
-  global_debug_info.emitLocation(this);
+  // global_debug_info.emitLocation(this);
   llvm::Value* left_value = left_->codegen();
   CHECK(left_value != nullptr);
   llvm::Value* right_value = right_->codegen();
@@ -319,7 +318,7 @@ llvm::Value* BinaryExprAST::codegen() {
 }
 
 llvm::Value* AssignmentExprAST::codegen() {
-  global_debug_info.emitLocation(this);
+  // global_debug_info.emitLocation(this);
   llvm::Value* variable = getVariable(var_name_);
   if (variable == nullptr) {
     variable = createVariable(var_name_, getLoc().line, 0);
@@ -331,7 +330,7 @@ llvm::Value* AssignmentExprAST::codegen() {
 }
 
 llvm::Function* PrototypeAST::codegen() {
-  global_debug_info.emitLocation(this);
+  // global_debug_info.emitLocation(this);
   std::vector<llvm::Type*> doubles(args_.size(), llvm::Type::getDoubleTy(*context));
   llvm::FunctionType* function_type =
       llvm::FunctionType::get(llvm::Type::getDoubleTy(*context), doubles, false);
@@ -345,23 +344,24 @@ llvm::Function* PrototypeAST::codegen() {
 }
 
 llvm::DISubprogram* PrototypeAST::genDebugInfo(llvm::Function* function) const {
-  return global_debug_info.createFunction(name_, function, args_.size(), getLoc().line,
-                                          getLoc().line);
+  // return global_debug_info.createFunction(name_, function, args_.size(), getLoc().line,
+  //                                        getLoc().line);
+  return nullptr;
 }
 
 llvm::Function* FunctionAST::codegen() {
   llvm::Function* function = prototype_->codegen();
   CHECK(function != nullptr);
   CurrFunctionGuard guard(function);
-  llvm::DISubprogram* di_subprogram = prototype_->genDebugInfo(function);
-  global_debug_info.pushDIScope(di_subprogram);
+  // llvm::DISubprogram* di_subprogram = prototype_->genDebugInfo(function);
+  // global_debug_info.pushDIScope(di_subprogram);
   std::string body_label = stringPrintf("%s.entry", function->getName().data());
   llvm::BasicBlock* basic_block = llvm::BasicBlock::Create(*context, body_label, function);
   llvm::IRBuilder<>::InsertPointGuard InsertPointGuard(*cur_builder);
   cur_builder->SetInsertPoint(basic_block);
 
   // Don't allow to break on argument initialization.
-  global_debug_info.emitLocation(nullptr);
+  // global_debug_info.emitLocation(nullptr);
 
   auto arg_it = function->arg_begin();
   for (size_t i = 0; i < function->arg_size(); ++i, ++arg_it) {
@@ -369,17 +369,17 @@ llvm::Function* FunctionAST::codegen() {
     cur_builder->CreateStore(&*arg_it, variable);
   }
 
-  global_debug_info.emitLocation(nullptr);
+  // global_debug_info.emitLocation(nullptr);
 
   llvm::Value* ret_val = body_->codegen();
   CHECK(ret_val != nullptr);
   cur_builder->CreateRet(ret_val);
-  global_debug_info.popDIScope();
+  // global_debug_info.popDIScope();
   return function;
 }
 
 llvm::Value* CallExprAST::codegen() {
-  global_debug_info.emitLocation(this);
+  // global_debug_info.emitLocation(this);
   llvm::Function* function = cur_module->getFunction(callee_);
   CHECK(function != nullptr);
   CHECK_EQ(function->arg_size(), args_.size());
@@ -392,7 +392,7 @@ llvm::Value* CallExprAST::codegen() {
 }
 
 llvm::Value* IfExprAST::codegen() {
-  global_debug_info.emitLocation(this);
+  // global_debug_info.emitLocation(this);
   std::vector<llvm::BasicBlock*> cond_begin_blocks;
   std::vector<llvm::BasicBlock*> cond_end_blocks;
   std::vector<llvm::BasicBlock*> then_begin_blocks;
@@ -460,7 +460,7 @@ llvm::Value* IfExprAST::codegen() {
 }
 
 llvm::Value* BlockExprAST::codegen() {
-  global_debug_info.emitLocation(this);
+  // global_debug_info.emitLocation(this);
   llvm::Value* last_value = llvm::ConstantFP::get(*context, llvm::APFloat(0.0));
   for (auto& expr : exprs_) {
     last_value = expr->codegen();
@@ -469,7 +469,7 @@ llvm::Value* BlockExprAST::codegen() {
 }
 
 llvm::Value* ForExprAST::codegen() {
-  global_debug_info.emitLocation(this);
+  // global_debug_info.emitLocation(this);
   // Init block.
   ScopeGuard scoped_guard_init;
   init_expr_->codegen();
@@ -533,18 +533,18 @@ static std::unique_ptr<llvm::Module> codePipeline(const std::vector<ExprAST*>& e
   cur_module = module.get();
   global_function = createTmpFunction(toy_main_function_name);
   cur_builder->SetInsertPoint(&global_function->back());
-  di_builder.reset(new llvm::DIBuilder(*cur_module));
-  global_debug_info.di_compile_unit =
-      di_builder->createCompileUnit(llvm::dwarf::DW_LANG_C, global_option.input_file, ".", "toy",
-                                    false, "", 0, "", llvm::DIBuilder::FullDebug, 0, true);
-  global_debug_info.di_file =
-      di_builder->createFile(global_debug_info.di_compile_unit->getFilename(),
-                             global_debug_info.di_compile_unit->getDirectory());
-  global_debug_info.di_double_type =
-      di_builder->createBasicType("double", 64, 64, llvm::dwarf::DW_ATE_float);
-  llvm::DISubprogram* global_di_sub_program =
-      global_debug_info.createFunction(toy_main_function_name, global_function, 0, 1, 1);
-  global_debug_info.pushDIScope(global_di_sub_program);
+  // di_builder.reset(new llvm::DIBuilder(*cur_module));
+  // global_debug_info.di_compile_unit =
+  //    di_builder->createCompileUnit(llvm::dwarf::DW_LANG_C, global_option.input_file, ".", "toy",
+  //                                  false, "", 0, "", llvm::DIBuilder::FullDebug, 0, true);
+  // global_debug_info.di_file =
+  //   di_builder->createFile(global_debug_info.di_compile_unit->getFilename(),
+  //                           global_debug_info.di_compile_unit->getDirectory());
+  // global_debug_info.di_double_type =
+  //    di_builder->createBasicType("double", 64, 64, llvm::dwarf::DW_ATE_float);
+  // llvm::DISubprogram* global_di_sub_program =
+  //    global_debug_info.createFunction(toy_main_function_name, global_function, 0, 1, 1);
+  // global_debug_info.pushDIScope(global_di_sub_program);
 
   cur_function = global_function;
   llvm::Value* ret_value = llvm::ConstantFP::get(*context, llvm::APFloat(0.0));
@@ -592,8 +592,8 @@ static std::unique_ptr<llvm::Module> codePipeline(const std::vector<ExprAST*>& e
     }
   }
   cur_builder->CreateRet(ret_value);
-  global_debug_info.popDIScope();
-  di_builder->finalize();  // ?
+  // global_debug_info.popDIScope();
+  // di_builder->finalize();  // ?
   if (global_option.dump_code) {
     cur_module->dump();
   }
@@ -602,9 +602,10 @@ static std::unique_ptr<llvm::Module> codePipeline(const std::vector<ExprAST*>& e
   cur_module = nullptr;
   std::string err;
   llvm::raw_string_ostream os(err);
-  if (!llvm::verifyModule(*module, &os)) {
-    LOG(ERROR) << "verify module failed: " << err;
-    return nullptr;
+  bool broken = llvm::verifyModule(*module, &os);
+  if (broken) {
+    LOG(ERROR) << "verify module failed: " << os.str();
+    // return nullptr;
   }
   return module;
 }

@@ -6,6 +6,7 @@ all: $(TARGET)
 
 SRCS := \
 	src/code.cpp \
+	src/compilation.cpp \
 	src/execution.cpp \
 	src/lexer.cpp \
 	src/logging.cpp \
@@ -24,11 +25,11 @@ OBJS := $(subst .cpp,.o,$(subst src/,$(OUT_DIR)/,$(SRCS)))
 UNITTEST_OBJS := $(subst .cpp,.o,$(subst unittest/,$(OUT_DIR)/,$(UNITTEST_SRCS))) \
 				 $(filter-out $(OUT_DIR)/main.o,$(OBJS))
 
-CC := clang++
+CC := g++
 
 LLVM_CXX_FLAGS := $(shell llvm-config --cxxflags)
 
-CXXFLAGS := -std=c++11 $(LLVM_CXX_FLAGS) -fno-rtti -Wno-dangling-else -g
+CXXFLAGS := -std=c++11 $(LLVM_CXX_FLAGS) -fno-rtti -Wno-dangling-else -g -Wno-parentheses
 
 UNITTEST_CXXFLAGS := $(CXXFLAGS) -I unittest/gtest_src/include -I src/
 

@@ -19,6 +19,7 @@ struct Option {
   bool dump_code;
   LogSeverity log_level;
   bool execute;
+  bool compile;
   std::string compile_output_file;
 };
 
