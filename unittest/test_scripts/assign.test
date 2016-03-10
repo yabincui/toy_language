@@ -1,4 +1,4 @@
->>>Input
+//>>>Input Start
 a = 2;
 b = a + 4;
 c = 2 * a + b;
@@ -9,7 +9,12 @@ print("\n");
 printd(c);
 print("\n");
 
->>>Output
+//>>>Input End
+
+/*
+>>>Output Start
 2
 6
 10
+>>>Output End
+*/

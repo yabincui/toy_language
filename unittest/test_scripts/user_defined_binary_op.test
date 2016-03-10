@@ -1,4 +1,4 @@
->>>Input
+//>>>Input Start
 
 def binary!(a, b) {
   result = 1;
@@ -13,6 +13,11 @@ print("\n");
 printd(3 ! 3);
 print("\n");
 
->>>Output
+//>>>Input End
+
+/*
+>>>Output Start
 9
 27
+>>>Output End
+*/

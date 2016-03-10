@@ -1,0 +1,23 @@
+//>>>Input Start
+
+print("hello, world!\n");
+
+/* whatever
+   I want to say!
+*/
+
+print("second piece!\n");
+
+// another comment
+
+print("nothing\n");
+
+//>>>Input End
+
+/*
+>>>Output Start
+hello, world!
+second piece!
+nothing
+>>>Output End
+*/

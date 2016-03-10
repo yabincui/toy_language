@@ -1,6 +1,10 @@
->>>Input
+//>>>Input Start
 print("hello world!\n");
 
+//>>>Input End
 
->>>Output
+/*
+>>>Output Start
 hello world!
+>>>Output End
+*/

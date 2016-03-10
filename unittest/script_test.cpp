@@ -48,22 +48,32 @@ static bool readTestScript(const std::string &path, std::string *input,
   char buf[1024];
   bool in_input = false;
   bool in_output = false;
-  std::string input_mark = ">>>Input";
-  std::string output_mark = ">>>Output";
+  std::string input_start_mark = ">>>Input Start";
+  std::string input_end_mark = ">>>Input End";
+  std::string output_start_mark = ">>>Output Start";
+  std::string output_end_mark = ">>>Output End";
   while (fgets(buf, sizeof(buf), fp.get()) != nullptr) {
-    if (in_output) {
-      expect_output->append(buf);
+    if (strstr(buf, input_start_mark.c_str()) != nullptr) {
+      in_input = true;
+    } else if (strstr(buf, input_end_mark.c_str()) != nullptr) {
+      in_input = false;
+    } else if (strstr(buf, output_start_mark.c_str()) != nullptr) {
+      in_output = true;
+    } else if (strstr(buf, output_end_mark.c_str()) != nullptr) {
+      in_output = false;
     } else if (in_input) {
-      if (strncmp(buf, output_mark.c_str(), output_mark.size()) == 0) {
-        in_output = true;
-      } else {
-        input->append(buf);
-      }
-    } else {
-      if (strncmp(buf, input_mark.c_str(), input_mark.size()) == 0) {
-        in_input = true;
-      }
+      input->append(buf);
+    } else if (in_output) {
+      expect_output->append(buf);
     }
+  }
+  if (input->empty()) {
+    LOG(ERROR) << "no input in file " << path;
+    return false;
+  }
+  if (expect_output->empty()) {
+    LOG(ERROR) << "no expected output in file " << path;
+    return false;
   }
   return true;
 }

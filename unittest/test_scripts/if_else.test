@@ -1,4 +1,4 @@
->>>Input
+//>>>Input Start
 
 a = 4;
 
@@ -30,9 +30,13 @@ if (a < 0) {
   print("0 <= a <= 4\n");
 }
 
+//>>>Input End
 
->>>Output
+/*
+>>>Output Start
 a > 2
 a <= 4
 a == 2
 a > 2
+>>>Output End
+*/

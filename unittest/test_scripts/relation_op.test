@@ -1,4 +1,4 @@
->>>Input
+//>>>Input Start
 printd(1 < 2);
 print("\n");
 printd(1 < 0);
@@ -14,8 +14,10 @@ print("\n");
 printd(1 >= 5);
 print("\n");
 
+//>>>Input End
 
->>>Output
+/*
+>>>Output Start
 1
 0
 1
@@ -23,3 +25,5 @@ print("\n");
 1
 1
 0
+>>>Output End
+*/

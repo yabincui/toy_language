@@ -167,6 +167,8 @@ static void consumeComment() {
         return;
       }
       ch = next;
+    } else {
+      ch = getChar();
     }
   }
   CHECK_NE(ch.ch, EOF);
@@ -236,9 +238,8 @@ static Token getStringLiteralToken(SourceLocation loc) {
 }
 
 static Token produceToken() {
-  CharWithLoc ch = getChar();
-
 Repeat:
+  CharWithLoc ch = getChar();
   while (isspace(ch.ch)) {
     if (ch.ch == '\n') {
       if (global_option.interactive && (exprs_in_curline > 0 || tokens_in_curline == 0)) {
@@ -249,17 +250,16 @@ Repeat:
     }
     ch = getChar();
   }
-  if (ch.ch == '#') {
-    while (ch.ch != '\n' && ch.ch != EOF) {
-      ch = getChar();
-    }
-    goto Repeat;
-  }
   if (ch.ch == '/') {
     CharWithLoc next = getChar();
     if (next.ch == '*') {
       consumeComment();
-      ch = getChar();
+      goto Repeat;
+    } else if (next.ch == '/') {
+      do {
+        ch = getChar();
+      } while (ch.ch != '\n' && ch.ch != EOF);
+      goto Repeat;
     } else {
       ungetChar(next);
     }

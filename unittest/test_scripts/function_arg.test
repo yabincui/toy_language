@@ -1,4 +1,4 @@
->>>Input
+//>>>Input Start
 
 a = 42;
 
@@ -9,6 +9,10 @@ def f(a) {
 
 f(32);
 
+//>>>Input End
 
->>>Output
+/*
+>>>Output Start
 32
+>>>Output End
+*/

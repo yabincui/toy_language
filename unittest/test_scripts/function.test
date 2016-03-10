@@ -1,9 +1,14 @@
->>>Input
+>>>Input Start
 def f(a, b, c) {
   a + b * c;
 }
 printd(f(2, 3, 4));
 print("\n");
 
->>>Output
+>>>Input End
+
+/*
+>>>Output Start
 14
+>>>Output End
+*/

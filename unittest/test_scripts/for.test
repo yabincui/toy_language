@@ -1,13 +1,17 @@
->>>Input
+//>>>Input Start
 for (a = 1; a <= 4; a = a + 1) {
   print("a = ");
   printd(a);
   print("\n");
 }
 
+//>>>Input End
 
->>>Output
+/*
+>>>Output Start
 a = 1
 a = 2
 a = 3
 a = 4
+>>>Output End
+*/

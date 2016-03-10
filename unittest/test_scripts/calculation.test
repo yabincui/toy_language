@@ -1,4 +1,4 @@
->>>Input
+//>>>Input Start
 printd(2+3.4);
 print("\n");
 printd(2-3.4);
@@ -12,10 +12,15 @@ print("\n");
 printd((2+3)*4);
 print("\n");
 
->>>Output
+//>>>Input End
+
+/*
+>>>Output Start
 5.4
 -1.4
 6.8
 3
 14
 20
+>>>Output End
+*/

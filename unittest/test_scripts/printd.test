@@ -1,4 +1,4 @@
->>>Input
+//>>>Input Start
 printd(42.3);
 print("\n");
 printd(0.0);
@@ -6,7 +6,12 @@ print("\n");
 printd(-42.3);
 print("\n");
 
->>>Output
+//>>>Input End
+
+/*
+>>>Output Start
 42.3
 0
 -42.3
+>>>Output End
+*/
