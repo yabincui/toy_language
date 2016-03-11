@@ -23,6 +23,7 @@ struct Option {
   std::string compile_output_file;
   bool compile_assembly;
   std::string compile_assembly_output_file;
+  bool debug;
 
   Option();
 

@@ -32,6 +32,9 @@ struct SourceLocation {
   size_t line;
   size_t column;
 
+  SourceLocation() : line(1), column(1) {
+  }
+
   std::string toString() const {
     return std::to_string(line) + "(" + std::to_string(column) + ")";
   }

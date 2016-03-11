@@ -1,11 +1,11 @@
->>>Input Start
+//>>>Input Start
 def f(a, b, c) {
   a + b * c;
 }
 printd(f(2, 3, 4));
 print("\n");
 
->>>Input End
+//>>>Input End
 
 /*
 >>>Output Start

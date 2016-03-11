@@ -3,6 +3,7 @@ OUT_DIR = out
 SRCS := \
 	src/code.cpp \
 	src/compilation.cpp \
+	src/debug_info.cpp \
 	src/execution.cpp \
 	src/lexer.cpp \
 	src/logging.cpp \

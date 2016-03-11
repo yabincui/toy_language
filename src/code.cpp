@@ -7,7 +7,6 @@
 #include <llvm/IR/BasicBlock.h>
 #include <llvm/IR/Constants.h>
 #include <llvm/IR/DerivedTypes.h>
-#include <llvm/IR/DIBuilder.h>
 #include <llvm/IR/InstrTypes.h>
 #include <llvm/IR/Instruction.h>
 #include <llvm/IR/Instructions.h>
@@ -20,6 +19,7 @@
 #include <llvm/Support/Dwarf.h>
 #include <llvm/Support/raw_ostream.h>
 
+#include "debug_info.h"
 #include "lexer.h"
 #include "llvm_version.h"
 #include "logging.h"
@@ -34,9 +34,9 @@ static llvm::Module* cur_module;
 static llvm::Function* global_function;
 static llvm::Function* cur_function;
 static std::unique_ptr<llvm::IRBuilder<>> cur_builder;
-static std::unique_ptr<llvm::DIBuilder> di_builder;
 static std::vector<PrototypeAST*> extern_functions;
 static std::vector<std::string> extern_variables;
+static std::unique_ptr<DebugInfoHelper> debug_info_helper;
 
 class Scope {
  public:
@@ -83,13 +83,13 @@ class ScopeGuard {
   Scope cur_scope_;
 };
 
-class CurrFunctionGuard {
+class CurFunctionGuard {
  public:
-  CurrFunctionGuard(llvm::Function* function) : saved_function_(cur_function) {
+  CurFunctionGuard(llvm::Function* function) : saved_function_(cur_function) {
     cur_function = function;
   }
 
-  ~CurrFunctionGuard() {
+  ~CurFunctionGuard() {
     cur_function = saved_function_;
   }
 
@@ -98,100 +98,13 @@ class CurrFunctionGuard {
   ScopeGuard scope_guard_;
 };
 
-struct DebugInfo {
-  llvm::DICompileUnit* di_compile_unit;
-  llvm::DIFile* di_file;
-  llvm::DIBasicType* di_double_type;
-  std::vector<llvm::DIScope*> di_scope_stack;
-
-  llvm::DITypeRefArray getDoubleArrayType(size_t count);
-  llvm::DISubroutineType* createSubroutineType(size_t arg_count);
-  llvm::DISubprogram* createFunction(const std::string& name, llvm::Function* function,
-                                     size_t arg_count, size_t line, size_t scope_line);
-  llvm::DIGlobalVariable* createGlobalVariable(const std::string& Name, size_t Line,
-                                               llvm::Constant* Value);
-  llvm::DILocalVariable* createLocalVariable(const std::string& Name, size_t Line, size_t ArgIndex,
-                                             llvm::Value* Storage);
-  void emitLocation(ExprAST* expr);
-  void pushDIScope(llvm::DIScope* di_scope);
-  void popDIScope();
-};
-
-// DebugInfo global_debug_info;
-
-llvm::DITypeRefArray DebugInfo::getDoubleArrayType(size_t count) {
-  std::vector<llvm::Metadata*> elements(count, di_double_type);
-  return di_builder->getOrCreateTypeArray(elements);
-}
-
-llvm::DISubroutineType* DebugInfo::createSubroutineType(size_t arg_count) {
-  llvm::DITypeRefArray array = getDoubleArrayType(arg_count + 1);
-#if LLVM_NEW
-  return di_builder->createSubroutineType(array, 0);
-#else
-  return di_builder->createSubroutineType(di_file, array, 0);
-#endif
-}
-
-llvm::DISubprogram* DebugInfo::createFunction(const std::string& name, llvm::Function* function,
-                                              size_t arg_count, size_t line, size_t scope_line) {
-  llvm::DISubroutineType* subroutine_type = createSubroutineType(arg_count);
-  return di_builder->createFunction(di_file, name, "", di_file, line, subroutine_type, true, true,
-                                    scope_line, 0, false, function);
-}
-
-llvm::DIGlobalVariable* DebugInfo::createGlobalVariable(const std::string& name, size_t line,
-                                                        llvm::Constant* constant) {
-  llvm::DIGlobalVariable* di_global_variable = di_builder->createGlobalVariable(
-      di_file, name, "", di_file, line, di_double_type, true, constant);
-  return di_global_variable;
-}
-
-// ArgIndex = 0 when it is not an argument.
-llvm::DILocalVariable* DebugInfo::createLocalVariable(const std::string& name, size_t line,
-                                                      size_t arg_index, llvm::Value* storage) {
-  LOG(DEBUG) << "DebugInfo::createLocalVariable, Name " << name
-             << ", DIScopeStack.size() = " << di_scope_stack.size();
-#if LLVM_NEW
-  llvm::DILocalVariable* di_local_variable =
-      di_builder->createAutoVariable(di_scope_stack.back(), name, di_file, line, di_double_type);
-#else
-  unsigned tag =
-      (arg_index != 0 ? llvm::dwarf::DW_TAG_arg_variable : llvm::dwarf::DW_TAG_auto_variable);
-  llvm::DILocalVariable* di_local_variable = di_builder->createLocalVariable(
-      tag, di_scope_stack.back(), name, di_file, line, di_double_type, false, 0, arg_index);
-#endif
-  di_builder->insertDeclare(storage, di_local_variable, di_builder->createExpression(),
-                            llvm::DebugLoc::get(line, 0, di_scope_stack.back()),
-                            cur_builder->GetInsertBlock());
-  return di_local_variable;
-}
-
-void DebugInfo::emitLocation(ExprAST* expr) {
-  if (expr == nullptr) {
-    cur_builder->SetCurrentDebugLocation(llvm::DebugLoc());
-  } else {
-    cur_builder->SetCurrentDebugLocation(
-        llvm::DebugLoc::get(expr->getLoc().line, expr->getLoc().column, di_scope_stack.back()));
-  }
-}
-
-void DebugInfo::pushDIScope(llvm::DIScope* di_scope) {
-  di_scope_stack.push_back(di_scope);
-}
-
-void DebugInfo::popDIScope() {
-  CHECK(!di_scope_stack.empty());
-  di_scope_stack.pop_back();
-}
-
 llvm::Value* NumberExprAST::codegen() {
-  // global_debug_info.emitLocation(this);
+  debug_info_helper->emitLocation(getLoc());
   return llvm::ConstantFP::get(*context, llvm::APFloat(val_));
 }
 
 llvm::Value* StringLiteralExprAST::codegen() {
-  // global_debug_info.emitLocation(this);
+  debug_info_helper->emitLocation(getLoc());
   std::vector<llvm::Constant*> v;
   const char* p = val_.c_str();
   llvm::IntegerType* char_type = llvm::IntegerType::get(*context, 8);
@@ -234,19 +147,23 @@ static llvm::Value* getVariable(const std::string& name) {
 }
 
 // ArgIndex = 0 when it is not an argument.
-static llvm::Value* createVariable(const std::string& name, size_t line, size_t arg_index) {
+static llvm::Value* createVariable(const std::string& name, SourceLocation loc, size_t arg_index) {
   LOG(DEBUG) << "createVariable, Name " << name;
   llvm::Value* variable;
   if (cur_scope == global_scope.get()) {
     llvm::Constant* constant = llvm::ConstantFP::get(*context, llvm::APFloat(0.0));
-    variable = new llvm::GlobalVariable(*cur_module, llvm::Type::getDoubleTy(*context), false,
-                                        llvm::GlobalVariable::InternalLinkage, constant, name);
+    llvm::GlobalVariable* global_variable =
+        new llvm::GlobalVariable(*cur_module, llvm::Type::getDoubleTy(*context), false,
+                                 llvm::GlobalVariable::ExternalLinkage, constant, name);
+    debug_info_helper->createGlobalVariable(global_variable, loc);
+    variable = global_variable;
     extern_variables.push_back(name);
-    // global_debug_info.createGlobalVariable(name, line, constant);
     LOG(DEBUG) << "create global variable " << name;
   } else {
-    variable = cur_builder->CreateAlloca(llvm::Type::getDoubleTy(*context), nullptr, name);
-    // global_debug_info.createLocalVariable(name, line, arg_index, variable);
+    llvm::AllocaInst* local_variable =
+        cur_builder->CreateAlloca(llvm::Type::getDoubleTy(*context), nullptr, name);
+    debug_info_helper->createLocalVariable(local_variable, loc, arg_index);
+    variable = local_variable;
     LOG(DEBUG) << "create local variable " << name;
   }
   cur_scope->insertVariable(name, variable);
@@ -254,7 +171,7 @@ static llvm::Value* createVariable(const std::string& name, size_t line, size_t 
 }
 
 llvm::Value* VariableExprAST::codegen() {
-  // global_debug_info.emitLocation(this);
+  debug_info_helper->emitLocation(getLoc());
   llvm::Value* variable = getVariable(name_);
   if (variable == nullptr) {
     LOG(FATAL) << "Using unassigned variable: " << name_ << ", loc " << getLoc().toString();
@@ -264,6 +181,7 @@ llvm::Value* VariableExprAST::codegen() {
 }
 
 llvm::Value* UnaryExprAST::codegen() {
+  debug_info_helper->emitLocation(getLoc());
   llvm::Value* right_value = right_->codegen();
   CHECK(right_value != nullptr);
   std::string op_str = op_.desc;
@@ -281,7 +199,7 @@ llvm::Value* UnaryExprAST::codegen() {
 }
 
 llvm::Value* BinaryExprAST::codegen() {
-  // global_debug_info.emitLocation(this);
+  debug_info_helper->emitLocation(getLoc());
   llvm::Value* left_value = left_->codegen();
   CHECK(left_value != nullptr);
   llvm::Value* right_value = right_->codegen();
@@ -324,10 +242,10 @@ llvm::Value* BinaryExprAST::codegen() {
 }
 
 llvm::Value* AssignmentExprAST::codegen() {
-  // global_debug_info.emitLocation(this);
+  debug_info_helper->emitLocation(getLoc());
   llvm::Value* variable = getVariable(var_name_);
   if (variable == nullptr) {
-    variable = createVariable(var_name_, getLoc().line, 0);
+    variable = createVariable(var_name_, getLoc(), 0);
   }
   CHECK(variable != nullptr);
   llvm::Value* value = right_->codegen();
@@ -336,7 +254,7 @@ llvm::Value* AssignmentExprAST::codegen() {
 }
 
 llvm::Function* PrototypeAST::codegen() {
-  // global_debug_info.emitLocation(this);
+  debug_info_helper->emitLocation(getLoc());
   std::vector<llvm::Type*> doubles(args_.size(), llvm::Type::getDoubleTy(*context));
   llvm::FunctionType* function_type =
       llvm::FunctionType::get(llvm::Type::getDoubleTy(*context), doubles, false);
@@ -349,18 +267,12 @@ llvm::Function* PrototypeAST::codegen() {
   return function;
 }
 
-llvm::DISubprogram* PrototypeAST::genDebugInfo(llvm::Function* function) const {
-  // return global_debug_info.createFunction(name_, function, args_.size(), getLoc().line,
-  //                                        getLoc().line);
-  return nullptr;
-}
-
 llvm::Function* FunctionAST::codegen() {
+  debug_info_helper->emitLocation(getLoc());
   llvm::Function* function = prototype_->codegen();
   CHECK(function != nullptr);
-  CurrFunctionGuard guard(function);
-  // llvm::DISubprogram* di_subprogram = prototype_->genDebugInfo(function);
-  // global_debug_info.pushDIScope(di_subprogram);
+  CurFunctionGuard guard(function);
+  debug_info_helper->createFunction(function, getLoc(), false);
   std::string body_label = stringPrintf("%s.entry", function->getName().data());
   llvm::BasicBlock* basic_block = llvm::BasicBlock::Create(*context, body_label, function);
   llvm::IRBuilder<>::InsertPointGuard InsertPointGuard(*cur_builder);
@@ -371,7 +283,7 @@ llvm::Function* FunctionAST::codegen() {
 
   auto arg_it = function->arg_begin();
   for (size_t i = 0; i < function->arg_size(); ++i, ++arg_it) {
-    llvm::Value* variable = createVariable(arg_it->getName(), getLoc().line, i + 1);
+    llvm::Value* variable = createVariable(arg_it->getName(), getLoc(), i + 1);
     cur_builder->CreateStore(&*arg_it, variable);
   }
 
@@ -380,12 +292,12 @@ llvm::Function* FunctionAST::codegen() {
   llvm::Value* ret_val = body_->codegen();
   CHECK(ret_val != nullptr);
   cur_builder->CreateRet(ret_val);
-  // global_debug_info.popDIScope();
+  debug_info_helper->endFunction();
   return function;
 }
 
 llvm::Value* CallExprAST::codegen() {
-  // global_debug_info.emitLocation(this);
+  debug_info_helper->emitLocation(getLoc());
   llvm::Function* function = cur_module->getFunction(callee_);
   CHECK(function != nullptr);
   CHECK_EQ(function->arg_size(), args_.size());
@@ -398,7 +310,7 @@ llvm::Value* CallExprAST::codegen() {
 }
 
 llvm::Value* IfExprAST::codegen() {
-  // global_debug_info.emitLocation(this);
+  debug_info_helper->emitLocation(getLoc());
   std::vector<llvm::BasicBlock*> cond_begin_blocks;
   std::vector<llvm::BasicBlock*> cond_end_blocks;
   std::vector<llvm::BasicBlock*> then_begin_blocks;
@@ -466,7 +378,7 @@ llvm::Value* IfExprAST::codegen() {
 }
 
 llvm::Value* BlockExprAST::codegen() {
-  // global_debug_info.emitLocation(this);
+  debug_info_helper->emitLocation(getLoc());
   llvm::Value* last_value = llvm::ConstantFP::get(*context, llvm::APFloat(0.0));
   for (auto& expr : exprs_) {
     last_value = expr->codegen();
@@ -475,7 +387,7 @@ llvm::Value* BlockExprAST::codegen() {
 }
 
 llvm::Value* ForExprAST::codegen() {
-  // global_debug_info.emitLocation(this);
+  debug_info_helper->emitLocation(getLoc());
   // Init block.
   ScopeGuard scoped_guard_init;
   init_expr_->codegen();
@@ -516,11 +428,14 @@ llvm::Value* ForExprAST::codegen() {
   return llvm::ConstantFP::get(*context, llvm::APFloat(0.0));
 }
 
-static llvm::Function* createTmpFunction(const std::string& function_name) {
+static llvm::Function* createTmpFunction(const std::string& function_name, SourceLocation loc,
+                                         bool is_local) {
   llvm::FunctionType* function_type =
       llvm::FunctionType::get(llvm::Type::getDoubleTy(*context), std::vector<llvm::Type*>(), false);
   llvm::Function* function = llvm::Function::Create(
       function_type, llvm::GlobalValue::ExternalWeakLinkage, function_name, cur_module);
+  debug_info_helper->createFunction(function, loc, is_local);
+
   llvm::BasicBlock::Create(*context, "", function);
   return function;
 }
@@ -549,21 +464,13 @@ static void addFunctionDeclarationsInSupportLib(llvm::LLVMContext* context, llvm
 static std::unique_ptr<llvm::Module> codePipeline(const std::vector<ExprAST*>& exprs) {
   std::unique_ptr<llvm::Module> module(new llvm::Module(getTmpModuleName(), *context));
   cur_module = module.get();
-  global_function = createTmpFunction(toy_main_function_name);
-  cur_builder->SetInsertPoint(&global_function->back());
-  // di_builder.reset(new llvm::DIBuilder(*cur_module));
-  // global_debug_info.di_compile_unit =
-  //    di_builder->createCompileUnit(llvm::dwarf::DW_LANG_C, global_option.input_file, ".", "toy",
-  //                                  false, "", 0, "", llvm::DIBuilder::FullDebug, 0, true);
-  // global_debug_info.di_file =
-  //   di_builder->createFile(global_debug_info.di_compile_unit->getFilename(),
-  //                           global_debug_info.di_compile_unit->getDirectory());
-  // global_debug_info.di_double_type =
-  //    di_builder->createBasicType("double", 64, 64, llvm::dwarf::DW_ATE_float);
-  // llvm::DISubprogram* global_di_sub_program =
-  //    global_debug_info.createFunction(toy_main_function_name, global_function, 0, 1, 1);
-  // global_debug_info.pushDIScope(global_di_sub_program);
+  debug_info_helper.reset(
+      new DebugInfoHelper(cur_builder.get(), cur_module, global_option.input_file));
 
+  SourceLocation loc = (exprs.empty() ? SourceLocation() : exprs.front()->getLoc());
+  bool is_local = (global_option.interactive ? true : false);
+  global_function = createTmpFunction(toy_main_function_name, loc, is_local);
+  cur_builder->SetInsertPoint(&global_function->back());
   cur_function = global_function;
   llvm::Value* ret_value = llvm::ConstantFP::get(*context, llvm::APFloat(0.0));
 
@@ -610,8 +517,8 @@ static std::unique_ptr<llvm::Module> codePipeline(const std::vector<ExprAST*>& e
     }
   }
   cur_builder->CreateRet(ret_value);
-  // global_debug_info.popDIScope();
-  // di_builder->finalize();  // ?
+  debug_info_helper->endFunction();
+  debug_info_helper->finalize();
   if (global_option.dump_code) {
     cur_module->dump();
   }
@@ -623,7 +530,7 @@ static std::unique_ptr<llvm::Module> codePipeline(const std::vector<ExprAST*>& e
   bool broken = llvm::verifyModule(*module, &os);
   if (broken) {
     LOG(ERROR) << "verify module failed: " << os.str();
-    // return nullptr;
+    return nullptr;
   }
   return module;
 }

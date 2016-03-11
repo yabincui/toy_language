@@ -20,7 +20,8 @@ Option::Option()
       log_level(INFO),
       execute(false),
       compile(false),
-      compile_assembly(false) {
+      compile_assembly(false),
+      debug(false) {
 }
 
 std::string Option::str() const {
@@ -36,6 +37,7 @@ std::string Option::str() const {
      << "              compile = " << compile << "\n"
      << "              compile_output_file = " << compile_output_file << "\n"
      << "              compile_assembly = " << compile_assembly << "\n"
-     << "              compile_assembly_output_file = " << compile_assembly_output_file << "\n";
+     << "              compile_assembly_output_file = " << compile_assembly_output_file << "\n"
+     << "              debug = " << debug << "\n";
   return os.str();
 }

@@ -27,6 +27,7 @@ static void usage(const std::string& exec_name) {
       "                  ast:    Dump abstract syntax tree.\n"
       "                  code:   Dump generated IR code.\n"
       "                  none:   Don't dump any thing.\n"
+      "-g              Add debug info.\n"
       "-h/--help       Print this help information.\n"
       "-i <file>       Read input from specified file instead of standard\n"
       "                input.\n"
@@ -86,6 +87,8 @@ static bool parseOptions(int argc, char** argv) {
           return false;
         }
       }
+    } else if (args[i] == "-g") {
+      global_option.debug = true;
     } else if (args[i] == "-h" || args[i] == "--help") {
       usage(args[0]);
       exit(0);
