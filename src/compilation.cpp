@@ -3,6 +3,7 @@
 #include <llvm/ADT/SmallString.h>
 #include <llvm/IR/DataLayout.h>
 #include <llvm/IR/LegacyPassManager.h>
+#include <llvm/Support/CommandLine.h>
 #include <llvm/Support/Host.h>
 #include <llvm/Support/TargetRegistry.h>
 #include <llvm/Support/TargetSelect.h>
@@ -15,6 +16,14 @@
 #include "option.h"
 #include "strings.h"
 
+static void addCommandLine(std::string s) {
+  std::string exe_name = "toy";
+  char* argv[3] = {
+      &exe_name[0], &s[0], nullptr,
+  };
+  llvm::cl::ParseCommandLineOptions(2, argv);
+}
+
 bool compileMain(llvm::Module* module, bool is_assembly, const std::string& output_file) {
   llvm::InitializeAllTargets();
   llvm::InitializeAllTargetMCs();
@@ -25,6 +34,7 @@ bool compileMain(llvm::Module* module, bool is_assembly, const std::string& outp
   llvm::initializeCore(*Registry);
   llvm::initializeCodeGen(*Registry);
   std::string triple = llvm::sys::getDefaultTargetTriple();
+  LOG(INFO) << "Default target triple is " << triple;
   std::string err;
   const llvm::Target* target = llvm::TargetRegistry::lookupTarget(triple, err);
   if (target == nullptr) {
@@ -52,6 +62,7 @@ bool compileMain(llvm::Module* module, bool is_assembly, const std::string& outp
     LOG(ERROR) << "addPassesToEmitFile failed";
     return false;
   }
+  addCommandLine("-debug-pass=Details");
   pass_manager.run(*module);
   return writeStringToFile(output_file, s.str(), !is_assembly);
 }
