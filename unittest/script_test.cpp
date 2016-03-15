@@ -15,17 +15,15 @@
 #include <optimization.h>
 #include <parse.h>
 
-static bool enumerateTestScripts(std::vector<std::string> *script_names) {
+static bool enumerateTestScripts(std::vector<std::string>* script_names) {
   script_names->clear();
   std::string script_dir = getExecDir() + "/test_scripts/";
-  std::unique_ptr<DIR, decltype(&closedir)> dir(opendir(script_dir.c_str()),
-                                                closedir);
+  std::unique_ptr<DIR, decltype(&closedir)> dir(opendir(script_dir.c_str()), closedir);
   if (dir == nullptr) {
-    LOG(ERROR) << "failed to open dir " << script_dir << ": "
-               << strerror(errno);
+    LOG(ERROR) << "failed to open dir " << script_dir << ": " << strerror(errno);
     return false;
   }
-  struct dirent *entry;
+  struct dirent* entry;
   while ((entry = readdir(dir.get())) != nullptr) {
     std::string tmp = entry->d_name;
     size_t pos = tmp.find(".test");
@@ -36,8 +34,7 @@ static bool enumerateTestScripts(std::vector<std::string> *script_names) {
   return true;
 }
 
-static bool readTestScript(const std::string &path, std::string *input,
-                           std::string *expect_output) {
+static bool readTestScript(const std::string& path, std::string* input, std::string* expect_output) {
   std::unique_ptr<FILE, decltype(&fclose)> fp(fopen(path.c_str(), "r"), fclose);
   if (fp == nullptr) {
     LOG(ERROR) << "failed to open file " << path << ": " << strerror(errno);
@@ -78,8 +75,7 @@ static bool readTestScript(const std::string &path, std::string *input,
   return true;
 }
 
-static bool executeScript(const std::string &script, bool use_debug,
-                          std::string *output) {
+static bool executeScript(const std::string& script, bool use_debug, std::string* output) {
   global_option.execute = true;
   std::istringstream iss(script);
   global_option.input_file = "string";
@@ -88,7 +84,7 @@ static bool executeScript(const std::string &script, bool use_debug,
   global_option.output_file = "string";
   global_option.out_stream = &oss;
   global_option.debug = use_debug;
-  std::vector<ExprAST *> exprs = parseMain();
+  std::vector<ExprAST*> exprs = parseMain();
   std::unique_ptr<llvm::Module> module = codeMain(exprs);
   optMain(module.get());
   executionMain(module.release());
@@ -96,11 +92,11 @@ static bool executeScript(const std::string &script, bool use_debug,
   return true;
 }
 
-void runScripts(bool use_debug, bool *success) {
+void runScripts(bool use_debug, bool* success) {
   *success = false;
   std::vector<std::string> script_names;
   ASSERT_TRUE(enumerateTestScripts(&script_names));
-  for (const auto &path : script_names) {
+  for (const auto& path : script_names) {
     GTEST_LOG_(INFO) << "Test script " << path;
     std::string input;
     std::string output;

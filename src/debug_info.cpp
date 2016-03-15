@@ -3,6 +3,7 @@
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Value.h>
 
+#include "llvm_version.h"
 #include "logging.h"
 #include "option.h"
 #include "utils.h"

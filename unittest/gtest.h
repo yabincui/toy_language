@@ -6,4 +6,4 @@
 
 std::string getExecDir();
 
-#endif // TOY_UNITTEST_H_
+#endif  // TOY_UNITTEST_H_

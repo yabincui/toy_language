@@ -433,7 +433,7 @@ static llvm::Function* createTmpFunction(const std::string& function_name, Sourc
   llvm::FunctionType* function_type =
       llvm::FunctionType::get(llvm::Type::getDoubleTy(*context), std::vector<llvm::Type*>(), false);
   llvm::Function* function = llvm::Function::Create(
-      function_type, llvm::GlobalValue::ExternalWeakLinkage, function_name, cur_module);
+      function_type, llvm::GlobalValue::ExternalLinkage, function_name, cur_module);
   debug_info_helper->createFunction(function, loc, is_local);
 
   llvm::BasicBlock::Create(*context, "", function);
