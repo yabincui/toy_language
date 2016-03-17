@@ -62,11 +62,15 @@ bool compileMain(llvm::Module* module, bool is_assembly, const std::string& outp
     LOG(ERROR) << "addPassesToEmitFile failed";
     return false;
   }
-  addCommandLine("-debug-pass=Details");
-  addCommandLine("-view-dag-combine1-dags");
-  addCommandLine("-view-isel-dags");
-  addCommandLine("-view-sched-dags");
-  addCommandLine("-view-sunit-dags");
+  static bool is_first = true;
+  if (is_first && global_option.debug_pass) {
+    is_first = false;
+    addCommandLine("-debug-pass=Details");
+    addCommandLine("-view-dag-combine1-dags");
+    addCommandLine("-view-isel-dags");
+    addCommandLine("-view-sched-dags");
+    addCommandLine("-view-sunit-dags");
+  }
   pass_manager.run(*module);
   return writeStringToFile(output_file, s.str(), !is_assembly);
 }

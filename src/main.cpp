@@ -21,6 +21,7 @@ static void usage(const std::string& exec_name) {
       "Usage:\n"
       "-c <file>       Compile the code into object file.\n"
       "-s <file>       Compile the code into assembly file.\n"
+      "--debug-pass    Print llvm compilation passes.\n"
       "--dump dumpType1, dumpType2,...\n"
       "                Dump specified contents. Possible type list:\n"
       "                  token:  Dump all tokens received.\n"
@@ -66,6 +67,8 @@ static bool parseOptions(int argc, char** argv) {
       }
       global_option.compile = true;
       global_option.compile_output_file = args[i];
+    } else if (args[i] == "--debug-pass") {
+      global_option.debug_pass = true;
     } else if (args[i] == "--dump") {
       if (!nextArgumentOrError(args, i)) {
         return false;

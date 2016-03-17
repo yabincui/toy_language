@@ -16,7 +16,7 @@ class HelloModulePass : public llvm::ModulePass {
   }
 
   bool runOnModule(llvm::Module& m) {
-    printf("HelloModulePass: module %s\n", m.getName().data());
+    // printf("HelloModulePass: module %s\n", m.getName().data());
     return false;
   }
 };
@@ -33,7 +33,7 @@ class HelloFunctionPass : public llvm::FunctionPass {
   }
 
   bool runOnFunction(llvm::Function& F) override {
-    printf("HelloFunctionPass: %s\n", F.getName().data());
+    // printf("HelloFunctionPass: %s\n", F.getName().data());
     return false;
   }
 };
@@ -47,7 +47,6 @@ void prepareOptPipeline() {
 
 void optPipeline(llvm::Module* module) {
   llvm::legacy::PassManager pm;
-  // TODO: who manages Pass instance.
   llvm::Pass* hello_module_pass = llvm::Pass::createPass(&HelloModulePass::ID);
   pm.add(hello_module_pass);
   llvm::Pass* hello_function_pass = llvm::Pass::createPass(&HelloFunctionPass::ID);

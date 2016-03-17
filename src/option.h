@@ -24,6 +24,7 @@ struct Option {
   bool compile_assembly;
   std::string compile_assembly_output_file;
   bool debug;
+  bool debug_pass;
 
   Option();
 

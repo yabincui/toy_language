@@ -21,7 +21,8 @@ Option::Option()
       execute(false),
       compile(false),
       compile_assembly(false),
-      debug(false) {
+      debug(false),
+      debug_pass(false) {
 }
 
 std::string Option::str() const {
@@ -38,6 +39,7 @@ std::string Option::str() const {
      << "              compile_output_file = " << compile_output_file << "\n"
      << "              compile_assembly = " << compile_assembly << "\n"
      << "              compile_assembly_output_file = " << compile_assembly_output_file << "\n"
-     << "              debug = " << debug << "\n";
+     << "              debug = " << debug << "\n"
+     << "              debug_pass = " << debug_pass << "\n";
   return os.str();
 }
